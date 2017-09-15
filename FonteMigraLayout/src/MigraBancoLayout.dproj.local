@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2013/01/13 22:42:24.331.dproj,D:\GeraSys.Ti\MigraBcoLayout\Fontes\MigraBancoLayout.dproj=D:\GeraSys.Ti\MigraBcoLayout\Fontes\MigraParadoxFb.dproj</Transaction>
+    <Transaction>2013/01/13 22:52:17.617.pas,D:\GeraSys.Ti\MigraBcoLayout\Fontes\Principal.pas=D:\GeraSys.Ti\MigraBcoLayout\Fontes\Unit1.pas</Transaction>
+    <Transaction>2013/01/13 22:52:17.617.dfm,D:\GeraSys.Ti\MigraBcoLayout\Fontes\Principal.dfm=D:\GeraSys.Ti\MigraBcoLayout\Fontes\Unit1.dfm</Transaction>
+    <Transaction>2013/01/14 14:48:32.000.441,D:\Aplicativos\MigraBcoLayout\Fontes\udmTabDiversas.pas=</Transaction>
+    <Transaction>2013/01/14 16:02:02.000.097,D:\Aplicativos\MigraBcoLayout\Fontes\FolhaFuncs.pas=</Transaction>
+    <Transaction>2013/01/14 16:02:07.000.777,D:\Aplicativos\MigraBcoLayout\Fontes\dmTabAliquotas.pas=</Transaction>
+    <Transaction>2013/01/14 16:02:11.000.807,D:\Aplicativos\MigraBcoLayout\Fontes\DispTabMigrada.pas=</Transaction>
+    <Transaction>2013/01/14 16:02:18.000.956,D:\Aplicativos\MigraBcoLayout\Fontes\udmPrincipal.pas=</Transaction>
+    <Transaction>2013/01/14 16:02:21.000.950,D:\Aplicativos\MigraBcoLayout\Fontes\udmCadLanctos.pas=</Transaction>
+    <Transaction>2013/01/14 16:03:07.000.696,=D:\Aplicativos\MigraBcoLayout\Fontes\udmPrincipal.pas</Transaction>
+    <Transaction>2013/01/14 16:03:31.000.375,=D:\Aplicativos\MigraBcoLayout\Fontes\dmTabAliquotas.pas</Transaction>
+    <Transaction>2013/01/14 16:04:48.000.904,=D:\Aplicativos\MigraBcoLayout\Fontes\DispTabMigrada.pas</Transaction>
+    <Transaction>2013/01/14 16:05:12.000.912,=D:\Aplicativos\MigraBcoLayout\Fontes\udmTabDiversas.pas</Transaction>
+    <Transaction>2013/01/14 16:05:26.000.557,=D:\Aplicativos\MigraBcoLayout\Fontes\FolhaFuncs.pas</Transaction>
+    <Transaction>2013/01/14 16:05:54.000.429,=D:\Aplicativos\MigraBcoLayout\Fontes\udmCadLanctos.pas</Transaction>
+    <Transaction>2014/08/04 16:54:15.123.pas,D:\MigraLayout\Fontes\Unit1.pas=D:\MigraLayout\Fontes\dmMovimento.pas</Transaction>
+    <Transaction>2014/08/04 16:54:15.123.dfm,D:\MigraLayout\Fontes\Unit1.dfm=D:\MigraLayout\Fontes\dmMovimento.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

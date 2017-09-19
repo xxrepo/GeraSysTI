@@ -313,6 +313,8 @@ Type
       FLocalidade : TLocalidade;
       FRegiao : TGenerico;
     public
+      procedure CarregarDados; override;
+
       property Tipo : TGenerico read FTipo write FTipo;
       property Localidade : TLocalidade read FLocalidade write FLocalidade;
       property Regiao : TGenerico read FRegiao write FRegiao;
@@ -383,6 +385,7 @@ Type
       FRemuneracao : String;
     public
       procedure CarregarDados; override;
+      procedure CarregarDados_v2(aIdentificador_OLD : Integer);
 
       property CodigoRubrica : String read FCodigoRubrica write FCodigoRubrica;
       property Tipo          : String read FTipo write FTipo;
@@ -2997,6 +3000,31 @@ end;
 
 { TUnidadeLotacao }
 
+procedure TUnidadeLotacao.CarregarDados;
+begin
+  try
+    with dmConexaoTargetDB, qryUnidadeLotacao do
+    begin
+      Close;
+      ParamByName('codigo').AsString := Codigo;
+      Open;
+      if not IsEmpty then
+      begin
+        ID         := FieldByName('id').AsInteger;
+        Descricao  := Trim(FieldByName('descricao').AsString);
+        Tipo.ID    := FieldByName('id_tipo_unid_lotacao').AsInteger;
+        Localidade := TLocalidade(StrToIntDef(FieldByName('localidade').AsString, 0));
+        Regiao.ID  := FieldByName('id_regiao').AsInteger;
+        Ativo      := (FieldByName('ativo').AsString = 'S');
+      end;
+      Close;
+    end;
+  except
+    On E : Exception do
+      MensagemErro('Erro', 'Erro ao tentar carregar dados da Unidade de Lotação : ' + #13 + E.Message);
+  end;
+end;
+
 constructor TUnidadeLotacao.Create;
 begin
   inherited Create;
@@ -3074,6 +3102,69 @@ begin
       Close;
       ParamByName('codigo').AsString := Codigo;
       Open;
+
+      if not IsEmpty then
+      begin
+        ID              := FieldByName('id').AsInteger;
+        Descricao       := FieldByName('descricao').AsString;
+        CodigoRubrica   := Trim(FieldByName('codigo').AsString);
+        Codigo          := FieldByName('id_sys_anter').AsString;
+        Tipo            := FieldByName('tipo').AsString;
+        FormaCalculo    := TFormaCalculo(StrToInt(FieldByName('forma_calc').AsString));
+        Categoria.ID    := FieldByName('id_categ').AsInteger;
+        CategoriaTCM.ID := FieldByName('id_categ_tcm').AsInteger;
+
+        PercentualHoraExtra   := FieldByName('percent_hora_extra').AsCurrency;
+        HRSobreHoraNormal     := FieldByName('he_sobre_hora_normal').AsString;
+        TipoBaseCalculo       := TTipoBaseCalculo(StrToInt(FieldByName('tipo_base_calc').AsString));
+        IndiceSalarioFamilia  := (FieldByName('incide_sal_familia').AsString = 'S');
+        IndiceATS             := (FieldByName('incide_ats').AsString = 'S');
+        IndiceFerias          := (FieldByName('incide_ferias').AsString = 'S');
+        IndiceDecimoTerceiro  := (FieldByName('incide_dec_terc').AsString = 'S');
+        IndiceFalta           := (FieldByName('incide_falta').AsString = 'S');
+        IndicePrevidencia     := (FieldByName('incide_previd').AsString = 'S');
+        IndiceIRRF            := (FieldByName('incide_irrf').AsString = 'S');
+        IndiceOutraBC1        := (FieldByName('incide_outra_bc1').AsString = 'S');
+        IndiceOutraBC2        := (FieldByName('incide_outra_bc2').AsString = 'S');
+        IndiceOutraBC3        := (FieldByName('incide_outra_bc3').AsString = 'S');
+        ValorFixo             := FieldByName('valor_fixo').AsCurrency;
+        Divisor               := FieldByName('divisor').AsCurrency;
+        SubDivisor            := FieldByName('subdivisor').AsCurrency;
+        Max_x_vencimentoBase  := FieldByName('max_x_vencto_base').AsCurrency;
+        GeraRAIS              := (FieldByName('gera_rais').AsString = 'S');
+        CopiaMesAnterior      := (FieldByName('copia_mes_anterior').AsString = 'S');
+        PermiteUsuarioAlterar := (FieldByName('permitir_usuario_alter').AsString = 'S');
+        SemUso                := (FieldByName('sem_uso').AsString = 'S');
+        CodigoItem            := Trim(FieldByName('cont_cod_item').AsString);
+        SubElementoDespesa    := FieldByName('cont_sub_elemen_desp').AsString;
+        ContaCorrente         := FieldByName('cont_conta_corrente').AsString;
+        BCMargemConsignada    := (FieldByName('bc_margem_consig').AsString = 'S');
+        ValorBCFixa           := FieldByName('val_bc_fixa').AsCurrency;
+        Natureza              := TTipoNaturezaEvento(StrToInt(FieldByName('natureza').AsString));
+        Remuneracao           := FieldByName('remunerac').AsString;
+        Descricao             := FieldByName('legalidade').AsString;
+      end;
+      Close;
+    end;
+  except
+    On E : Exception do
+      MensagemErro('Erro', 'Erro ao tentar carregar dados do Evento : ' + #13 + E.Message);
+  end;
+end;
+
+procedure TEvento.CarregarDados_v2(aIdentificador_OLD : Integer);
+begin
+  try
+    with dmConexaoTargetDB, qryEvento do
+    begin
+      Close;
+      ParamByName('codigo').AsString := Codigo;
+      Open;
+
+      if (aIdentificador_OLD > 0) then
+        while (not IsEmpty) and (aIdentificador_OLD = FieldByName('id').AsInteger) do
+          Next;
+
       if not IsEmpty then
       begin
         ID              := FieldByName('id').AsInteger;

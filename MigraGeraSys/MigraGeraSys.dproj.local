@@ -1,65 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2015/01/30 11:24:08.000.040,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/01/30 12:10:36.000.265,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/01/30 12:12:50.000.726,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/02/02 14:07:28.000.573,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/02/02 14:32:57.000.998,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/02/27 19:42:39.000.252,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/02/27 20:57:22.000.359,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/02/27 21:23:10.000.877,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/03/25 10:32:51.000.401,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/03/25 10:42:08.000.883,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/03/27 00:39:10.000.479,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/05/19 12:32:47.000.963,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/08/19 14:59:59.000.439,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/12/01 10:42:39.000.966,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
-    <Transaction>2015/12/01 10:42:39.000.814,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/12/01 10:42:42.000.588,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerContainerUnit1.pas</Transaction>
-    <Transaction>2015/12/01 10:51:02.000.731,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
-    <Transaction>2015/12/01 10:51:02.000.502,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/12/01 10:51:02.000.914,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerContainerUnit1.pas</Transaction>
-    <Transaction>2015/12/01 21:48:59.000.389,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerContainerUnit1.pas</Transaction>
-    <Transaction>2015/12/01 21:48:59.000.116,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/12/01 21:48:59.000.266,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
-    <Transaction>2015/12/02 09:54:54.000.019,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/12/02 09:54:54.000.633,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerMethodsUnit1.pas</Transaction>
-    <Transaction>2015/12/02 09:54:55.000.120,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\ServerContainerUnit1.pas</Transaction>
-    <Transaction>2015/12/05 11:50:51.000.020,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 13:58:13.000.002,=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>2017/02/18 13:59:16.000.560,C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UMain.dfm</Transaction>
-    <Transaction>2017/02/18 13:59:16.000.560,C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\UMain.pas</Transaction>
     <Transaction>2017/02/18 13:59:33.000.178,C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Projetos\GeraSysTI\MigraGeraSys\MigraGeraSys.dproj</Transaction>
-    <Transaction>2017/02/18 14:09:50.000.424,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 14:10:13.000.484,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\URecursos.pas</Transaction>
     <Transaction>2017/02/18 14:10:13.000.484,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\URecursos.dfm</Transaction>
-    <Transaction>2017/02/18 14:24:37.000.917,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 14:25:14.000.327,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\UPadraoSDI.pas</Transaction>
     <Transaction>2017/02/18 14:25:14.000.327,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UPadraoSDI.dfm</Transaction>
-    <Transaction>2017/02/18 14:36:47.000.164,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 14:37:47.000.052,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.pas</Transaction>
     <Transaction>2017/02/18 14:37:47.000.052,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.dfm</Transaction>
-    <Transaction>2017/02/18 14:47:32.000.212,=D:\Projetos\GeraSysTI\MigraGeraSys\src\FormFactoryU.pas</Transaction>
-    <Transaction>2017/02/18 14:47:32.000.224,=D:\Projetos\GeraSysTI\MigraGeraSys\src\FuncoesFormulario.pas</Transaction>
-    <Transaction>2017/02/18 14:48:41.000.172,=D:\Projetos\GeraSysTI\MigraGeraSys\src\MyObserverInterface.pas</Transaction>
-    <Transaction>2017/02/18 15:02:41.000.345,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 15:05:42.000.547,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConexaoTargetDB.pas</Transaction>
     <Transaction>2017/02/18 15:05:42.000.547,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConexaoTargetDB.dfm</Transaction>
-    <Transaction>2017/02/18 15:46:05.000.578,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 15:47:19.000.542,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.pas</Transaction>
     <Transaction>2017/02/18 15:47:19.000.542,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm</Transaction>
-    <Transaction>2017/02/18 16:04:25.000.396,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/02/18 16:05:27.000.704,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.pas</Transaction>
     <Transaction>2017/02/18 16:05:27.000.704,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm</Transaction>
-    <Transaction>2017/02/18 16:34:38.000.115,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
     <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.pas</Transaction>
     <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.dfm</Transaction>
-    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas</Transaction>
     <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.dfm</Transaction>
-    <Transaction>2017/04/03 15:24:55.000.359,=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas</Transaction>
-    <Transaction>2017/04/03 15:25:53.000.049,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.pas</Transaction>
+    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas</Transaction>
     <Transaction>2017/04/03 15:25:53.000.049,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.dfm</Transaction>
-    <Transaction>2017/09/15 16:55:51.086,=D:\Projetos\GeraSysTI\MigraGeraSys\src\UVersao.pas</Transaction>
   </Transactions>
 </BorlandProject>

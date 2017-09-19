@@ -838,6 +838,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
     aBaseCalculoMesServidor : TBaseCalculoMesServidor;
     aEventoBaseCalculoMesServidor : TEventoBaseCalculoMesServidor;
     sInforme : String;
+    aEventoID_OLD : Integer;
   begin
     if dbfSourceDB.Active then
       dbfSourceDB.Close;
@@ -849,6 +850,8 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
 
     prbAndamento.Position := 0;
     prbAndamento.Max      := dbfSourceDB.RecordCount;
+
+    aEventoID_OLD := 0;
 
     dbfSourceDB.First;
     if (Trim(dbfSourceDB.FieldByName('folha').AsString) <> aCompetencia.Codigo) then
@@ -875,6 +878,9 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
           aServidor.Codigo     := Trim(dbfSourceDB.FieldByName('matric').AsString);
           aServidor.Matricula  := Trim(dbfSourceDB.FieldByName('matric').AsString);
           aServidor.CarregarDados;
+
+          aServidor.UnidadeLotacao.Codigo := Trim(dbfSourceDB.FieldByName('lot').AsString);
+          aServidor.UnidadeLotacao.CarregarDados;
 
           aInicializaMesServidor          := TInicializaMesServidor.Create;
           aInicializaMesServidor.AnoMes   := IntToStr(aCompetencia.ID);
@@ -905,6 +911,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
               or (aInicializaMesServidor.Rubrica = '007')        // -- Subsídios
               or (aInicializaMesServidor.Rubrica = '037') ) then // -- Licença Maternidade
             begin
+              aEventoID_OLD := 0;
               aRegistrInserido := dmConexaoTargetDB.InserirInicializaMesServidor(aInicializaMesServidor);
               if aRegistrInserido then
                 if not dmConexaoTargetDB.InserirBaseCalculoMesServidor(aBaseCalculoMesServidor) then
@@ -918,7 +925,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
             begin
               aEvento := TEvento.Create;
               aEvento.Codigo := Trim(dbfSourceDB.FieldByName('rubrica').AsString);
-              aEvento.CarregarDados;
+              aEvento.CarregarDados_v2(aEventoID_OLD);
               if (aEvento.ID > 0) then
               begin
                 // Inserir EVENTOS
@@ -932,6 +939,8 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
                 if not dmConexaoTargetDB.InserirEventoBCMesServidor(aEventoBaseCalculoMesServidor) then
                   gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
                     QuotedStr(aInicializaMesServidor.AnoMes + ' - ' + aInicializaMesServidor.Servidor.Matricula) + '/' + aEvento.Codigo + ' - Evento da Base de cálculo não inserido');
+
+                aEventoID_OLD := aEvento.ID;
               end;
             end
             else

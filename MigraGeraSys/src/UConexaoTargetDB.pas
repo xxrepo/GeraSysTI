@@ -3162,7 +3162,7 @@ begin
       Open;
 
       if (aIdentificador_OLD > 0) then
-        while (not IsEmpty) and (aIdentificador_OLD = FieldByName('id').AsInteger) do
+        while (not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger) do
           Next;
 
       if not IsEmpty then

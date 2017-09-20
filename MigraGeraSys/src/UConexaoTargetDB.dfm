@@ -746,7 +746,10 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , e.remunerac'
       '  , e.legalidade'
       'from EVENTO e'
-      'where e.id_sys_anter = :codigo')
+      'where e.id_sys_anter = :codigo'
+      'order by'
+      '    e.codigo'
+      '  , e.descricao')
     Left = 448
     Top = 16
     ParamData = <

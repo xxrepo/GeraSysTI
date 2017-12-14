@@ -33,6 +33,7 @@ type
     chkTabelaEscolaridade: TCheckBox;
     chkTabelaCargoFuncao: TCheckBox;
     qrySourceDB: TFDQuery;
+    chkTabelaUnidadeGestora: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTodosClick(Sender: TObject);
@@ -45,6 +46,7 @@ type
     procedure ImportarCBO(Sender: TObject);
     procedure ImportarEscolaridade(Sender: TObject);
     procedure ImportarCargoFuncao(Sender: TObject);
+    procedure ImportarUnidadeGestora(Sender: TObject);
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -58,7 +60,7 @@ implementation
 {$R *.dfm}
 
 uses
-  URecursos, UConexaoTargetDB;
+  URecursos, UConexaoTargetDB, USourceDBFiorilliTabelas;
 
 procedure TfrmSourceDBFiorilli.btnConectarClick(Sender: TObject);
 begin
@@ -71,7 +73,10 @@ procedure TfrmSourceDBFiorilli.btnVisualizarClick(Sender: TObject);
 begin
   GravarIni;
 
-  //ShowTabelasFireBird(Self);
+  if not fdSourceDB.Connected then
+    ConectarSourceDB;
+
+  ShowTabelasFireBird(Self);
 end;
 
 procedure TfrmSourceDBFiorilli.chkTodosClick(Sender: TObject);
@@ -133,7 +138,7 @@ begin
         if chkTabelaCBO.Checked             then ImportarCBO(chkTabelaCBO);
         if chkTabelaEscolaridade.Checked    then ImportarEscolaridade(chkTabelaEscolaridade);
         if chkTabelaCargoFuncao.Checked     then ImportarCargoFuncao(chkTabelaCargoFuncao);
-//        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
+        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
 //        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
 //        if chkTabelaUnidadeLotacao.Checked  then ImportarUnidadeLotacao(chkTabelaUnidadeLotacao);
 //        if chkTabelaEstadoFuncional.Checked then ImportarEstadoFuncional(chkTabelaEstadoFuncional);
@@ -187,25 +192,34 @@ end;
 procedure TfrmSourceDBFiorilli.ImportarCargoFuncao(Sender: TObject);
 var
   aCargoFuncao : TCargoFuncao;
-  aCBO     ,
-  aTipoTCM : TGenerico;
+  aCBO    ,
+  aTipoTCM,
+  aEscola : TGenerico;
 begin
   try
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
-    qrySourceDB.SQL.Text := 'Select * from CARGOS';
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    c.*');
+    qrySourceDB.SQL.Add('  , x.valor');
+    qrySourceDB.SQL.Add('from CARGOS c');
+    qrySourceDB.SQL.Add('  left join PLANOCARGOSCARGO pc on (pc.empresa = c.empresa and pc.cargo = c.codigo)');
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select');
+    qrySourceDB.SQL.Add('        cs.idplanocargoscargo');
+    qrySourceDB.SQL.Add('      , min(s.valor) as valor');
+    qrySourceDB.SQL.Add('    from CARGOSAL cs');
+    qrySourceDB.SQL.Add('      inner join SALARIOS s on (s.empresa = cs.empresa and s.codigo = cs.refsal)');
+    qrySourceDB.SQL.Add('    group by');
+    qrySourceDB.SQL.Add('        cs.idplanocargoscargo');
+    qrySourceDB.SQL.Add('  ) x on (x.idplanocargoscargo = pc.idplanocargoscargo)');
     qrySourceDB.Open;
     qrySourceDB.Last;
 
     prbAndamento.Position := 0;
     prbAndamento.Max      := qrySourceDB.RecordCount;
-    (*
-    if dbfSourceDBDetails.Active then
-      dbfSourceDBDetails.Close;
-
-    dbfSourceDBDetails.DBFFileName := gConfiguracao.ReadString('SourceDBInfoPublic', 'Directory', ExtractFilePath(ParamStr(0))) + '\fol_tab_vencim.dbf';
-    dbfSourceDBDetails.Open;
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -213,21 +227,43 @@ begin
       aCargoFuncao := TCargoFuncao.Create;
       aCBO     := TGenerico.Create;
       aTipoTCM := TGenerico.Create;
+      aEscola  := TGenerico.Create;
 
       aCargoFuncao.ID         := 0;
-      aCargoFuncao.Codigo     := FormatFloat('0000', StrToInt(Trim(dbfSourceDB.FieldByName('cod').AsString)));
-      aCargoFuncao.Descricao  := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('des').AsString));
-      aCargoFuncao.CBO.Codigo := FormatFloat('000000', StrToInt(Trim(dbfSourceDB.FieldByName('cbo').AsString)));
-      aCargoFuncao.CargaHorariaMensal  := dbfSourceDB.FieldByName('chr').AsInteger;
+      aCargoFuncao.Codigo     := FormatFloat('0000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
+      aCargoFuncao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
+      aCargoFuncao.CBO.Codigo := FormatFloat('000000', StrToInt(Trim(qrySourceDB.FieldByName('cbo').AsString)));
+      aCargoFuncao.NumeroAtoCriacao    := Trim(qrySourceDB.FieldByName('numdoc_criacao').AsString);
+      aCargoFuncao.DataAtoCriacao      := qrySourceDB.FieldByName('dtcriacao').AsDateTime;
+      aCargoFuncao.QuantidadeVaga      := qrySourceDB.FieldByName('vagacargo').AsInteger;
+      aCargoFuncao.CargaHorariaMensal  := qrySourceDB.FieldByName('horasmes').AsInteger;
       aCargoFuncao.BaseCalculoHoraAula := aCargoFuncao.CargaHorariaMensal;
-      aCargoFuncao.TipoTCM.Codigo      := dbfSourceDB.FieldByName('tipo').AsString;
+
+      if (Trim(qrySourceDB.FieldByName('instrucao').AsString) <> EmptyStr) then
+        aCargoFuncao.Escolaridade.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('instrucao').AsString)));
+
+      aCargoFuncao.TipoTCM.Codigo    := '20';
+      aCargoFuncao.TipoTCM.Descricao := 'EFETIVO CONCURSADO';
+
+//      Case qrySourceDB.FieldByName('vinculo').AsInteger of
+//        40, 50, 55 :
+//          begin
+//            aCargoFuncao.TipoTCM.Codigo    := '40';
+//            aCargoFuncao.TipoTCM.Descricao := 'TEMPORARIO';
+//          end;
+//        else
+//          begin
+//            aCargoFuncao.TipoTCM.Codigo    := '20';
+//            aCargoFuncao.TipoTCM.Descricao := 'EFETIVO CONCURSADO';
+//          end;
+//      end;
 
       aCargoFuncao.Categoria.ID        := 1;
-      aCargoFuncao.Categoria.Descricao := 'AUXILIARES DE SERVICOS GERAIS';
-      aCargoFuncao.Categoria.Codigo    := 'ASG - 010';
+      aCargoFuncao.Categoria.Descricao := 'GERAL';
+      aCargoFuncao.Categoria.Codigo    := 'G - 010';
 
       aCargoFuncao.FatorProgramaSalario.ID        := 1;
-      aCargoFuncao.FatorProgramaSalario.Descricao := '1 REF. - 1 ANOS - 0.00%';
+      aCargoFuncao.FatorProgramaSalario.Descricao := '0 REF. - 0 ANOS - 0.00%';
       aCargoFuncao.FatorProgramaSalario.Codigo    := '';
       aCargoFuncao.FatorProgramaSalario.QuantidadeReferencia := 1;
       aCargoFuncao.FatorProgramaSalario.ReferenciaInicial    := 1;
@@ -240,29 +276,28 @@ begin
       dmConexaoTargetDB.InserirCargoTCM(aCargoFuncao.TipoTCM);
       dmConexaoTargetDB.InserirFatorProgramaSalario(aCargoFuncao.FatorProgramaSalario);
 
-      dmConexaoTargetDB.GetID('CBO',            'ID', 'CODIGO = ' + QuotedStr(aCargoFuncao.CBO.Codigo), aCBO);
-      dmConexaoTargetDB.GetID('TIPO_CARGO_TCM', 'ID', 'ID = '     + IfThen(Trim(aCargoFuncao.TipoTCM.Codigo) = EmptyStr, '0', Trim(aCargoFuncao.TipoTCM.Codigo)), aTipoTCM);
+      dmConexaoTargetDB.GetID('CBO',            'ID', 'CODIGO = '   + QuotedStr(aCargoFuncao.CBO.Codigo), aCBO);
+      dmConexaoTargetDB.GetID('TIPO_CARGO_TCM', 'ID', 'ID = '       + IfThen(Trim(aCargoFuncao.TipoTCM.Codigo) = EmptyStr, '0', Trim(aCargoFuncao.TipoTCM.Codigo)), aTipoTCM);
+      dmConexaoTargetDB.GetID('ESCOLARIDADE',   'ID', 'COD_RAIS = ' + QuotedStr(aCargoFuncao.Escolaridade.Codigo), aEscola);
 
-      aCargoFuncao.CBO.ID     := aCBO.ID;
-      aCargoFuncao.TipoTCM.ID := aTipoTCM.ID;
+      aCargoFuncao.CBO.ID          := aCBO.ID;
+      aCargoFuncao.TipoTCM.ID      := aTipoTCM.ID;
+      aCargoFuncao.Escolaridade.ID := aEscola.ID;
 
-      if dbfSourceDBDetails.Locate('CARGO', dbfSourceDB.FieldByName('cod').AsString, []) then
-      begin
-        aCargoFuncao.VencimentoBase := StrToCurr(Trim(dbfSourceDBDetails.FieldByName('VALOR').AsString));
-        aCargoFuncao.Observacao     := dbfSourceDBDetails.FieldByName('OBS').AsString;
-      end;
+      aCargoFuncao.VencimentoBase := qrySourceDB.FieldByName('valor').AsCurrency;
+      aCargoFuncao.Observacao     := qrySourceDB.FieldByName('obs').AsString;
 
       if not dmConexaoTargetDB.InserirCargoFuncao(aCargoFuncao) then
           gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
             QuotedStr(aCargoFuncao.Codigo + ' - ' + aCargoFuncao.Descricao) + ' não importado');
 
-      lblAndamento.Caption  := Trim(dbfSourceDB.FieldByName('des').AsString);
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
       Application.ProcessMessages;
       qrySourceDB.Next;
     end;
-    *)
+
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_CATEG_FUNCIONAL', 'CATEG_FUNCIONAL', 'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_FATOR_PROG_SAL',  'FATOR_PROG_SAL',  'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_CARGO_FUNCAO',    'CARGO_FUNCAO',    'ID');
@@ -271,10 +306,7 @@ begin
 
     if qrySourceDB.Active then
       qrySourceDB.Close;
-    (*
-    if dbfSourceDBDetails.Active then
-      dbfSourceDBDetails.Close;
-    *)
+
     if (Sender is TCheckBox) then
       TCheckBox(Sender).Checked := False;
   end;
@@ -377,6 +409,97 @@ begin
       Application.ProcessMessages;
       qrySourceDB.Next;
     end;
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBFiorilli.ImportarUnidadeGestora(Sender: TObject);
+var
+  aUnidade : TUnidadeGestora;
+  sCnpjPrincipal : String;
+begin
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from XXX';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+    sCnpjPrincipal        := EmptyStr;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aUnidade := TUnidadeGestora.Create;
+      (*
+      aUnidade.ID          := StrToInt(Trim(dbfSourceDB.FieldByName('ugtcm').AsString));
+      aUnidade.Descricao   := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('desug').AsString));
+      aUnidade.RazaoSocial := aUnidade.Descricao;
+      aUnidade.Codigo      := Trim(dbfSourceDB.FieldByName('codtcm').AsString);
+      aUnidade.CNPJ        := Trim(dbfSourceDB.FieldByName('cnpj').AsString);
+      aUnidade.CNPJPrincipal  := aUnidade.CNPJ;
+      aUnidade.TipoUnidade.ID := StrToInt(Trim(dbfSourceDB.FieldByName('tipoug').AsString));
+
+      sCnpjPrincipal := aUnidade.CNPJ;
+
+      if not dmConexaoTargetDB.InserirUnidadeGestora(aUnidade) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+            QuotedStr(aUnidade.Codigo + ' - ' + aUnidade.Descricao) + ' não importado');
+      *)
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('desug').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+
+    end;
+//
+//    if dbfSourceDB.Active then
+//      dbfSourceDB.Close;
+//
+//    // tab_tab_tcm.dbf
+//    dbfSourceDB.DBFFileName := gConfiguracao.ReadString('SourceDBInfoPublic', 'Directory', ExtractFilePath(ParamStr(0))) + '\tab_tab_tcm.dbf';
+//    dbfSourceDB.Open;
+//    dbfSourceDB.Last;
+//
+//    prbAndamento.Position := 0;
+//    prbAndamento.Max      := dbfSourceDB.RecordCount;
+//
+//    dbfSourceDB.First;
+//    while not dbfSourceDB.Eof do
+//    begin
+//      if Trim(dbfSourceDB.FieldByName('cod').AsString) <> EmptyStr then
+//      begin
+//        aUnidade := TUnidadeGestora.Create;
+//
+//        aUnidade.Descricao   := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('des').AsString));
+//        aUnidade.RazaoSocial := aUnidade.Descricao;
+//        aUnidade.Codigo      := Trim(dbfSourceDB.FieldByName('cod').AsString);
+//        aUnidade.CNPJ        := sCnpjPrincipal;
+//        aUnidade.CNPJPrincipal  := aUnidade.CNPJ;
+//
+//        dmConexaoTargetDB.InserirUnidadeGestora(aUnidade);
+//      end;
+//
+//      lblAndamento.Caption  := Trim(dbfSourceDB.FieldByName('des').AsString);
+//      prbAndamento.Position := prbAndamento.Position + 1;
+//
+//      Application.ProcessMessages;
+//      dbfSourceDB.Next;
+//
+//    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_GESTORA',  'UNID_GESTORA', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT', 'UNID_ORCAMENT', 'ID');
   finally
     dmRecursos.ExibriLog;
 

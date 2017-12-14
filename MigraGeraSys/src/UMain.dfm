@@ -28,6 +28,14 @@ object frmMain: TfrmMain
     Anchors = [akRight, akBottom]
     Transparent = True
   end
+  object Label1: TLabel
+    AlignWithMargins = True
+    Left = 8
+    Top = 32
+    Width = 224
+    Height = 13
+    Caption = 'Arquivo FDB de destino dos dados importados:'
+  end
   object stbInforme: TStatusBar
     Left = 0
     Top = 488
@@ -52,6 +60,29 @@ object frmMain: TfrmMain
         Width = 50
       end>
     UseSystemFont = False
+  end
+  object lblTargetDB: TcxLabel
+    AlignWithMargins = True
+    Left = 8
+    Top = 47
+    Caption = 'lblTargetDB'
+    ParentFont = False
+    Style.Font.Charset = DEFAULT_CHARSET
+    Style.Font.Color = clNavy
+    Style.Font.Height = -11
+    Style.Font.Name = 'Tahoma'
+    Style.Font.Style = [fsBold]
+    Style.LookAndFeel.Kind = lfUltraFlat
+    Style.LookAndFeel.NativeStyle = False
+    Style.Shadow = True
+    Style.IsFontAssigned = True
+    StyleDisabled.LookAndFeel.Kind = lfUltraFlat
+    StyleDisabled.LookAndFeel.NativeStyle = False
+    StyleFocused.LookAndFeel.Kind = lfUltraFlat
+    StyleFocused.LookAndFeel.NativeStyle = False
+    StyleHot.LookAndFeel.Kind = lfUltraFlat
+    StyleHot.LookAndFeel.NativeStyle = False
+    Transparent = True
   end
   object BrManager: TdxBarManager
     Font.Charset = DEFAULT_CHARSET

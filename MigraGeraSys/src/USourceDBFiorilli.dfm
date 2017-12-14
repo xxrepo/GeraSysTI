@@ -98,7 +98,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Height = 17
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 2
-      ExplicitTop = 261
     end
     object edUsuario: TEdit
       Left = 429
@@ -156,6 +155,14 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Caption = 'Tabela Cargos/Fun'#231#245'es'
       TabOrder = 8
     end
+    object chkTabelaUnidadeGestora: TCheckBox
+      Left = 16
+      Top = 133
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Unidade Gestora'
+      TabOrder = 9
+    end
   end
   inherited chkRotina: TCheckBox
     Left = 376
@@ -176,7 +183,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Images = dmRecursos.img16x16
     TabOrder = 2
     OnClick = btnVisualizarClick
-    ExplicitTop = 326
   end
   object fdSourceDB: TFDConnection
     Params.Strings = (

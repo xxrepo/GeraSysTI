@@ -14,7 +14,8 @@ uses
   USourceDBInfoPublic in 'src\USourceDBInfoPublic.pas' {frmSourceDBInfoPublic},
   USourceDBInfoPublicTabelas in 'src\USourceDBInfoPublicTabelas.pas' {frmSourceDBInfoPublicTabelas},
   USourceDBFiorilli in 'src\USourceDBFiorilli.pas' {frmSourceDBFiorilli},
-  UVersao in 'src\UVersao.pas';
+  UVersao in 'src\UVersao.pas',
+  USourceDBFiorilliTabelas in 'src\USourceDBFiorilliTabelas.pas' {frmSourceDBFiorilliTabelas};
 
 {$R *.res}
 

@@ -26,7 +26,7 @@ type
     stbInforme: TStatusBar;
     BrBtnImportarFiorilli: TdxBarButton;
     lblTargetDB: TcxLabel;
-    Label1: TLabel;
+    lblTarget: TLabel;
     procedure BrBtnConfiguracaoClick(Sender: TObject);
     procedure BrBtnImportarInfoPublicClick(Sender: TObject);
     procedure BrBtnImportarFiorilliClick(Sender: TObject);
@@ -65,6 +65,11 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  lblTarget.Top    := 32;
+  lblTarget.Left   := 8;
+  lblTargetDB.Top  := lblTarget.Top + lblTarget.Height;
+  lblTargetDB.Left := lblTarget.Left;
+
   stbInforme.Panels[0].Text := 'Versão ' + gVersao.FileVersion;
   UpdateLabelTargetDB;
 end;

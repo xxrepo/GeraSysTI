@@ -28,7 +28,7 @@ object frmMain: TfrmMain
     Anchors = [akRight, akBottom]
     Transparent = True
   end
-  object Label1: TLabel
+  object lblTarget: TLabel
     AlignWithMargins = True
     Left = 8
     Top = 32

@@ -82,9 +82,9 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.32;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.34;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>32</VerInfo_Build>
+        <VerInfo_Build>34</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
@@ -97,8 +97,8 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.14;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
-        <VerInfo_Build>14</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.18;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
+        <VerInfo_Build>18</VerInfo_Build>
         <Icon_MainIcon>MigraGeraSys_Icon.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>

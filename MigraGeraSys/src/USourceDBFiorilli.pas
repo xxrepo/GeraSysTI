@@ -428,7 +428,7 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
-    qrySourceDB.SQL.Text := 'Select * from XXX';
+    qrySourceDB.SQL.Text := 'Select * from DIVISAO';
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -440,10 +440,10 @@ begin
     while not qrySourceDB.Eof do
     begin
       aUnidade := TUnidadeGestora.Create;
-      (*
-      aUnidade.ID          := StrToInt(Trim(dbfSourceDB.FieldByName('ugtcm').AsString));
-      aUnidade.Descricao   := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('desug').AsString));
+      aUnidade.ID          := StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString));
+      aUnidade.Descricao   := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
       aUnidade.RazaoSocial := aUnidade.Descricao;
+      (*
       aUnidade.Codigo      := Trim(dbfSourceDB.FieldByName('codtcm').AsString);
       aUnidade.CNPJ        := Trim(dbfSourceDB.FieldByName('cnpj').AsString);
       aUnidade.CNPJPrincipal  := aUnidade.CNPJ;
@@ -455,7 +455,7 @@ begin
           gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
             QuotedStr(aUnidade.Codigo + ' - ' + aUnidade.Descricao) + ' não importado');
       *)
-      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('desug').AsString);
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
       Application.ProcessMessages;
@@ -498,7 +498,7 @@ begin
 //
 //    end;
 
-    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_GESTORA',  'UNID_GESTORA', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_GESTORA',  'UNID_GESTORA',  'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT', 'UNID_ORCAMENT', 'ID');
   finally
     dmRecursos.ExibriLog;

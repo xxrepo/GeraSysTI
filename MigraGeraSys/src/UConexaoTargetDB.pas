@@ -639,7 +639,7 @@ Type
       FServidor   : TServidor;
       FParentesco : TParentesco;
       FRegistroCartorio   : TRegistroCartorio;
-      FDefiniente         ,
+      FDeficiente         ,
       FAtivoSalarioFamilia,
       FAtivoIRRF          : Boolean;
       FPercentualPensaoAliment,
@@ -648,7 +648,7 @@ Type
       property Servidor   : TServidor read FServidor write FServidor;
       property Parentesco : TParentesco read FParentesco write FParentesco;
       property RegistroCartorio    : TRegistroCartorio read FRegistroCartorio write FRegistroCartorio;
-      property Definiente          : Boolean  read FDefiniente write FDefiniente;
+      property Deficiente          : Boolean  read FDeficiente write FDeficiente;
       property AtivoSalarioFamilia : Boolean  read FAtivoSalarioFamilia write FAtivoSalarioFamilia;
       property AtivoIRRF           : Boolean read FAtivoIRRF write FAtivoIRRF;
       property PercentualPensaoAliment : Currency read FPercentualPensaoAliment write FPercentualPensaoAliment;
@@ -932,6 +932,8 @@ type
     procedure qryError(ASender: TObject;
       const AInitiator: IFDStanObject; var AException: Exception);  private
     { Private declarations }
+  private
+    function GetExistemCamposNulos(const aDataSet : TDataSet; var aCampos : TStringList) : Boolean;
   public
     { Public declarations }
     procedure CriarCampoTabela(const pTabela, pCampo, pTipo : String);
@@ -939,6 +941,7 @@ type
     procedure ExecutarStriptDB(const pSQL : TStringList); overload;
     procedure ExecutarStriptDB(const pSQL : String); overload;
     procedure UpdateGenerator(const pGeneretorName, pTableName, pKeyField : String);
+    procedure CreateDomains;
 
     function ConectarTargetDB : Boolean;
     function NewID(pTabela, pCampo : String) : Integer;
@@ -1021,6 +1024,15 @@ begin
   end;
 end;
 
+procedure TdmConexaoTargetDB.CreateDomains;
+begin
+  try
+    fdTargetDB.ExecSQL('CREATE DOMAIN DMN_SYS_ANTER AS VARCHAR(15)');
+    fdTargetDB.CommitRetaining;
+  except
+  end;
+end;
+
 procedure TdmConexaoTargetDB.CriarCampoTabela(const pTabela, pCampo,
   pTipo: String);
 var
@@ -1097,6 +1109,30 @@ begin
   finally
     if fdTargetDB.InTransaction then
       fdTargetDB.CommitRetaining;
+  end;
+end;
+
+function TdmConexaoTargetDB.GetExistemCamposNulos(const aDataSet: TDataSet;
+  var aCampos: TStringList): Boolean;
+var
+  I : Integer;
+begin
+  aCampos.BeginUpdate;
+  try
+    aCampos.Clear;
+    if Assigned(aDataSet) then
+      for I := 0 to aDataSet.Fields.Count - 1 do
+      begin
+        if aDataSet.Fields[I].Required and aDataSet.Fields[I].IsNull then
+          aCampos.Add( aDataSet.Fields[I].DisplayName + ', ' );
+      end;
+
+    if (aCampos.Count > 0) then
+      aCampos.Strings[aCampos.Count - 1] := Copy(aCampos.Strings[aCampos.Count - 1], 1, Length(aCampos.Strings[aCampos.Count - 1]) - 2);
+  finally
+    aCampos.EndUpdate;
+
+    Result := (aCampos.Count > 0);
   end;
 end;
 
@@ -1368,7 +1404,12 @@ begin
           FieldByName('tipo_conta').AsInteger  := Ord(pConta.TipoConta);
           FieldByName('id_entid_financ').AsInteger := pConta.ID;
           FieldByName('agencia').AsString      := pConta.Agencia;
-          FieldByName('num_conta').AsString    := pConta.NumeroConta;
+
+          if (pConta.NumeroConta = '0') or (pConta.NumeroConta = '-0') then
+            FieldByName('num_conta').Clear
+          else
+            FieldByName('num_conta').AsString := pConta.NumeroConta;
+
           FieldByName('id_sys_anter').AsString := pConta.Servidor.Codigo;
           FieldByName('ativa').AsString        := IfThen(pConta.Ativo, 'S', 'N');
           Post;
@@ -1470,7 +1511,7 @@ begin
           FieldByName('registro_num').AsString    := Trim(Copy(pDependente.RegistroCartorio.Numero, 1, 11));
           FieldByName('registro_livro').AsString  := Trim(Copy(pDependente.RegistroCartorio.Livro, 1, 11));
           FieldByName('registro_folha').AsString  := Trim(Copy(pDependente.RegistroCartorio.Folha, 1, 11));
-          FieldByName('deficiente').AsString      := IfThen(pDependente.Definiente, 'S', 'N');
+          FieldByName('deficiente').AsString      := IfThen(pDependente.Deficiente, 'S', 'N');
           FieldByName('ativo_sal_familia').AsString := IfThen(pDependente.AtivoSalarioFamilia, 'S', 'N');
           FieldByName('ativo_irrf').AsString        := IfThen(pDependente.AtivoIRRF, 'S', 'N');
           FieldByName('percent_pensao_aliment').AsCurrency := pDependente.PercentualPensaoAliment;
@@ -2177,8 +2218,10 @@ function TdmConexaoTargetDB.InserirServidor(
 var
   aID : String;
   aRetorno  : Boolean;
+  aCampoVazio : TStringList;
 begin
-  aRetorno := False;
+  aRetorno    := False;
+  aCampoVazio := TStringList.Create;
   try
     try
       with qryServidor do
@@ -2207,7 +2250,7 @@ begin
             FieldByName('dt_concurso').AsDateTime := pServidor.DataConcurso;
 
           if (pServidor.DataAdmissao = StrToDateTime('30/12/1899')) then
-            FieldByName('dt_admissao').Clear
+            FieldByName('dt_admissao').AsDateTime := StrToDateTime('01/01/1901')
           else
             FieldByName('dt_admissao').AsDateTime := pServidor.DataAdmissao;
 
@@ -2282,7 +2325,7 @@ begin
             FieldByName('ref_sal_inicial').AsInteger := pServidor.ReferenciaSalarioInicial;
 
           if (pServidor.DataBaseCalculoATS = StrToDateTime('30/12/1899')) then
-            FieldByName('dt_base_calc_ats').Clear
+            FieldByName('dt_base_calc_ats').AsDateTime := StrToDateTime('01/01/1901')
           else
             FieldByName('dt_base_calc_ats').AsDateTime := pServidor.DataBaseCalculoATS;
 
@@ -2299,19 +2342,25 @@ begin
             FieldByName('ocorrencia_sefip').AsString := Trim(pServidor.OcorrenciaSEFIP);
 
           FieldByName('id_sys_anter').AsString := pServidor.Codigo;
-          Post;
 
-          ApplyUpdates(0);
-
-          CommitUpdates;
-        end;
-        aRetorno := True;
+          if GetExistemCamposNulos(qryServidor, aCampoVazio) then
+            raise Exception.Create('Campo(s) vazio(s) : ' + aCampoVazio.Text);
+          begin
+            Post;
+            ApplyUpdates(0);
+            CommitUpdates;
+            aRetorno := True;
+          end;
+        end
+        else
+          aRetorno := True;
       end;
     except
       On E : Exception do
-        MensagemErro('Erro', 'Erro ao tentar inserir o Setor.' + #13#13 + E.Message);
+        MensagemErro('Erro', 'Erro ao tentar inserir o Servidor.' + #13#13 + E.Message);
     end;
   finally
+    aCampoVazio.Free;
     Result := aRetorno;
   end;
 end;
@@ -3667,7 +3716,7 @@ begin
   FServidor   := TServidor.Create;
   FParentesco := parentescoOutros;
   FRegistroCartorio    := TRegistroCartorio.Create;
-  FDefiniente          := False;
+  FDeficiente          := False;
   FAtivoSalarioFamilia := False;
   FAtivoIRRF           := False;
   FPercentualPensaoAliment := 0.0;

@@ -154,6 +154,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Height = 17
       Caption = 'Tabela Cargos/Fun'#231#245'es'
       TabOrder = 8
+      OnClick = chkTabelaCargoFuncaoClick
     end
     object chkTabelaUnidadeGestora: TCheckBox
       Left = 16
@@ -162,6 +163,80 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Height = 17
       Caption = 'Tabela Unidade Gestora'
       TabOrder = 9
+    end
+    object chkTabelaUnidadeOrcament: TCheckBox
+      Left = 16
+      Top = 156
+      Width = 169
+      Height = 17
+      Caption = 'Tabela Unidade Or'#231'ament'#225'ria'
+      TabOrder = 10
+    end
+    object chkTabelaUnidadeLotacao: TCheckBox
+      Left = 16
+      Top = 179
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Unidade Lota'#231#227'o'
+      TabOrder = 11
+    end
+    object chkTabelaEstadoFuncional: TCheckBox
+      Left = 16
+      Top = 202
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Estado Funcional'
+      TabOrder = 12
+    end
+    object chkTabelaSituacao: TCheckBox
+      Left = 192
+      Top = 64
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Situa'#231#227'o'
+      TabOrder = 13
+    end
+    object chkTabelaSetor: TCheckBox
+      Left = 192
+      Top = 87
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Setor'
+      TabOrder = 14
+    end
+    object chkTabelaEvento: TCheckBox
+      Left = 192
+      Top = 110
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Eventos'
+      TabOrder = 15
+    end
+    object chkTabelaBanco: TCheckBox
+      Left = 191
+      Top = 133
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Bancos'
+      TabOrder = 16
+    end
+    object chkTabelaPFServidor: TCheckBox
+      Left = 191
+      Top = 156
+      Width = 178
+      Height = 17
+      Caption = 'Tabela Pessoa F'#237'sica / Servidor'
+      TabOrder = 17
+      OnClick = chkTabelaPFServidorClick
+    end
+    object chkTabelaDependente: TCheckBox
+      Left = 191
+      Top = 179
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Dependentes'
+      TabOrder = 18
+      OnClick = chkTabelaDependenteClick
     end
   end
   inherited chkRotina: TCheckBox
@@ -218,5 +293,12 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     UpdateTransaction = fdTransSourceDB
     Left = 555
     Top = 183
+  end
+  object qrySourceDBDetails: TFDQuery
+    Connection = fdSourceDB
+    Transaction = fdTransSourceDB
+    UpdateTransaction = fdTransSourceDB
+    Left = 555
+    Top = 231
   end
 end

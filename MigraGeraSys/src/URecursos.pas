@@ -123,6 +123,20 @@ begin
     cmb.Clear;
     cmb.AddItem(obj.Descricao, obj);
 
+    mes := 1;
+    ano := YearOf(Date) - 1;
+    while ((mes >= 1) and (mes <= 12)) do
+    begin
+      obj := TGenerico.Create;
+
+      obj.ID        := StrToInt(FormatFloat('0000', ano) + FormatFloat('00', mes));
+      obj.Codigo    := FormatFloat('00', mes) + FormatFloat('0000', ano);
+      obj.Descricao := FormatFloat('00', mes) + '/' + FormatFloat('0000', ano);
+      cmb.AddItem(obj.Descricao, obj);
+
+      Inc(mes);
+    end;
+
     mes := MonthOf(Date);
     ano := YearOf(Date);
     while (mes >= 1) do

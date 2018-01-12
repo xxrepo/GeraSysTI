@@ -12,7 +12,7 @@ uses
   dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinOffice2010Black,
   dxSkinOffice2010Blue, dxSkinOffice2010Silver, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, cxLabel,
-  Vcl.StdCtrls;
+  Vcl.StdCtrls, dxGDIPlusClasses;
 
 type
   TfrmMain = class(TForm)

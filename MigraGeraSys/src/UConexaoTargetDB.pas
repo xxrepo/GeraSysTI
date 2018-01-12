@@ -200,6 +200,7 @@ Type
       property Observacao    : String read FObservacao write FObservacao;
       property TempoATS      : Integer read FTempoATS write FTempoATS;
       property PercentualATS : Currency read FPercentualATS write FPercentualATS;
+      procedure CarregarDados; override;
 
       constructor Create;
       destructor Destroy;
@@ -2965,6 +2966,51 @@ begin
 end;
 
 { TCargoFuncao }
+
+procedure TCargoFuncao.CarregarDados;
+begin
+  try
+    with dmConexaoTargetDB, qryCargoFuncao do
+    begin
+      Close;
+      ParamByName('codigo').AsString := Codigo;
+      Open;
+      if not IsEmpty then
+      begin
+        ID := FieldByName('id').AsInteger;
+        Descricao      := FieldByName('descricao').AsString;
+        Categoria.ID   := FieldByName('id_categ_funcional').AsInteger;
+        TipoTCM.Codigo := IntToStr(FieldByName('id_tipo_cargo_tcm').AsInteger);
+        VencimentoBase := FieldByName('vencto_base').AsCurrency;
+        TipoSalario    := TTipoSalario(StrToInt(FieldByName('tipo_sal').AsString));
+        FormaCalculo   := TFormaCalculo(StrToInt(FieldByName('forma_calc').AsString));
+        BaseCalculoHoraAula := FieldByName('base_calc_hora_aula').AsInteger;
+        CargaHorariaMensal  := FieldByName('carga_hor_mensal').AsInteger;
+        QuantidadeVaga      := FieldByName('qtd_vaga').AsInteger;
+        Escolaridade.ID     := FieldByName('id_escolaridade').AsInteger;
+        CBO.ID := FieldByName('id_cbo').AsInteger;
+        FatorProgramaSalario.ID := FieldByName('id_fat_prog_sal').AsInteger;
+        NumeroAtoCriacao := FieldByName('num_ato_criacao').AsString;
+        DataAtoCriacao   := FieldByName('data_ato_criacao').AsDateTime;
+        EventoBase.ID    := FieldByName('id_evento_base').AsInteger;
+        CalculaATS       := (FieldByName('calc_ats').AsString= 'S');
+        CalculaATSVencimentoBase := (FieldByName('calc_ats_sobre_vencto_base').AsString = 'S');
+        CalculaDecimoTerc        := (FieldByName('calc_dec_terc').AsString = 'S');
+        CalculaContribSind       := (FieldByName('calc_contrib_sindical').AsString = 'S');
+        Situacao       := FieldByName('situacao').AsString;
+        DataAtoCriacao := FieldByName('dt_extinsao').AsDateTime;
+        Observacao     := FieldByName('observacao').AsString;
+        TempoATS       := FieldByName('tempo_ats').AsInteger;
+        PercentualATS        := FieldByName('percent_ats').AsCurrency;
+        SalarioMinimoAutomat := (FieldByName('sal_min_automatico').AsString = 'S');
+      end;
+      Close;
+    end;
+  except
+    On E : Exception do
+      MensagemErro('Erro', 'Erro ao tentar carregar dados do Cargo/Função : ' + #13 + E.Message);
+  end;
+end;
 
 constructor TCargoFuncao.Create;
 begin

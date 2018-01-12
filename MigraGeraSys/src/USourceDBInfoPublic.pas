@@ -882,6 +882,9 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
           aServidor.UnidadeLotacao.Codigo := Trim(dbfSourceDB.FieldByName('lot').AsString);
           aServidor.UnidadeLotacao.CarregarDados;
 
+          aServidor.CargoAtual.Codigo := FormatFloat('0000', StrToInt(Trim(dbfSourceDB.FieldByName('ocupado').AsString)));
+          aServidor.CargoAtual.CarregarDados;
+
           aInicializaMesServidor          := TInicializaMesServidor.Create;
           aInicializaMesServidor.AnoMes   := IntToStr(aCompetencia.ID);
           aInicializaMesServidor.Servidor := aServidor;

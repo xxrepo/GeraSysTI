@@ -855,6 +855,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
 
     dbfSourceDB.First;
     if (Trim(dbfSourceDB.FieldByName('folha').AsString) <> aCompetencia.Codigo) then
+//      if not dbfSourceDB.Locate('folha;matric', VarArrayOf([aCompetencia.Codigo, '908065']), []) then // TESTE - ROZANGELA SOARES DA SILVA
       if not dbfSourceDB.Locate('folha', aCompetencia.Codigo, []) then
       begin
         gLogImportacao.Add('Competência ' +
@@ -967,7 +968,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
       lblAndamento.Caption  := sInforme;
       prbAndamento.Position := prbAndamento.Position + 1;
 
-      Application.ProcessMessages;
+      TrimAppMemorySize;
       dbfSourceDB.Next;
     end;
 
@@ -1261,7 +1262,8 @@ begin
       lblAndamento.Caption  := Trim(dbfSourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
-      Application.ProcessMessages;
+      //Application.ProcessMessages;
+      TrimAppMemorySize;
       dbfSourceDB.Next;
     end;
 

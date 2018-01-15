@@ -32,6 +32,7 @@ var
   gFormularios   : TFormularios;
   gLogImportacao : TStringList;
 
+  procedure TrimAppMemorySize;
   procedure MensagemInforme(pTitulo : String; pMensagem : String);
   procedure MensagemAlerta(pTitulo : String; pMensagem : String);
   procedure MensagemErro(pTitulo : String; pMensagem : String);
@@ -50,6 +51,27 @@ implementation
 uses UConexaoTargetDB;
 
 {$R *.dfm}
+
+// Limpar memória do Windows referente ao processo atual da aplicação
+procedure TrimAppMemorySize;
+var
+  MainHandle : THandle;
+begin
+  try
+    MainHandle := OpenProcess(PROCESS_ALL_ACCESS, false, GetCurrentProcessID);
+    SetProcessWorkingSetSize(MainHandle, $FFFFFFFF, $FFFFFFFF);
+    CloseHandle(MainHandle);
+  except
+  end;
+  Application.ProcessMessages;
+end;
+(*
+  Importante ler a documentação em:
+  - https://www.thoughtco.com/design-your-delphi-program-1058488
+
+  Implementar o complemento que está no passo 06:
+  TApplicationEvents OnMessage + a Timer := TrimAppMemorySize NOW
+*)
 
 procedure MensagemInforme(pTitulo : String; pMensagem : String);
 begin

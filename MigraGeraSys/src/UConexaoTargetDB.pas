@@ -3248,8 +3248,11 @@ begin
 end;
 
 procedure TEvento.CarregarDados_v2(aIdentificador_OLD : Integer);
+var
+  I : Integer;
 begin
   try
+    I := 0;
     with dmConexaoTargetDB, qryEvento do
     begin
       Close;
@@ -3257,8 +3260,11 @@ begin
       Open;
 
       if (aIdentificador_OLD > 0) then
-        while (not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger) do
+        while ( (I < 10) or ((not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger)) ) do  // Até 10 tentativas
+        begin
           Next;
+          Inc(I);
+        end;
 
       if not IsEmpty then
       begin

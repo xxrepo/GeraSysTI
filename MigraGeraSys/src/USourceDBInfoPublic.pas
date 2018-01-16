@@ -968,7 +968,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
         sInforme := 'Folha : ' + Trim(dbfSourceDB.FieldByName('folha').AsString) + ' - ' + Trim(dbfSourceDB.FieldByName('matric').AsString);
 
       lblAndamento.Caption  := sInforme;
-      prbAndamento.Position := prbAndamento.Position + 1;
+      prbAndamento.Position := dbfSourceDB.RecNo;
 
       TrimAppMemorySize;
       dbfSourceDB.Next;
@@ -1019,6 +1019,7 @@ var
   aServidor       : TServidor;
   aEntidadeFinanc : TContaBancoServidor;
   aSubUnidadeOrca : TSubUnidadeOrcamentaria;
+  aEstadoFuncional: TEstadoFuncional;
   aEnderecoNumero ,
   aTituloEleitor  : String;
 begin
@@ -1027,6 +1028,9 @@ begin
   aEstadoCivil    := TGenerico.Create;
   aDepartamento   := TGenerico.Create;
   aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+  aDepartamento   := TGenerico.Create;
+  aServidor       := TServidor.Create;
+  aEntidadeFinanc := TContaBancoServidor.Create;
   try
     dmConexaoTargetDB.CriarCampoTabela('NACIONALIDADE', 'ID_SYS_ANTER', 'VARCHAR(11)');
     dmConexaoTargetDB.CriarCampoTabela('ESTADO_CIVIL',  'ID_SYS_ANTER', 'VARCHAR(11)');
@@ -1035,7 +1039,6 @@ begin
     dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''V'' where id = 3');
     dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''D'' where id = 5');
 
-    aDepartamento := TGenerico.Create;
     aDepartamento.ID        := 1;
     aDepartamento.Descricao := 'GERAL';
     aDepartamento.Codigo    := '0000';
@@ -1076,10 +1079,8 @@ begin
     begin
       if (Trim(dbfSourceDB.FieldByName('numcpf').AsString) <> EmptyStr) then
       begin
-        aServidor       := TServidor.Create;
-        aEntidadeFinanc := TContaBancoServidor.Create;
-
         aServidor.ID              := 0;
+        aServidor.IDServidor      := 0;
         aServidor.Codigo          := Trim(dbfSourceDB.FieldByName('matric').AsString);
         aServidor.Matricula       := Trim(dbfSourceDB.FieldByName('matric').AsString);
         aServidor.Nome            := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('nome').AsString));
@@ -1209,6 +1210,17 @@ begin
         aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;
 
+        if (aServidor.EstadoFuncional.ID = 0) then
+        begin
+          if not Assigned(aEstadoFuncional) then
+            aEstadoFuncional := TEstadoFuncional.Create;
+
+          aEstadoFuncional.Codigo    := Trim(dbfSourceDB.FieldByName('sit').AsString);
+          aEstadoFuncional.Descricao := 'MIGRAÇÃO';
+
+          if dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFuncional) then
+            aServidor.EstadoFuncional := aEstadoFuncional;
+        end;
 
         aServidor.SituacaoTCM.Codigo := Trim(dbfSourceDB.FieldByName('vinculo').AsString);
         Case StrToIntDef(aServidor.SituacaoTCM.Codigo, 0) of
@@ -1277,7 +1289,6 @@ begin
       lblAndamento.Caption  := Trim(dbfSourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
-      //Application.ProcessMessages;
       TrimAppMemorySize;
       dbfSourceDB.Next;
     end;
@@ -1294,7 +1305,12 @@ begin
     aPessoa.Free;
     aNacionalidade.Free;
     aEstadoCivil.Free;
+    aDepartamento.Free;
     aSubUnidadeOrca.Free;
+    aServidor.Free;
+    aEntidadeFinanc.Free;
+    aEstadoFuncional.Free;
+
     if dbfSourceDBDetails.Active then
       dbfSourceDBDetails.Close;
     if dbfSourceDB.Active then

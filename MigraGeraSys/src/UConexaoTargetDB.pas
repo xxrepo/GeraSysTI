@@ -1918,7 +1918,7 @@ begin
           FieldByName('cod_retorno_previd').AsString := pEstadoFuncional.RetornoPrevidencia.Codigo;
           FieldByName('movim_definitiva').AsString   := IfThen(pEstadoFuncional.MovimentoDefinitivo, 'S', 'N');
           FieldByName('pagto_entid_previd').AsString := IfThen(pEstadoFuncional.PagtoEntidadePrevidencia, 'S', 'N');
-          FieldByName('ativo').AsString        := IfThen(pEstadoFuncional.Ativo, 'S', 'N');
+          FieldByName('ativo').AsString              := IfThen(pEstadoFuncional.Ativo, 'S', 'N');
         end
         else
           Edit;

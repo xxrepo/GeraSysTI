@@ -855,7 +855,6 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
 
     dbfSourceDB.First;
     if (Trim(dbfSourceDB.FieldByName('folha').AsString) <> aCompetencia.Codigo) then
-//      if not dbfSourceDB.Locate('folha;matric', VarArrayOf([aCompetencia.Codigo, '908065']), []) then // TESTE - ROZANGELA SOARES DA SILVA
       if not dbfSourceDB.Locate('folha', aCompetencia.Codigo, []) then
       begin
         gLogImportacao.Add('Competência ' +
@@ -880,7 +879,6 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
           or (Trim(dbfSourceDB.FieldByName('rubrica').AsString) = '007')        // -- Subsídios
           or (Trim(dbfSourceDB.FieldByName('rubrica').AsString) = '037') ) then // -- Licença Maternidade
         begin
-          //aServidor := TServidor.Create;
           aServidor.ID         := 0;
           aServidor.IDServidor := 0;
           aServidor.Codigo     := Trim(dbfSourceDB.FieldByName('matric').AsString);
@@ -893,17 +891,14 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
           aServidor.CargoAtual.Codigo := FormatFloat('0000', StrToInt(Trim(dbfSourceDB.FieldByName('ocupado').AsString)));
           aServidor.CargoAtual.CarregarDados;
 
-          //aInicializaMesServidor          := TInicializaMesServidor.Create;
           aInicializaMesServidor.AnoMes   := IntToStr(aCompetencia.ID);
           aInicializaMesServidor.Servidor := aServidor;
 
-          //aBaseCalculoMesServidor := TBaseCalculoMesServidor.Create;
           aBaseCalculoMesServidor.InicializaMes    := aInicializaMesServidor;
           aBaseCalculoMesServidor.Parcela          := '0';
           aBaseCalculoMesServidor.CHFaltaProfessor := 0;
         end;
 
-        //if Assigned(aServidor) and Assigned(aInicializaMesServidor) and Assigned(aBaseCalculoMesServidor) then
         if (aServidor.IDServidor > 0) then
         begin
           aInicializaMesServidor.Rubrica := Trim(dbfSourceDB.FieldByName('rubrica').AsString);
@@ -935,14 +930,12 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
 
             if aRegistrInserido then
             begin
-              //aEvento := TEvento.Create;
               aEvento.ID     := 0;
               aEvento.Codigo := Trim(dbfSourceDB.FieldByName('rubrica').AsString);
               aEvento.CarregarDados_v2(aEventoID_OLD);
               if (aEvento.ID > 0) then
               begin
                 // Inserir EVENTOS
-                //aEventoBaseCalculoMesServidor := TEventoBaseCalculoMesServidor.Create;
                 aEventoBaseCalculoMesServidor.BaseCalculoMesServidor := aBaseCalculoMesServidor;
                 aEventoBaseCalculoMesServidor.EventoBaseCalculo      := aEvento;
                 aEventoBaseCalculoMesServidor.Quantidade := 1;
@@ -969,8 +962,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
         end;
       end;
 
-//      if Assigned(aServidor) then
-      if Assigned(aServidor.IDServidor > 0) then
+      if (aServidor.IDServidor > 0) then
         sInforme := 'Folha : ' + Trim(dbfSourceDB.FieldByName('folha').AsString) + ' - ' + Trim(dbfSourceDB.FieldByName('matric').AsString) + ' : ' + aServidor.Nome
       else
         sInforme := 'Folha : ' + Trim(dbfSourceDB.FieldByName('folha').AsString) + ' - ' + Trim(dbfSourceDB.FieldByName('matric').AsString);
@@ -981,6 +973,9 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
       TrimAppMemorySize;
       dbfSourceDB.Next;
     end;
+
+    if dbfSourceDB.Eof then
+      prbAndamento.Position := prbAndamento.Max;
 
     if Assigned(aServidor) then
       aServidor.Destroy;

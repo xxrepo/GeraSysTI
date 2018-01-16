@@ -3056,11 +3056,16 @@ end;
 
 destructor TCargoFuncao.Destroy;
 begin
-  FCategoria.Destroy;
-  FTipoTCM.Destroy;
-  FEscolaridade.Destroy;
-  FFatorProgramaSalario.Destroy;
-  FEventoBase.Destroy;
+  if Assigned(FCategoria) then
+    FCategoria.Destroy;
+  if Assigned(FTipoTCM) then
+    FTipoTCM.Destroy;
+  if Assigned(FEscolaridade) then
+    FEscolaridade.Destroy;
+  if Assigned(FFatorProgramaSalario) then
+    FFatorProgramaSalario.Destroy;
+  if Assigned(FEventoBase) then
+    FEventoBase.Destroy;
   inherited Destroy;
 end;
 
@@ -3089,7 +3094,8 @@ end;
 
 destructor TUnidadeGestora.Destroy;
 begin
-  FTipoUnidade.Destroy;
+  if Assigned(FTipoUnidade) then
+    FTipoUnidade.Destroy;
   inherited Destroy;
 end;
 
@@ -3137,8 +3143,10 @@ end;
 
 destructor TUnidadeLotacao.Destroy;
 begin
-  FTipo.Destroy;
-  FRegiao.Destroy;
+  if Assigned(FTipo) then
+    FTipo.Destroy;
+  if Assigned(FRegiao) then
+    FRegiao.Destroy;
   inherited Destroy;
 end;
 
@@ -3159,8 +3167,10 @@ end;
 
 destructor TUnidadeOrcamentaria.Destroy;
 begin
-  FUnidadeGestora.Destroy;
-  FTextoDotacao.Destroy;
+  if Assigned(FUnidadeGestora) then
+    FUnidadeGestora.Destroy;
+  if Assigned(FTextoDotacao) then
+    FTextoDotacao.Destroy;
   inherited Destroy;
 end;
 
@@ -3182,8 +3192,10 @@ end;
 
 destructor TEstadoFuncional.Destroy;
 begin
-  FAfastamentoPrevidencia.Destroy;
-  FRetornoPrevidencia.Destroy;
+  if Assigned(FAfastamentoPrevidencia) then
+    FAfastamentoPrevidencia.Destroy;
+  if Assigned(FRetornoPrevidencia) then
+    FRetornoPrevidencia.Destroy;
   inherited Destroy;
 end;
 
@@ -3357,8 +3369,10 @@ end;
 
 destructor TEvento.Destroy;
 begin
-  FCategoria.Destroy;
-  FCategoriaTCM.Destroy;
+  if Assigned(FCategoria) then
+    FCategoria.Destroy;
+  if Assigned(FCategoriaTCM) then
+    FCategoriaTCM.Destroy;
   inherited Destroy;
 end;
 
@@ -3384,10 +3398,14 @@ end;
 
 destructor TPessoa.Destroy;
 begin
-  FCPF_CNPJ.Destroy;
-  FEndereco.Destroy;
-  FNaturalidade.Destroy;
-  FNacionalidade.Destroy;
+  if Assigned(FCPF_CNPJ) then
+    FCPF_CNPJ.Destroy;
+  if Assigned(FEndereco) then
+    FEndereco.Destroy;
+  if Assigned(FNaturalidade) then
+    FNaturalidade.Destroy;
+  if Assigned(FNacionalidade) then
+    FNacionalidade.Destroy;
   inherited Destroy;
 end;
 
@@ -3445,14 +3463,22 @@ end;
 
 destructor TPessoaFisica.Destroy;
 begin
-  FRaca.Destroy;
-  FEstadoCivil.Destroy;
-  FConjuge.Destroy;
-  FRG.Destroy;
-  FPisPasep.Destroy;
-  FCNH.Destroy;
-  FTitulo.Destroy;
-  FReservista.Destroy;
+  if Assigned(FRaca) then
+    FRaca.Destroy;
+  if Assigned(FEstadoCivil) then
+    FEstadoCivil.Destroy;
+  if Assigned(FConjuge) then
+    FConjuge.Destroy;
+  if Assigned(FRG) then
+    FRG.Destroy;
+  if Assigned(FPisPasep) then
+    FPisPasep.Destroy;
+  if Assigned(FCNH) then
+    FCNH.Destroy;
+  if Assigned(FTitulo) then
+    FTitulo.Destroy;
+  if Assigned(FReservista) then
+    FReservista.Destroy;
   inherited Destroy;
 end;
 
@@ -3647,14 +3673,22 @@ end;
 
 destructor TServidor.Destroy;
 begin
-  FSituacaoTCM.Destroy;
-  FSubUnidadeOrcamentaria.Destroy;
-  FUnidadeLotacao.Destroy;
-  FDepartamento.Destroy;
-  FCargoOrigem.Destroy;
-  FCargoAtual.Destroy;
-  FEscolaridade.Destroy;
-  FEstadoFuncional.Destroy;
+  if Assigned(FSituacaoTCM) then
+    FSituacaoTCM.Destroy;
+  if Assigned(FSubUnidadeOrcamentaria) then
+    FSubUnidadeOrcamentaria.Destroy;
+  if Assigned(FUnidadeLotacao) then
+    FUnidadeLotacao.Destroy;
+  if Assigned(FDepartamento) then
+    FDepartamento.Destroy;
+  if Assigned(FCargoOrigem) then
+    FCargoOrigem.Destroy;
+  if Assigned(FCargoAtual) then
+    FCargoAtual.Destroy;
+  if Assigned(FEscolaridade) then
+    FEscolaridade.Destroy;
+  if Assigned(FEstadoFuncional) then
+    FEstadoFuncional.Destroy;
   inherited Destroy;
 end;
 
@@ -3706,7 +3740,8 @@ end;
 
 destructor TEntidadeFinanceira.Destroy;
 begin
-  FBanco.Destroy;
+  if Assigned(FBanco) then
+    FBanco.Destroy;
   inherited Destroy;
 end;
 
@@ -3738,9 +3773,12 @@ end;
 
 destructor TSubUnidadeOrcamentaria.Destroy;
 begin
-  FUnidadeOrcamentaria.Destroy;
-  FSetor.Destroy;
-  FEventoBase.Destroy;
+  if Assigned(FUnidadeOrcamentaria) then
+    FUnidadeOrcamentaria.Destroy;
+  if Assigned(FSetor) then
+    FSetor.Destroy;
+  if Assigned(FEventoBase) then
+    FEventoBase.Destroy;
   inherited Destroy;
 end;
 
@@ -3756,7 +3794,8 @@ end;
 
 destructor TContaBancoServidor.Destroy;
 begin
-  FServidor.Destroy;
+  if Assigned(FServidor) then
+    FServidor.Destroy;
   inherited Destroy;
 end;
 
@@ -3777,8 +3816,10 @@ end;
 
 destructor TDependente.Destroy;
 begin
-  FServidor.Destroy;
-  FRegistroCartorio.Destroy;
+  if Assigned(FServidor) then
+    FServidor.Destroy;
+  if Assigned(FRegistroCartorio) then
+    FRegistroCartorio.Destroy;
   inherited Destroy;
 end;
 
@@ -3990,9 +4031,12 @@ end;
 
 destructor TInicializaMesServidor.Destroy;
 begin
-  FServidor.Destroy;
-  FCargoFuncao2.Destroy;
-  FProgressoSalarial.Destroy;
+  if Assigned(FServidor) then
+    FServidor.Destroy;
+  if Assigned(FCargoFuncao2) then
+    FCargoFuncao2.Destroy;
+  if Assigned(FProgressoSalarial) then
+    FProgressoSalarial.Destroy;
   inherited Destroy;
 end;
 
@@ -4008,7 +4052,8 @@ end;
 
 destructor TProgressoSalarial.Destroy;
 begin
-  FCargo.Destroy;
+  if Assigned(FCargo) then
+    FCargo.Destroy;
   inherited Destroy;
 end;
 
@@ -4038,7 +4083,8 @@ end;
 
 destructor TBaseCalculoMesServidor.Destroy;
 begin
-  FInicializaMes.Destroy;
+  if Assigned(FInicializaMes) then
+    FInicializaMes.Destroy;
   inherited Destroy;
 end;
 
@@ -4056,8 +4102,10 @@ end;
 
 destructor TEventoBaseCalculoMesServidor.Destroy;
 begin
-  FBaseCalculoMesServidor.Destroy;
-  FEventoBaseCalculo.Destroy;
+  if Assigned(FBaseCalculoMesServidor) then
+    FBaseCalculoMesServidor.Destroy;
+  if Assigned(FEventoBaseCalculo) then
+    FEventoBaseCalculo.Destroy;
   inherited Destroy;
 end;
 

@@ -14,6 +14,7 @@ object frmMain: TfrmMain
   OldCreateOrder = False
   Position = poScreenCenter
   WindowState = wsMaximized
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13

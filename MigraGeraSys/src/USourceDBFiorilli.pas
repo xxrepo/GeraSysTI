@@ -1046,6 +1046,14 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
         aServidor.Departamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('depto_nome').AsString));
         aServidor.Departamento.CarregarDados;
 
+        if (aServidor.Departamento.ID = 0) then
+        begin
+          aServidor.Departamento.ID        := 1;
+          aServidor.Departamento.Descricao := 'GERAL';
+          aServidor.Departamento.Codigo    := '0000';
+          aServidor.Departamento.Ativo     := True;
+        end;
+
         aInicializaMesServidor.AnoMes         := IntToStr(aCompetencia.ID);
         aInicializaMesServidor.Servidor       := aServidor;
         aBaseCalculoMesServidor.InicializaMes := aInicializaMesServidor;
@@ -1227,11 +1235,14 @@ begin
     qrySourceDB.SQL.Add('  , e.nome as estadocivil_nome');
     qrySourceDB.SQL.Add('  , c1.cbo as cbo_inicial');
     qrySourceDB.SQL.Add('  , c2.cbo as cbo_atual');
+    qrySourceDB.SQL.Add('  , t.depdespesa  as depto');
+    qrySourceDB.SQL.Add('  , u.nomeunidade as depto_nome');
     qrySourceDB.SQL.Add('from TRABALHADOR t');
     qrySourceDB.SQL.Add('  left join NACIONALIDADE n on (n.codigo = t.nacionalidade)');
     qrySourceDB.SQL.Add('  left join ESTADOCIVIL e on (e.codigo = t.estadocivil)');
     qrySourceDB.SQL.Add('  left join CARGOS c1 on (c1.empresa = t.empresa and c1.codigo = t.cargoinicial)');
     qrySourceDB.SQL.Add('  left join CARGOS c2 on (c2.empresa = t.empresa and c2.codigo = t.cargoatual)');
+    qrySourceDB.SQL.Add('  left join UNIDADE u on (u.codigo = t.depdespesa)');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    t.empresa');
     qrySourceDB.SQL.Add('  , t.nome');
@@ -1248,8 +1259,11 @@ begin
     begin
       if (Trim(qrySourceDB.FieldByName('cpf').AsString) <> EmptyStr) then
       begin
-        aServidor       := TServidor.Create;
-        aEntidadeFinanc := TContaBancoServidor.Create;
+        if not Assigned(aServidor) then
+          aServidor := TServidor.Create;
+
+        if not Assigned(aEntidadeFinanc) then
+          aEntidadeFinanc := TContaBancoServidor.Create;
 
         aServidor.ID              := 0;
         aServidor.Codigo          := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
@@ -1333,6 +1347,19 @@ begin
         begin
           MensagemErro('Erro', 'Unidade Lotação ' + aServidor.UnidadeLotacao.Codigo + ' não cadastrada/localizada!');
           Abort;
+        end;
+
+        aDepartamento.ID        := 0;
+        aDepartamento.Codigo    := Trim(qrySourceDB.FieldByName('depto').AsString);
+        aDepartamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('depto_nome').AsString));
+        aDepartamento.CarregarDados;
+
+        if (aDepartamento.ID = 0) then
+        begin
+          aDepartamento.ID        := 1;
+          aDepartamento.Descricao := 'GERAL';
+          aDepartamento.Codigo    := '0000';
+          aDepartamento.Ativo     := True;
         end;
 
         aServidor.Departamento           := aDepartamento;

@@ -64,6 +64,15 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Caption = '&Senha:'
       FocusControl = edSenha
     end
+    object lblCompetencia: TLabel
+      Left = 206
+      Top = 224
+      Width = 66
+      Height = 13
+      Caption = '&Compet'#234'ncia:'
+      FocusControl = cmCompetencia
+      Visible = False
+    end
     object edSourceDB: TJvFilenameEdit
       Left = 16
       Top = 27
@@ -237,6 +246,24 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Caption = 'Tabela Dependentes'
       TabOrder = 18
       OnClick = chkTabelaDependenteClick
+    end
+    object chkLancamentoMesServidor: TCheckBox
+      Left = 191
+      Top = 201
+      Width = 178
+      Height = 17
+      Caption = 'Folha Mensal do Servidor'
+      TabOrder = 19
+      OnClick = chkLancamentoMesServidorClick
+    end
+    object cmCompetencia: TComboBox
+      Left = 206
+      Top = 243
+      Width = 75
+      Height = 21
+      Style = csDropDownList
+      TabOrder = 20
+      Visible = False
     end
   end
   inherited chkRotina: TCheckBox

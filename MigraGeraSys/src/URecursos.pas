@@ -131,6 +131,7 @@ end;
 
 procedure TdmRecursos.ListarCompetencia(cmb: TComboBox);
 var
+  idx ,
   mes ,
   ano : Integer;
   obj : TGenerico;
@@ -145,6 +146,8 @@ begin
     cmb.Clear;
     cmb.AddItem(obj.Descricao, obj);
 
+    // Ano passado
+    idx := 0;
     mes := 1;
     ano := YearOf(Date) - 1;
     while ((mes >= 1) and (mes <= 12)) do
@@ -159,9 +162,11 @@ begin
       Inc(mes);
     end;
 
+    // Ano atual
+    idx := cmb.Items.Count;
     mes := MonthOf(Date);
     ano := YearOf(Date);
-    while (mes >= 1) do
+    while ((mes >= 1) and (mes <= 12)) do
     begin
       obj := TGenerico.Create;
 
@@ -173,7 +178,7 @@ begin
       Dec(mes);
     end;
 
-    cmb.ItemIndex := 0;
+    cmb.ItemIndex := idx;
   end;
 end;
 

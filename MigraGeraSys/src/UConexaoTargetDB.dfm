@@ -11,8 +11,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       'Port=3050'
       'CharacterSet=WIN1252'
       
-        'Database=D:\Projetos\GeraSysTI\MigraGeraSys\db\REMUN_PMSMPA_PROD' +
-        '.FDB'
+        'Database=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\db\REMUN_PMSMP' +
+        'A_PROD.FDB'
       'DriverID=FB')
     LoginPrompt = False
     Transaction = fdTransDB
@@ -1700,7 +1700,9 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , d.id_sys_anter'
       '  , d.em_uso'
       'from DEPTO d'
-      'where (d.id = :id) or (d.id_sys_anter = :codigo)')
+      
+        'where (d.id = :id) or (d.id_sys_anter = :codigo) or (d.descricao' +
+        ' = :descricao)')
     Left = 200
     Top = 496
     ParamData = <
@@ -1715,6 +1717,12 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         DataType = ftString
         ParamType = ptInput
         Value = Null
+      end
+      item
+        Name = 'DESCRICAO'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 40
       end>
   end
   object updDepartamento: TFDUpdateSQL
@@ -2478,8 +2486,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         'WHERE ANO_MES = :ANO_MES AND PARCELA = :PARCELA AND ID_SERVIDOR ' +
         '= :ID_SERVIDOR AND '
       '  ID_EVENTO = :ID_EVENTO')
-    Left = 792
-    Top = 336
+    Left = 712
+    Top = 248
   end
   object qryEventoBCMesServidor: TFDQuery
     CachedUpdates = True
@@ -2503,8 +2511,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  and ev.id_servidor = :servidor'
       '  and ev.parcela     = :parcela'
       '  and ev.id_evento   = :evento')
-    Left = 792
-    Top = 288
+    Left = 712
+    Top = 200
     ParamData = <
       item
         Name = 'COMPETENCIA'
@@ -2522,6 +2530,223 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         DataType = ftFixedChar
         ParamType = ptInput
         Size = 1
+      end
+      item
+        Name = 'EVENTO'
+        DataType = ftInteger
+        ParamType = ptInput
+      end>
+  end
+  object qryPessoaDependente: TFDQuery
+    CachedUpdates = True
+    Connection = fdTargetDB
+    Transaction = fdTransDB
+    UpdateTransaction = fdTransDB
+    UpdateObject = updPessoaDependente
+    OnError = qryError
+    SQL.Strings = (
+      'Select'
+      '    d.id'
+      '  , d.id_pessoa'
+      '  , d.nome'
+      '  , d.cpf'
+      '  , d.sexo'
+      '  , d.parentesco'
+      '  , d.dt_nascimento'
+      '  , d.natural_cidade'
+      '  , d.natural_uf'
+      '  , d.cartorio_nome'
+      '  , d.cartorio_cidade'
+      '  , d.cartorio_uf'
+      '  , d.registro_num'
+      '  , d.registro_livro'
+      '  , d.registro_folha'
+      '  , d.estudante'
+      '  , d.deficiente'
+      '  , d.ativo_sal_familia'
+      '  , d.ativo_irrf'
+      '  , d.perc_p_aliment'
+      '  , d.val_p_aliment'
+      '  , d.id_sys_anter'
+      'from PESSOA_FISICA_DEPENDENTE d'
+      'where (d.id = :id)'
+      
+        '   or ((d.id_pessoa = :pessoa) and (d.nome = :nome) and (d.dt_na' +
+        'scimento = :nascimento))'
+      '   or (d.id_sys_anter = :codigo)')
+    Left = 704
+    Top = 488
+    ParamData = <
+      item
+        Name = 'ID'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end
+      item
+        Name = 'PESSOA'
+        DataType = ftInteger
+        ParamType = ptInput
+      end
+      item
+        Name = 'NOME'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 60
+      end
+      item
+        Name = 'NASCIMENTO'
+        DataType = ftDate
+        ParamType = ptInput
+      end
+      item
+        Name = 'CODIGO'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 11
+      end>
+  end
+  object updPessoaDependente: TFDUpdateSQL
+    Connection = fdTargetDB
+    InsertSQL.Strings = (
+      'INSERT INTO PESSOA_FISICA_DEPENDENTE'
+      '(ID, ID_PESSOA, NOME, SEXO, CPF, PARENTESCO, '
+      '  DT_NASCIMENTO, NATURAL_CIDADE, NATURAL_UF, '
+      '  CARTORIO_NOME, CARTORIO_CIDADE, CARTORIO_UF, '
+      '  REGISTRO_NUM, REGISTRO_LIVRO, REGISTRO_FOLHA, '
+      '  ESTUDANTE, DEFICIENTE, ATIVO_SAL_FAMILIA, '
+      '  ATIVO_IRRF, PERC_P_ALIMENT, VAL_P_ALIMENT, '
+      '  ID_SYS_ANTER)'
+      
+        'VALUES (:NEW_ID, :NEW_ID_PESSOA, :NEW_NOME, :NEW_SEXO, :NEW_CPF,' +
+        ' :NEW_PARENTESCO, '
+      '  :NEW_DT_NASCIMENTO, :NEW_NATURAL_CIDADE, :NEW_NATURAL_UF, '
+      '  :NEW_CARTORIO_NOME, :NEW_CARTORIO_CIDADE, :NEW_CARTORIO_UF, '
+      '  :NEW_REGISTRO_NUM, :NEW_REGISTRO_LIVRO, :NEW_REGISTRO_FOLHA, '
+      '  :NEW_ESTUDANTE, :NEW_DEFICIENTE, :NEW_ATIVO_SAL_FAMILIA, '
+      '  :NEW_ATIVO_IRRF, :NEW_PERC_P_ALIMENT, :NEW_VAL_P_ALIMENT, '
+      '  :NEW_ID_SYS_ANTER)')
+    ModifySQL.Strings = (
+      'UPDATE PESSOA_FISICA_DEPENDENTE'
+      'SET ID = :NEW_ID, ID_PESSOA = :NEW_ID_PESSOA, NOME = :NEW_NOME, '
+      
+        '  SEXO = :NEW_SEXO, CPF = :NEW_CPF, PARENTESCO = :NEW_PARENTESCO' +
+        ', '
+      
+        '  DT_NASCIMENTO = :NEW_DT_NASCIMENTO, NATURAL_CIDADE = :NEW_NATU' +
+        'RAL_CIDADE, '
+      
+        '  NATURAL_UF = :NEW_NATURAL_UF, CARTORIO_NOME = :NEW_CARTORIO_NO' +
+        'ME, '
+      
+        '  CARTORIO_CIDADE = :NEW_CARTORIO_CIDADE, CARTORIO_UF = :NEW_CAR' +
+        'TORIO_UF, '
+      
+        '  REGISTRO_NUM = :NEW_REGISTRO_NUM, REGISTRO_LIVRO = :NEW_REGIST' +
+        'RO_LIVRO, '
+      
+        '  REGISTRO_FOLHA = :NEW_REGISTRO_FOLHA, ESTUDANTE = :NEW_ESTUDAN' +
+        'TE, '
+      
+        '  DEFICIENTE = :NEW_DEFICIENTE, ATIVO_SAL_FAMILIA = :NEW_ATIVO_S' +
+        'AL_FAMILIA, '
+      
+        '  ATIVO_IRRF = :NEW_ATIVO_IRRF, PERC_P_ALIMENT = :NEW_PERC_P_ALI' +
+        'MENT, '
+      
+        '  VAL_P_ALIMENT = :NEW_VAL_P_ALIMENT, ID_SYS_ANTER = :NEW_ID_SYS' +
+        '_ANTER'
+      'WHERE ID = :OLD_ID')
+    DeleteSQL.Strings = (
+      'DELETE FROM PESSOA_FISICA_DEPENDENTE'
+      'WHERE ID = :OLD_ID')
+    FetchRowSQL.Strings = (
+      
+        'SELECT ID, ID_PESSOA, NOME, SEXO, CPF, PARENTESCO, DT_NASCIMENTO' +
+        ', NATURAL_CIDADE, '
+      '  NATURAL_UF, CARTORIO_NOME, CARTORIO_CIDADE, CARTORIO_UF, '
+      '  REGISTRO_NUM, REGISTRO_LIVRO, REGISTRO_FOLHA, ESTUDANTE, '
+      '  DEFICIENTE, ATIVO_SAL_FAMILIA, ATIVO_IRRF, PERC_P_ALIMENT, '
+      '  VAL_P_ALIMENT, DESCR_PARENTESCO, CPF_FTDO, ID_SYS_ANTER'
+      'FROM PESSOA_FISICA_DEPENDENTE'
+      'WHERE ID = :ID')
+    Left = 704
+    Top = 536
+  end
+  object updServidorEventoFixo: TFDUpdateSQL
+    Connection = fdTargetDB
+    InsertSQL.Strings = (
+      'INSERT INTO SERVIDOR_EVENTO_FIXO'
+      '(ID_SERVIDOR, ID_EVENTO, QTD, VALOR, OBSERVACAO, '
+      '  INI_VALIDADE, FIM_VALIDADE, CALC_DEC_TERC, '
+      '  PARTICIPA)'
+      
+        'VALUES (:NEW_ID_SERVIDOR, :NEW_ID_EVENTO, :NEW_QTD, :NEW_VALOR, ' +
+        ':NEW_OBSERVACAO, '
+      '  :NEW_INI_VALIDADE, :NEW_FIM_VALIDADE, :NEW_CALC_DEC_TERC, '
+      '  :NEW_PARTICIPA)')
+    ModifySQL.Strings = (
+      'UPDATE SERVIDOR_EVENTO_FIXO'
+      'SET ID_SERVIDOR = :NEW_ID_SERVIDOR, ID_EVENTO = :NEW_ID_EVENTO, '
+      
+        '  QTD = :NEW_QTD, VALOR = :NEW_VALOR, OBSERVACAO = :NEW_OBSERVAC' +
+        'AO, '
+      
+        '  INI_VALIDADE = :NEW_INI_VALIDADE, FIM_VALIDADE = :NEW_FIM_VALI' +
+        'DADE, '
+      '  CALC_DEC_TERC = :NEW_CALC_DEC_TERC, PARTICIPA = :NEW_PARTICIPA'
+      
+        'WHERE ID_SERVIDOR = :OLD_ID_SERVIDOR AND ID_EVENTO = :OLD_ID_EVE' +
+        'NTO')
+    DeleteSQL.Strings = (
+      'DELETE FROM SERVIDOR_EVENTO_FIXO'
+      
+        'WHERE ID_SERVIDOR = :OLD_ID_SERVIDOR AND ID_EVENTO = :OLD_ID_EVE' +
+        'NTO')
+    FetchRowSQL.Strings = (
+      
+        'SELECT ID_SERVIDOR, ID_EVENTO, QTD, VALOR, OBSERVACAO, INI_VALID' +
+        'ADE, '
+      
+        '  FIM_VALIDADE, CALC_DEC_TERC, PARTICIPA, DESCR_EVENTO, COD_EVEN' +
+        'TO, '
+      '  TIPO_EVENTO, ID_CATEG_EVENTO, INI_VALIDADE2, FIM_VALIDADE2, '
+      '  ID_SUB_UNID_ORCAM, ID_CARGO_ATUAL, NOME_SERVIDOR'
+      'FROM SERVIDOR_EVENTO_FIXO'
+      'WHERE ID_SERVIDOR = :ID_SERVIDOR AND ID_EVENTO = :ID_EVENTO')
+    Left = 856
+    Top = 392
+  end
+  object qryServidorEventoFixo: TFDQuery
+    CachedUpdates = True
+    Connection = fdTargetDB
+    Transaction = fdTransDB
+    UpdateTransaction = fdTransDB
+    UpdateObject = updServidorEventoFixo
+    OnError = qryError
+    SQL.Strings = (
+      'Select'
+      '    ef.id_servidor'
+      '  , ef.id_evento'
+      '  , ef.qtd'
+      '  , ef.valor'
+      '  , ef.observacao'
+      '  , ef.ini_validade'
+      '  , ef.fim_validade'
+      '  , ef.calc_dec_terc'
+      '  , ef.participa'
+      'from SERVIDOR_EVENTO_FIXO ef'
+      'where ef.id_servidor = :servidor'
+      '  and ef.id_evento   = :evento'
+      '')
+    Left = 856
+    Top = 344
+    ParamData = <
+      item
+        Name = 'SERVIDOR'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
       end
       item
         Name = 'EVENTO'

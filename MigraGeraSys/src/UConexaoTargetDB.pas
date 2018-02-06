@@ -635,11 +635,39 @@ Type
   end;
 
 Type
+  TEventoFixoServidor = class(TGenerico)
+    private
+      FServidor   : TServidor;
+      FEvento     : TEvento;
+      FQuantidade ,
+      FValor      : Currency;
+      FObservacao     ,
+      FValidadeInicial,
+      FValidadeFinal  : String;
+      FCalcularDecimoTerc,
+      FParticipa         : Boolean;
+    public
+      property Servidor   : TServidor read FServidor write FServidor;
+      property Evento     : TEvento read FEvento write FEvento;
+      property Quantidade : Currency read FQuantidade write FQuantidade;
+      property Valor      : Currency read FValor write FValor;
+      property Observacao      : String read FObservacao write FObservacao;
+      property ValidadeInicial : String read FValidadeInicial write FValidadeInicial;
+      property ValidadeFinal   : String read FValidadeFinal write FValidadeFinal;
+      property CalcularDecimoTerc : Boolean read FCalcularDecimoTerc write FCalcularDecimoTerc;
+      property Participa          : Boolean read FParticipa write FParticipa;
+
+      constructor Create;
+      destructor Destroy;
+  end;
+
+Type
   TDependente = class(TPessoaFisica)
     private
       FServidor   : TServidor;
       FParentesco : TParentesco;
       FRegistroCartorio   : TRegistroCartorio;
+      FEstudante          ,
       FDeficiente         ,
       FAtivoSalarioFamilia,
       FAtivoIRRF          : Boolean;
@@ -649,6 +677,7 @@ Type
       property Servidor   : TServidor read FServidor write FServidor;
       property Parentesco : TParentesco read FParentesco write FParentesco;
       property RegistroCartorio    : TRegistroCartorio read FRegistroCartorio write FRegistroCartorio;
+      property Estudante           : Boolean  read FEstudante write FEstudante;
       property Deficiente          : Boolean  read FDeficiente write FDeficiente;
       property AtivoSalarioFamilia : Boolean  read FAtivoSalarioFamilia write FAtivoSalarioFamilia;
       property AtivoIRRF           : Boolean read FAtivoIRRF write FAtivoIRRF;
@@ -930,6 +959,10 @@ type
     qryBaseCalculoMesServidor: TFDQuery;
     updEventoBCMesServidor: TFDUpdateSQL;
     qryEventoBCMesServidor: TFDQuery;
+    qryPessoaDependente: TFDQuery;
+    updPessoaDependente: TFDUpdateSQL;
+    updServidorEventoFixo: TFDUpdateSQL;
+    qryServidorEventoFixo: TFDQuery;
     procedure qryError(ASender: TObject;
       const AInitiator: IFDStanObject; var AException: Exception);  private
     { Private declarations }
@@ -969,6 +1002,7 @@ type
     function InserirNacionalidade(const pNacionalidade : TGenerico) : Boolean;
     function InserirPessoaFisica(const pPessoaFisica : TPessoaFisica) : Boolean;
     function InserirServidor(const pServidor : TServidor) : Boolean;
+    function InserirServidorEventoFixo(const pServidorEvento : TEventoFixoServidor) : Boolean;
     function InserirEntidadeFinanceira(const pEntidadeFinanceira : TEntidadeFinanceira) : Boolean;
     function InserirContaBancoServidor(const pConta : TContaBancoServidor) : Boolean;
     function InserirDependente(const pDependente : TDependente) : Boolean;
@@ -1436,6 +1470,12 @@ var
   aRetorno : Boolean;
 begin
   aRetorno := False;
+
+  try
+    fdTargetDB.ExecSQL('CREATE INDEX IDX_DEPTO_DESCRICAO ON DEPTO (DESCRICAO)', True);
+  except
+  end;
+
   try
     try
       with qryDepartamento do
@@ -1445,6 +1485,7 @@ begin
         Close;
         ParamByName('id').AsInteger    := pDepartamento.ID;
         ParamByName('codigo').AsString := pDepartamento.Codigo;
+        ParamByName('descricao').Clear;
         Open;
         if IsEmpty then
         begin
@@ -1481,9 +1522,10 @@ begin
   aRetorno := False;
   try
     try
+      // Tabela SERVIDOR_DEPENDENTE
       with qryServidorDependente do
       begin
-        CriarCampoTabela('SERVIDOR_DEPENDENTE', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SERVIDOR_DEPENDENTE', 'ID_SYS_ANTER', 'VARCHAR(15)');
 
         Close;
         ParamByName('id').AsInteger := pDependente.ID;
@@ -1529,11 +1571,67 @@ begin
 
           CommitUpdates;
         end;
-        aRetorno := True;
+        //aRetorno := True;
       end;
+
+      // Tabela PESSOA_FISICA_DEPENDENTE
+      with qryServidorDependente do
+      begin
+        CriarCampoTabela('PESSOA_FISICA_DEPENDENTE', 'ID_SYS_ANTER', 'VARCHAR(15)');
+
+        Close;
+        ParamByName('id').AsInteger := pDependente.ID;
+        ParamByName('pessoa').AsInteger      := pDependente.Servidor.ID;
+        ParamByName('nome').AsString         := Trim(Copy(pDependente.Nome, 1, 60));
+        ParamByName('nascimento').AsDateTime := pDependente.DataNascimento;
+        ParamByName('codigo').AsString       := pDependente.Codigo;
+        Open;
+        if IsEmpty and (pDependente.Servidor.ID > 0) then
+        begin
+          if (pDependente.ID = 0) then
+            pDependente.ID := NewID('PESSOA_FISICA_DEPENDENTE', 'ID');
+
+          Append;
+          FieldByName('id').AsInteger          := pDependente.ID;
+          FieldByName('id_pessoa').AsInteger   := pDependente.Servidor.ID;
+          FieldByName('nome').AsString         := Trim(Copy(pDependente.Nome, 1, 60));
+          FieldByName('cpf').AsString          := pDependente.CPF_CNPJ.Numero;
+          FieldByName('sexo').AsString         := pDependente.SexoSigla;
+          FieldByName('parentesco').AsString   := IntToStr(Ord(pDependente.Parentesco));
+          FieldByName('dt_nascimento').AsDateTime := pDependente.DataNascimento;
+          FieldByName('natural_cidade').AsString  := Trim(Copy(pDependente.Naturalidade.Cidade, 1, 40));
+          FieldByName('natural_uf').AsString      := pDependente.Naturalidade.UF;
+          FieldByName('cartorio_nome').AsString   := Trim(Copy(pDependente.RegistroCartorio.Nome, 1, 40));
+          FieldByName('cartorio_cidade').AsString := Trim(Copy(pDependente.RegistroCartorio.Cidade, 1, 40));
+          FieldByName('cartorio_uf').AsString     := pDependente.RegistroCartorio.UF;
+          FieldByName('registro_num').AsString    := Trim(Copy(pDependente.RegistroCartorio.Numero, 1, 11));
+          FieldByName('registro_livro').AsString  := Trim(Copy(pDependente.RegistroCartorio.Livro, 1, 11));
+          FieldByName('registro_folha').AsString  := Trim(Copy(pDependente.RegistroCartorio.Folha, 1, 11));
+          FieldByName('estudante').AsString       := IfThen(pDependente.Estudante, 'S', 'N');
+          FieldByName('deficiente').AsString      := IfThen(pDependente.Deficiente, 'S', 'N');
+          FieldByName('ativo_sal_familia').AsString := IfThen(pDependente.AtivoSalarioFamilia, 'S', 'N');
+          FieldByName('ativo_irrf').AsString        := IfThen(pDependente.AtivoIRRF, 'S', 'N');
+          FieldByName('perc_p_aliment').AsCurrency  := pDependente.PercentualPensaoAliment;
+          FieldByName('val_p_aliment').AsCurrency   := pDependente.ValorPensaoAliment;
+
+          if (Trim(pDependente.Codigo) = EmptyStr) then
+            FieldByName('id_sys_anter').Clear
+          else
+            FieldByName('id_sys_anter').AsString := Trim(pDependente.Codigo);
+
+          Post;
+
+          ApplyUpdates(0);
+
+          CommitUpdates;
+        end;
+        //aRetorno := True;
+      end;
+
+      aRetorno := True;
     except
       On E : Exception do
-        MensagemErro('Erro', 'Erro ao tentar inserir o Dependente do Servidor.' + #13#13 + E.Message);
+        MensagemErro('Erro', 'Erro ao tentar inserir o Dependente da Pessoa Física.' + #13#13 + E.Message);
     end;
   finally
     Result := aRetorno;
@@ -1600,10 +1698,7 @@ begin
           FieldByName('calc_ats_sobre_vencto_base').AsString := IfThen(pInicializaMesServidor.CalculaATSVencimentoBase, 'S', 'N');
           FieldByName('nao_calcular_ats').AsString           := IfThen(pInicializaMesServidor.Servidor.NaoCalculaATS, 'S', 'N');
 
-          if (pInicializaMesServidor.DataBaseCalculoATS = StrToDateTime('30/12/1899')) then
-            FieldByName('dt_base_calc_ats').Clear
-          else
-            FieldByName('dt_base_calc_ats').AsDateTime := pInicializaMesServidor.DataBaseCalculoATS;
+          FieldByName('dt_base_calc_ats').Clear;
 
           if (pInicializaMesServidor.TempoServicoATS = EmptyStr) then
             FieldByName('tempo_serv_ats').Clear
@@ -2325,10 +2420,7 @@ begin
           else
             FieldByName('ref_sal_inicial').AsInteger := pServidor.ReferenciaSalarioInicial;
 
-          if (pServidor.DataBaseCalculoATS = StrToDateTime('30/12/1899')) then
-            FieldByName('dt_base_calc_ats').AsDateTime := StrToDateTime('01/01/1901')
-          else
-            FieldByName('dt_base_calc_ats').AsDateTime := pServidor.DataBaseCalculoATS;
+          FieldByName('dt_base_calc_ats').Clear;
 
           FieldByName('desvio_de_funcao').AsString := IfThen(pServidor.DesvioFuncao, 'S', 'N');
 
@@ -2362,6 +2454,48 @@ begin
     end;
   finally
     aCampoVazio.Free;
+    Result := aRetorno;
+  end;
+end;
+
+function TdmConexaoTargetDB.InserirServidorEventoFixo(const pServidorEvento : TEventoFixoServidor) : Boolean;
+var
+  aRetorno : Boolean;
+begin
+  aRetorno := False;
+  try
+    try
+      with qryServidorEventoFixo do
+      begin
+        Close;
+        ParamByName('servidor').AsInteger := pServidorEvento.Servidor.IDServidor;
+        ParamByName('evento').AsInteger   := pServidorEvento.Evento.ID;
+        Open;
+        if IsEmpty and (pServidorEvento.Servidor.IDServidor > 0) and (pServidorEvento.Evento.ID > 0) then
+        begin
+          Append;
+          FieldByName('id_servidor').AsInteger  := pServidorEvento.Servidor.IDServidor;
+          FieldByName('id_evento').AsInteger    := pServidorEvento.Evento.ID;
+          FieldByName('qtd').AsCurrency         := pServidorEvento.Quantidade;
+          FieldByName('valor').AsCurrency       := pServidorEvento.Valor;
+          FieldByName('observacao').AsString    := pServidorEvento.Observacao;
+          FieldByName('ini_validade').AsString  := pServidorEvento.ValidadeInicial;
+          FieldByName('fim_validade').AsString  := pServidorEvento.ValidadeFinal;
+          FieldByName('calc_dec_terc').AsString := IfThen(pServidorEvento.CalcularDecimoTerc, 'S', 'N');
+          FieldByName('participa').AsString     := IfThen(pServidorEvento.Participa, 'S', 'N');
+          Post;
+
+          ApplyUpdates(0);
+
+          CommitUpdates;
+        end;
+        aRetorno := True;
+      end;
+    except
+      On E : Exception do
+        MensagemErro('Erro', 'Erro ao tentar inserir o Evento Fixo do Servidor.' + #13#13 + E.Message);
+    end;
+  finally
     Result := aRetorno;
   end;
 end;
@@ -2903,7 +3037,27 @@ end;
 
 procedure TGenerico.CarregarDados;
 begin
-  ;
+  try
+    with dmConexaoTargetDB, qryDepartamento do
+    begin
+      Close;
+      ParamByName('id').AsInteger       := ID;
+      ParamByName('codigo').AsString    := Codigo;
+      ParamByName('descricao').AsString := Copy(Descricao, 1, 40);
+      Open;
+      if not IsEmpty then
+      begin
+        ID        := FieldByName('id').AsInteger;
+        Codigo    := FieldByName('id_sys_anter').AsString;
+        Descricao := FieldByName('descricao').AsString;
+        Ativo     := (FieldByName('em_uso').AsString = 'S');
+      end;
+      Close;
+    end;
+  except
+    On E : Exception do
+      MensagemErro('Erro', 'Erro ao tentar carregar dados do Departamento : ' + #13 + E.Message);
+  end;
 end;
 
 constructor TGenerico.Create;
@@ -3272,7 +3426,7 @@ begin
       Open;
 
       if (aIdentificador_OLD > 0) then
-        while ( (I < 10) or ((not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger)) ) do  // Até 10 tentativas
+        while ( (I < 15) or ((not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger)) ) do  // Até 15 tentativas
         begin
           Next;
           Inc(I);
@@ -3389,7 +3543,7 @@ begin
   FTelefone       := EmptyStr;
   FNaturalidade   := TNaturalidade.Create;
   FNacionalidade  := TGenerico.Create;
-  FAtiva   := True;
+  FAtiva := True;
 
   FNacionalidade.ID        := 10;
   FNacionalidade.Descricao := 'BRASIL';
@@ -3662,7 +3816,7 @@ begin
   FCalculaIRRF              := True;
   FEstadoFuncional := TEstadoFuncional.Create;
   FStatus          := statusServidorUm;
-  FNaoCalculaATS             := True;
+  FNaoCalculaATS             := False;
   FCalculaSalarioCargoOrigem := False;
   FReferenciaSalarioInicial  := 0;
   FDataBaseCalculoATS        := StrToDateTime('30/12/1899');
@@ -3807,6 +3961,7 @@ begin
   FServidor   := TServidor.Create;
   FParentesco := parentescoOutros;
   FRegistroCartorio    := TRegistroCartorio.Create;
+  FEstudante           := False;
   FDeficiente          := False;
   FAtivoSalarioFamilia := False;
   FAtivoIRRF           := False;
@@ -4112,6 +4267,31 @@ end;
 function TEventoBaseCalculoMesServidor.GetEventoID: Integer;
 begin
   Result := FEventoBaseCalculo.ID;
+end;
+
+{ TEventoFixoServidor }
+
+constructor TEventoFixoServidor.Create;
+begin
+  inherited Create;
+  FServidor   := TServidor.Create;
+  FEvento     := TEvento.Create;
+  FQuantidade := 0.0;
+  FValor      := 0.0;
+  FObservacao      := EmptyStr;
+  FValidadeInicial := FormatDateTime('YYYYMM', Date);
+  FValidadeFinal   := '209912';
+  FCalcularDecimoTerc := False;
+  FParticipa          := True;
+end;
+
+destructor TEventoFixoServidor.Destroy;
+begin
+  if Assigned(FServidor) then
+    FServidor.Destroy;
+  if Assigned(FEvento) then
+    FEvento.Destroy;
+  inherited Destroy;
 end;
 
 end.

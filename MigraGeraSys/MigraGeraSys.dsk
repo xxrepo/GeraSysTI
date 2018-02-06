@@ -1,36 +1,52 @@
 ﻿[Closed Files]
-File_0=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\RTL\SYS\System.pas',0,1,15694,1,15712,0,0,,
-File_1=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas',0,1,1,1,14,0,0,,{1
-File_2=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConfigurarTargetDB.pas',0,1,36,81,73,0,0,,
-File_3=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\VCL\Vcl.Controls.pas',0,1,9741,73,9742,0,0,,
-File_4=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas',0,1,1,1,1,0,0,,
-File_5=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilliTabelas.pas',0,1,99,77,101,0,0,,
-File_6=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\UVersao.pas',0,1,85,13,1,0,0,,
-File_7=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas',0,1,59,86,60,0,0,,
-File_8=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.DatS.pas',0,1,2158,1,2173,0,0,,
-File_9=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Comp.Client.pas',0,1,10461,1,10477,0,0,,
-File_10=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Stan.Expr.pas',0,1,932,1,960,0,0,,
-File_11=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.pas',0,1,256,7,277,0,0,,
-File_12=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.pas',0,1,38,1,43,0,0,,
-File_13=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Phys.IBBase.pas',0,1,2966,1,2981,0,0,,
-File_14=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.DApt.pas',0,1,2176,86,2184,0,0,,
+File_0=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\VCL\Vcl.Controls.pas',0,1,9741,1,9756,0,0,,
+File_1=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Phys.pas',0,1,6551,1,6566,0,0,,
+File_2=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\RTL\SYS\System.pas',0,1,15693,1,15712,0,0,,
+File_3=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilliTabelas.pas',0,1,99,1,103,0,0,,
+File_4=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Phys.IBBase.pas',0,1,2907,1,2924,0,0,,
+File_5=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Stan.Async.pas',0,1,162,1,186,0,0,,
+File_6=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Comp.Client.pas',0,1,5033,1,5050,0,0,,
+File_7=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConfigurarTargetDB.pas',0,1,36,81,73,0,0,,
+File_8=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas',0,1,1,1,1,0,0,,
+File_9=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\UVersao.pas',0,1,85,13,1,0,0,,
+File_10=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas',0,1,59,86,60,0,0,,
+File_11=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.DatS.pas',0,1,2158,1,2173,0,0,,
+File_12=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Stan.Expr.pas',0,1,932,1,960,0,0,,
+File_13=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.pas',0,1,256,7,277,0,0,,
+File_14=TSourceModule,'D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.pas',0,1,38,1,43,0,0,,
 
 [Modules]
-Module0=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas
-Module1=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
-Module2=default.htm
-Module3=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\MigraGeraSys.dproj
-Module4=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\URecursos.pas
-Module5=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
-Count=6
+Module0=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
+Module1=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
+Module2=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
+Module3=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\URecursos.pas
+Module4=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas
+Module5=default.htm
+Module6=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\MigraGeraSys.dproj
+Count=7
 EditWindowCount=1
 
-[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas]
+[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas]
 ModuleType=TSourceModule
 FormState=1
 FormOnTop=0
 
+[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=1
+
 [D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\URecursos.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=0
+
+[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas]
 ModuleType=TSourceModule
 FormState=1
 FormOnTop=0
@@ -41,29 +57,20 @@ ModuleType=TURLModule
 [D:\Projetos\GeraSysTI\trunk\MigraGeraSys\MigraGeraSys.dproj]
 ModuleType=TBaseProject
 
-[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\URecursos.pas]
-ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
-
-[D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas]
-ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
-
 [D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UPadraoSDI.pas]
 FormState=1
 FormOnTop=0
 
 [EditWindow0]
-ViewCount=6
-CurrentEditView=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas
+ViewCount=7
+CurrentEditView=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
 View0=0
 View1=1
 View2=2
 View3=3
 View4=4
 View5=5
+View6=6
 PercentageSizes=1
 Create=1
 Visible=1
@@ -82,13 +89,13 @@ BorlandEditorCodeExplorer=BorlandEditorCodeExplorer@EditWindow0
 TopPanelSize=0
 LeftPanelSize=1341
 LeftPanelClients=PropertyInspector,DockSite3
-LeftPanelData=000008000101000000001E11000000000000013D050000000000000100000000550E000009000000446F636B536974653301000000006D1E00001100000050726F7065727479496E73706563746F72FFFFFFFF
+LeftPanelData=00000800010100000000A611000000000000013D050000000000000100000000550E000009000000446F636B53697465330100000000601F00001100000050726F7065727479496E73706563746F72FFFFFFFF
 RightPanelSize=1309
 RightPanelClients=DockSite2,DockSite4
-RightPanelData=000008000101000000001E11000000000000011D0500000000000001000000004412000009000000446F636B536974653201000000006D1E000009000000446F636B5369746534FFFFFFFF
-BottomPanelSize=810
+RightPanelData=00000800010100000000A611000000000000011D0500000000000001000000004412000009000000446F636B53697465320100000000601F000009000000446F636B5369746534FFFFFFFF
+BottomPanelSize=567
 BottomPanelClients=DockSite1,MessageView
-BottomPanelData=0000080001020100000009000000446F636B53697465317245000000000000022A030000000000000100000000724500000F0000004D65737361676556696577466F726DFFFFFFFF
+BottomPanelData=0000080001020100000009000000446F636B536974653172450000000000000237020000000000000100000000724500000F0000004D65737361676556696577466F726DFFFFFFFF
 BottomMiddlePanelSize=0
 BottomMiddlePanelClients=DockSite0,GraphDrawingModel
 BottomMiddelPanelData=0000080001020200000009000000446F636B536974653010000000477261706844726177696E67566965779D1D00000000000002F606000000000000FFFFFFFF
@@ -111,20 +118,20 @@ EditViewName=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\MigraGeraSys.dpr
 [View2]
 CustomEditViewType=TEditView
 Module=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
-CursorX=41
-CursorY=1891
-TopLine=1884
+CursorX=111
+CursorY=3428
+TopLine=3409
 LeftCol=1
 Elisions=
-Bookmarks={2,2907,1}{3,2970,1}
-EditViewName=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
+Bookmarks={1,3046,66}{2,3061,1}{3,3124,1}
+EditViewName=Borland.FormDesignerView
 
 [View3]
 CustomEditViewType=TEditView
 Module=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\URecursos.pas
-CursorX=3
-CursorY=60
-TopLine=50
+CursorX=1
+CursorY=170
+TopLine=153
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -145,12 +152,23 @@ EditViewName=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\UMain.pas
 CustomEditViewType=TEditView
 Module=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
 CursorX=1
-CursorY=1218
-TopLine=1200
+CursorY=912
+TopLine=904
 LeftCol=1
 Elisions=
-Bookmarks={1,1213,9}
+Bookmarks={1,1219,9}
 EditViewName=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
+
+[View6]
+CustomEditViewType=TEditView
+Module=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
+CursorX=83
+CursorY=1043
+TopLine=1019
+LeftCol=1
+Elisions=
+Bookmarks={1,1031,7}
+EditViewName=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
 
 [Watches]
 Count=0
@@ -166,18 +184,19 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=218
 LRDockWidth=13600
 Dockable=1
 StayOnTop=0
 
 [Breakpoints]
-Count=0
+Count=1
+Breakpoint0='D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas',1033,'',0,1,'',1,0,0,'',1,'','','',0,''
 
 [EmbarcaderoWin32Debugger_AddressBreakpoints]
 Count=0
@@ -242,12 +261,12 @@ State=0
 Left=0
 Top=23
 Width=10000
-Height=569
+Height=315
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=10000
-ClientHeight=569
-TBDockHeight=569
+ClientHeight=315
+TBDockHeight=315
 LRDockWidth=2767
 Dockable=1
 StayOnTop=0
@@ -261,11 +280,11 @@ State=0
 Left=0
 Top=0
 Width=1309
-Height=2978
+Height=3232
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=1309
-ClientHeight=2978
+ClientHeight=3232
 TBDockHeight=7155
 LRDockWidth=1999
 Dockable=1
@@ -280,21 +299,16 @@ State=0
 Left=0
 Top=340
 Width=1341
-Height=4031
+Height=4286
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=1341
-ClientHeight=4031
+ClientHeight=4286
 TBDockHeight=6707
 LRDockWidth=1341
 Dockable=1
 StayOnTop=0
-SplitPos=79
-
-[PropInspDesignerSelection]
-ArrangeBy=Name
-SelectedItem=Action,OnClose
-ExpandedItems=Anchors=0,BorderIcons=0,LiveBindings=0,Constraints=0,Font=0,GlassFrame=0,HorzScrollBar=0,"LiveBindings Designer=0",Margins=0,Padding=0,StyleElements=0,Touch=0,VertScrollBar=0
+SplitPos=118
 
 [ModelViewTool]
 PercentageSizes=1
@@ -321,7 +335,7 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-248
+Left=-103
 Top=-100
 Width=1842
 Height=3148
@@ -422,11 +436,11 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=412
 LRDockWidth=4948
 Dockable=1
@@ -441,11 +455,11 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=218
 LRDockWidth=7409
 Dockable=1
@@ -464,11 +478,11 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=1538
 LRDockWidth=3483
 Dockable=1
@@ -483,11 +497,11 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=2058
 LRDockWidth=3483
 Dockable=1
@@ -605,11 +619,11 @@ State=0
 Left=0
 Top=0
 Width=3828
-Height=266
+Height=12
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=266
+ClientHeight=12
 TBDockHeight=1550
 LRDockWidth=8743
 Dockable=1
@@ -698,12 +712,12 @@ State=0
 Left=0
 Top=23
 Width=3828
-Height=569
+Height=315
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=3828
-ClientHeight=569
-TBDockHeight=569
+ClientHeight=315
+TBDockHeight=315
 LRDockWidth=3828
 Dockable=1
 StayOnTop=0
@@ -770,11 +784,11 @@ State=0
 Left=0
 Top=427
 Width=1309
-Height=2978
+Height=3232
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=1309
-ClientHeight=2978
+ClientHeight=3232
 TBDockHeight=6707
 LRDockWidth=1309
 Dockable=1

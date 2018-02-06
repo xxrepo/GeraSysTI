@@ -545,6 +545,7 @@ begin
         aDependente.ID      := 0;
         aDependente.Servidor.Codigo     := Trim(dbfSourceDB.FieldByName('matric').AsString);
         aDependente.Servidor.IDServidor := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
+        aDependente.Servidor.ID         := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID_PESSOA_FISICA', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
         aDependente.Codigo  := EmptyStr;
         aDependente.Nome    := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('nomdep').AsString));
         aDependente.DataNascimento := dbfSourceDB.FieldByName('datnas').AsDateTime;
@@ -555,6 +556,10 @@ begin
         aDependente.RegistroCartorio.Numero := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('numero').AsString));
         aDependente.RegistroCartorio.Livro  := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('livro').AsString));
         aDependente.RegistroCartorio.Folha  := AnsiUpperCase(Trim(dbfSourceDB.FieldByName('folha').AsString));
+        aDependente.Estudante               := False;
+        aDependente.Deficiente              := False;
+        aDependente.AtivoIRRF               := True;
+        aDependente.AtivoSalarioFamilia     := False;
 
         if not dmConexaoTargetDB.InserirDependente(aDependente) then
           gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
@@ -1206,6 +1211,7 @@ begin
         aServidor.BloqueaLanctoEventoAuto   := False;
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
+        aServidor.NaoCalculaATS             := False;
         aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(dbfSourceDB.FieldByName('sit').AsString), 0));
         aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;
@@ -1293,7 +1299,8 @@ begin
       dbfSourceDB.Next;
     end;
 
-    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA', 'PESSOA_FISICA', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA',        'PESSOA_FISICA',            'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA_DEPEND', 'PESSOA_FISICA_DEPENDENTE', 'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR',      'SERVIDOR',      'CAST(substring(lpad(ID, 10, ''0'') from 1 for 9) as INTEGER)');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_ENTID_FINANC',  'ENTID_FINANC',  'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_DEPTO',         'DEPTO',         'ID');

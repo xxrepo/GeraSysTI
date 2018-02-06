@@ -46,6 +46,9 @@ type
     chkTabelaPFServidor: TCheckBox;
     qrySourceDBDetails: TFDQuery;
     chkTabelaDependente: TCheckBox;
+    chkLancamentoMesServidor: TCheckBox;
+    lblCompetencia: TLabel;
+    cmCompetencia: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTodosClick(Sender: TObject);
@@ -53,6 +56,7 @@ type
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
     procedure chkTabelaPFServidorClick(Sender: TObject);
     procedure chkTabelaDependenteClick(Sender: TObject);
+    procedure chkLancamentoMesServidorClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarIni;
@@ -73,6 +77,8 @@ type
     procedure ImportarEntidadeFinanceira(Sender: TObject);
     procedure ImportarPessoaFisica(Sender: TObject);
     procedure ImportarDependente(Sender: TObject);
+    procedure ImportarEventoFixoServidor(Sender: TObject);
+    procedure ImportarFolhaMensalServidor(Sender: TObject);
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -103,6 +109,12 @@ begin
     ConectarSourceDB;
 
   ShowTabelasFireBird(Self);
+end;
+
+procedure TfrmSourceDBFiorilli.chkLancamentoMesServidorClick(Sender: TObject);
+begin
+  lblCompetencia.Visible := chkLancamentoMesServidor.Checked;
+  cmCompetencia.Visible  := chkLancamentoMesServidor.Checked;
 end;
 
 procedure TfrmSourceDBFiorilli.chkTabelaCargoFuncaoClick(Sender: TObject);
@@ -198,6 +210,7 @@ begin
         if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
         if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
         if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
+        if chkLancamentoMesServidor.Checked then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
 
         aRetorno := True;
       end;
@@ -230,6 +243,8 @@ begin
     if not DirectoryExists(edSourceDB.InitialDir) then
       ForceDirectories(edSourceDB.InitialDir);
   end;
+
+  dmRecursos.ListarCompetencia(cmCompetencia);
 end;
 
 procedure TfrmSourceDBFiorilli.GerarUnidadeOrcamentariaPadrao(aUnidadeGestora : TUnidadeGestora);
@@ -494,9 +509,11 @@ CODIGO	NOME
         aDependente.ID      := 0;
         aDependente.Servidor.Codigo     := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
         aDependente.Servidor.IDServidor := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
-        aDependente.Codigo  := EmptyStr; // aDependente.Servidor.Codigo + Trim(qrySourceDB.FieldByName('item').AsString);
+        aDependente.Servidor.ID         := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID_PESSOA_FISICA', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
+        aDependente.Codigo  := aDependente.Servidor.Codigo + Trim(qrySourceDB.FieldByName('item').AsString);
         aDependente.Nome    := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
-        aDependente.DataNascimento := qrySourceDB.FieldByName('dtnasc').AsDateTime;
+        aDependente.CPF_CNPJ.Numero := Trim(qrySourceDB.FieldByName('cpf').AsString);
+        aDependente.DataNascimento  := qrySourceDB.FieldByName('dtnasc').AsDateTime;
 
         Case StrToIntDef(Trim(qrySourceDB.FieldByName('parentesco').AsString), 5) of
           1, 2 : aDependente.Parentesco := parentescoConjuge;
@@ -514,6 +531,7 @@ CODIGO	NOME
         aDependente.RegistroCartorio.Numero := AnsiUpperCase(Trim(qrySourceDB.FieldByName('numregistro').AsString));
         aDependente.RegistroCartorio.Livro  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('numlivro').AsString));
         aDependente.RegistroCartorio.Folha  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('numfolha').AsString));
+        aDependente.Estudante               := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('universitario').AsString)) = 'S');
         aDependente.Deficiente              := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('deficiente').AsString)) = 'S');
         aDependente.AtivoIRRF               := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('irrf').AsString)) = 'S');
         aDependente.AtivoSalarioFamilia     := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('salfamilia').AsString)) = 'S');
@@ -697,11 +715,144 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBFiorilli.ImportarEventoFixoServidor(Sender: TObject);
+var
+  aEventoFixo : TEventoFixoServidor;
+begin
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    e.empresa');
+    qrySourceDB.SQL.Add('  , e.registro');
+    qrySourceDB.SQL.Add('  , f.nome');
+    qrySourceDB.SQL.Add('  , e.evento');
+    qrySourceDB.SQL.Add('  , e.item');
+    qrySourceDB.SQL.Add('  , e.dependente');
+    qrySourceDB.SQL.Add('  , e.qtde');
+    qrySourceDB.SQL.Add('  , e.valor');
+    qrySourceDB.SQL.Add('  , e.perc');
+    qrySourceDB.SQL.Add('  , e.depdespesa');
+    qrySourceDB.SQL.Add('  , e.referencia');
+    qrySourceDB.SQL.Add('  , e.qtdhoras');
+    qrySourceDB.SQL.Add('  , e.data_base');
+    qrySourceDB.SQL.Add('  , e.ativo');
+    qrySourceDB.SQL.Add('  , e.data_limite');
+    qrySourceDB.SQL.Add('  , e.datadoc');
+    qrySourceDB.SQL.Add('  , e.tipolegal');
+    qrySourceDB.SQL.Add('  , e.numdoc');
+    qrySourceDB.SQL.Add('  , e.datadoc_cessacao');
+    qrySourceDB.SQL.Add('  , e.tipolegal_cessacao');
+    qrySourceDB.SQL.Add('  , e.numdoc_cessacao');
+    qrySourceDB.SQL.Add('  , e.obs');
+    qrySourceDB.SQL.Add('from EVENTOSFIXOS e');
+    qrySourceDB.SQL.Add('  inner join TRABALHADOR f on (f.empresa = e.empresa and f.registro = e.registro)');
+    qrySourceDB.SQL.Add('  inner join EVENTOS v on (v.empresa = e.empresa and v.codigo = e.evento)');
+    qrySourceDB.SQL.Add('  left join EVENTOSFIXOS_PARAM p on (p.codigo = e.param)');
+    qrySourceDB.SQL.Add('where e.ativo = ' + QuotedStr('S'));
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    f.empresa');
+    qrySourceDB.SQL.Add('  , f.nome');
+    qrySourceDB.SQL.Add('  , e.evento');
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if (Trim(qrySourceDB.FieldByName('nome').AsString) <> EmptyStr) then
+      begin
+        if not Assigned(aEventoFixo) then
+          aEventoFixo := TEventoFixoServidor.Create;
+
+        aEventoFixo.Servidor.ID         := 0;
+        aEventoFixo.Servidor.IDServidor := 0;
+        aEventoFixo.Servidor.Codigo     := EmptyStr;
+        aEventoFixo.Evento.ID           := 0;
+        aEventoFixo.Evento.Codigo       := EmptyStr;
+
+        aEventoFixo.Servidor.Codigo     := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
+        aEventoFixo.Servidor.IDServidor := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aEventoFixo.Servidor.Codigo));
+        aEventoFixo.Servidor.ID         := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID_PESSOA_FISICA', 'ID_SYS_ANTER = ' + QuotedStr(aEventoFixo.Servidor.Codigo));
+        aEventoFixo.Evento.Codigo       := Trim(qrySourceDB.FieldByName('evento').AsString);
+        aEventoFixo.Evento.ID           := dmConexaoTargetDB.GetValue('EVENTO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aEventoFixo.Evento.Codigo));
+
+        aEventoFixo.Quantidade := qrySourceDB.FieldByName('qtde').AsCurrency;
+        aEventoFixo.Valor      := qrySourceDB.FieldByName('valor').AsCurrency;
+        aEventoFixo.Observacao := Trim(qrySourceDB.FieldByName('obs').AsString);
+
+        if qrySourceDB.FieldByName('data_base').IsNull then
+          aEventoFixo.ValidadeInicial := FormatDateTime('YYYYMM', Date)
+        else
+          aEventoFixo.ValidadeInicial := FormatDateTime('YYYYMM', qrySourceDB.FieldByName('data_base').AsDateTime);
+
+        if qrySourceDB.FieldByName('data_limite').IsNull then
+          aEventoFixo.ValidadeFinal := '209912'
+        else
+          aEventoFixo.ValidadeFinal := FormatDateTime('YYYYMM', qrySourceDB.FieldByName('data_limite').AsDateTime);
+
+        aEventoFixo.CalcularDecimoTerc := False;
+        aEventoFixo.Participa          := True;
+
+        if not dmConexaoTargetDB.InserirServidorEventoFixo(aEventoFixo) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Servidor : ' +
+            QuotedStr(aEventoFixo.Servidor.Codigo + ' - Evento Fixo : ' + aEventoFixo.Evento.Codigo) + ' não importado');
+      end;
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nome').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+  finally
+    aEventoFixo.Free;
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
 procedure TfrmSourceDBFiorilli.ImportarEventos(Sender: TObject);
 var
   aEvento : TEvento;
 begin
   try
+    try
+      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD INICIALIZA_MES BOOLEAN DEFAULT ''N''', True);
+      fdSourceDB.CommitRetaining;
+      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''N'' where INICIALIZA_MES is null', True);
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+
+    try
+      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''001''', True); // -- Salário Base
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''008''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''152''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''159''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''940''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''954''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''955''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''956''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''570''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''958''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''957''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''977''', True); // -- Licença Prêmio
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''978''', True); // -- Licença Maternidade (1)
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''979''', True); // -- Licença Maternidade (2)
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
@@ -791,10 +942,227 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
+  procedure ImportarFolha(const aCompetencia : TGenerico);
+  var
+    aRegistrInserido : Boolean;
+    aServidor : TServidor;
+    aEvento   : TEvento;
+    aInicializaMesServidor  : TInicializaMesServidor;
+    aBaseCalculoMesServidor : TBaseCalculoMesServidor;
+    aEventoBaseCalculoMesServidor : TEventoBaseCalculoMesServidor;
+    sInforme : String;
+    aEventoID_OLD : Integer;
+  begin
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+
+    qrySourceDB.SQL.Add('    f.*');
+    qrySourceDB.SQL.Add('  , ((f.ultimo_dia - f.primeiro_dia) - (f.sabados + f.domingos + f.feriados)) as dias_trabalhados');
+    qrySourceDB.SQL.Add('  , m.*');
+    qrySourceDB.SQL.Add('  , t.nome as nome_servidor');
+    qrySourceDB.SQL.Add('  , t.matricula');
+    qrySourceDB.SQL.Add('  , e.nome as nome_evento');
+    qrySourceDB.SQL.Add('  , e.inicializa_mes');
+    qrySourceDB.SQL.Add('  , coalesce(u2.depdespesa,  u1.depdespesa)  as depto');
+    qrySourceDB.SQL.Add('  , coalesce(u2.nomeunidade, u1.nomeunidade) as depto_nome');
+    qrySourceDB.SQL.Add('  , u1.depdespesa  as depto1');
+    qrySourceDB.SQL.Add('  , u1.nomeunidade as depto1_nome');
+    qrySourceDB.SQL.Add('  , u2.depdespesa  as depto2');
+    qrySourceDB.SQL.Add('  , u2.nomeunidade as depto2_nome');
+
+    qrySourceDB.SQL.Add('from REFERENCIA f');
+    qrySourceDB.SQL.Add('  inner join MOVIMENTO m on (m.referencia = f.codigo)');
+    qrySourceDB.SQL.Add('  inner join TRABALHADOR t on (t.empresa = m.empresa and t.registro = m.registro)');
+    qrySourceDB.SQL.Add('  inner join EVENTOS e on (e.empresa = m.empresa and e.codigo = m.evento)');
+    qrySourceDB.SQL.Add('  left join UNIDADE u1 on (u1.codigo = m.depprincipal)');
+    qrySourceDB.SQL.Add('  left join UNIDADE u2 on (u2.codigo = m.depsecundario)');
+    qrySourceDB.SQL.Add('where f.ano = :ano');
+    qrySourceDB.SQL.Add('  and f.mes = :mes');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    f.codigo');
+    qrySourceDB.SQL.Add('  , t.nome');
+    qrySourceDB.SQL.Add('  , m.empresa');
+    qrySourceDB.SQL.Add('  , m.registro');
+    qrySourceDB.SQL.Add('  , m.evento');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.ParamByName('ano').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 3, 4));
+    qrySourceDB.ParamByName('mes').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 1, 2));
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    aEventoID_OLD := 0;
+
+    qrySourceDB.First;
+    if qrySourceDB.IsEmpty then
+    begin
+      gLogImportacao.Add('Competência ' +
+        QuotedStr(aCompetencia.Descricao) + ' não localizada na tabela ' + QuotedStr('REFERENCIA/MOVIMENTO'));
+      MensagemAlerta('Folha Mensal',
+        'Competência ' + QuotedStr(aCompetencia.Descricao) + ' não localizada na tabela ' + QuotedStr('REFERENCIA/MOVIMENTO'));
+      qrySourceDB.Close;
+      Abort;
+    end;
+
+    if not Assigned(aServidor) then
+      aServidor := TServidor.Create;
+
+    if not Assigned(aInicializaMesServidor) then
+      aInicializaMesServidor  := TInicializaMesServidor.Create;
+
+    if not Assigned(aBaseCalculoMesServidor) then
+      aBaseCalculoMesServidor := TBaseCalculoMesServidor.Create;
+
+    if not Assigned(aEvento) then
+      aEvento := TEvento.Create;
+
+    if not Assigned(aEventoBaseCalculoMesServidor) then
+      aEventoBaseCalculoMesServidor := TEventoBaseCalculoMesServidor.Create;
+
+    while not qrySourceDB.Eof do
+    begin
+      aServidor.ID         := 0;
+      aServidor.IDServidor := 0;
+      aServidor.Codigo     := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
+      aServidor.Matricula  := Trim(qrySourceDB.FieldByName('matricula').AsString);
+      aServidor.CarregarDados;
+
+      aBaseCalculoMesServidor.Parcela          := '0';
+      aBaseCalculoMesServidor.CHFaltaProfessor := 0;
+      aBaseCalculoMesServidor.DataPagamento    := qrySourceDB.FieldByName('dtpagto').AsDateTime;
+
+      if ( AnsiUpperCase(Trim(qrySourceDB.FieldByName('inicializa_mes').AsString)) = 'S') then
+      begin
+        aServidor.Departamento.Codigo    := Trim(qrySourceDB.FieldByName('depto').AsString);
+        aServidor.Departamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('depto_nome').AsString));
+        aServidor.Departamento.CarregarDados;
+
+        aInicializaMesServidor.AnoMes         := IntToStr(aCompetencia.ID);
+        aInicializaMesServidor.Servidor       := aServidor;
+        aBaseCalculoMesServidor.InicializaMes := aInicializaMesServidor;
+      end;
+
+      if (aServidor.IDServidor > 0) then
+      begin
+        aInicializaMesServidor.Rubrica := Trim(qrySourceDB.FieldByName('evento').AsString);
+        if ((aInicializaMesServidor.Servidor.IDServidor > 0 ) and (aInicializaMesServidor.Servidor.Matricula = Trim(qrySourceDB.FieldByName('matricula').AsString))) then
+        begin
+          aInicializaMesServidor.CargoFuncao2          := aInicializaMesServidor.CargoFuncao;
+          aInicializaMesServidor.DiasTrabalhados       := qrySourceDB.FieldByName('dias_trabalhados').AsInteger;
+          aInicializaMesServidor.TempoServico          := '000000';
+          aInicializaMesServidor.CalculaVencimentoBase := True;
+          aInicializaMesServidor.VencimentoBaseCargo   := qrySourceDB.FieldByName('VALORINT').AsCurrency;
+          aInicializaMesServidor.TipoSalario           := tipoSalarioUm;
+          aInicializaMesServidor.FormaCalculo          := formaCalculoUm;
+          aInicializaMesServidor.BaseCalculoHoraAula   := 180;
+
+          // Registrar cabeçalho INICIALIZA_MES_SERVIDOR e BASE_CALCULO_MES_SERVIDOR
+          if ( AnsiUpperCase(Trim(qrySourceDB.FieldByName('inicializa_mes').AsString)) = 'S') then
+          begin
+            aEventoID_OLD    := 0;
+            aRegistrInserido := dmConexaoTargetDB.InserirInicializaMesServidor(aInicializaMesServidor);
+            if aRegistrInserido then
+              if not dmConexaoTargetDB.InserirBaseCalculoMesServidor(aBaseCalculoMesServidor) then
+                gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+                  QuotedStr(aInicializaMesServidor.AnoMes + ' - ' + aInicializaMesServidor.Servidor.Matricula) + ' - Base de cálculo não inserida');
+          end
+          else
+            aRegistrInserido := True;
+
+          if aRegistrInserido then
+          begin
+            aEvento.ID     := 0;
+            aEvento.Codigo := Trim(qrySourceDB.FieldByName('evento').AsString);
+            aEvento.CarregarDados_v2(aEventoID_OLD);
+            if (aEvento.ID > 0) then
+            begin
+              // Inserir EVENTOS
+              aEventoBaseCalculoMesServidor.BaseCalculoMesServidor := aBaseCalculoMesServidor;
+              aEventoBaseCalculoMesServidor.EventoBaseCalculo      := aEvento;
+              aEventoBaseCalculoMesServidor.Quantidade := qrySourceDB.FieldByName('QTDEINT').AsCurrency;
+              aEventoBaseCalculoMesServidor.Valor      := qrySourceDB.FieldByName('VALORINT').AsCurrency;
+              aEventoBaseCalculoMesServidor.Observacao := EmptyStr;
+
+              if not dmConexaoTargetDB.InserirEventoBCMesServidor(aEventoBaseCalculoMesServidor) then
+                gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+                  QuotedStr(aInicializaMesServidor.AnoMes + ' - ' + aInicializaMesServidor.Servidor.Matricula) + '/' + aEvento.Codigo + ' - Evento da Base de cálculo não inserido');
+
+              aEventoID_OLD := aEvento.ID;
+            end;
+          end
+          else
+          begin
+            gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+              QuotedStr(aInicializaMesServidor.AnoMes + ' - ' + aInicializaMesServidor.Servidor.Matricula) + ' não importado')
+          end;
+        end
+        else
+          gLogImportacao.Add('Matrícula ' +
+            QuotedStr(Trim(qrySourceDB.FieldByName('matricula').AsString)) +
+            ', para o evento ' + QuotedStr(Trim(qrySourceDB.FieldByName('matricula').AsString)) + ',' + ' não importada');
+      end;
+
+      if (aServidor.IDServidor > 0) then
+        sInforme := 'Folha : ' + Trim(qrySourceDB.FieldByName('referencia').AsString) + ' - ' + Trim(qrySourceDB.FieldByName('matricula').AsString) + ' : ' + aServidor.Nome
+      else
+        sInforme := 'Folha : ' + Trim(qrySourceDB.FieldByName('referencia').AsString) + ' - ' + Trim(qrySourceDB.FieldByName('matricula').AsString);
+
+      lblAndamento.Caption  := sInforme;
+      prbAndamento.Position := qrySourceDB.RecNo;
+
+      TrimAppMemorySize;
+      qrySourceDB.Next;
+    end;
+
+    if qrySourceDB.Eof then
+      prbAndamento.Position := prbAndamento.Max;
+
+    aServidor.Free;
+    aInicializaMesServidor.Free;
+    aBaseCalculoMesServidor.Free;
+    aEvento.Free;
+    aEventoBaseCalculoMesServidor.Free;
+  end;
+var
+  x : Integer;
+begin
+  try
+    ImportarEventoFixoServidor(Sender);
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := True;
+
+    if cmCompetencia.ItemIndex = 0 then
+      for x := 1 to cmCompetencia.Items.Count - 1 do
+      begin
+        cmCompetencia.Text := cmCompetencia.Items.Strings[x];
+        ImportarFolha( TGenerico(cmCompetencia.Items.Objects[x]) );
+      end
+    else
+      ImportarFolha( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
 procedure TfrmSourceDBFiorilli.ImportarPessoaFisica(Sender: TObject);
   procedure UpdateGenerators;
   begin
-    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA', 'PESSOA_FISICA', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA',        'PESSOA_FISICA',            'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA_DEPEND', 'PESSOA_FISICA_DEPENDENTE', 'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR',      'SERVIDOR',      'CAST(substring(lpad(ID, 10, ''0'') from 1 for 9) as INTEGER)');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_ENTID_FINANC',  'ENTID_FINANC',  'ID');
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_DEPTO',         'DEPTO',         'ID');
@@ -849,6 +1217,7 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
+    qrySourceDB.SQL.BeginUpdate;
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    t.*');
@@ -866,6 +1235,8 @@ begin
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    t.empresa');
     qrySourceDB.SQL.Add('  , t.nome');
+    qrySourceDB.SQL.EndUpdate;
+
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -955,6 +1326,7 @@ begin
           Abort;
         end;
 
+        //aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('depdespesa').AsString);
         aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('subdivisao').AsString);
         aServidor.UnidadeLotacao.ID      := dmConexaoTargetDB.GetValue('UNID_LOTACAO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.UnidadeLotacao.Codigo));
         if (aServidor.UnidadeLotacao.ID = 0) then
@@ -980,9 +1352,17 @@ begin
         aServidor.BloqueaLanctoEventoAuto   := False;
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
-        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
-        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
+        aServidor.NaoCalculaATS             := False;
+//        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
+//        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;
+
+        aServidor.EstadoFuncional.Codigo := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
+        Case StrToIntDef(aServidor.EstadoFuncional.Codigo, 0) of
+          1 : aServidor.EstadoFuncional.ID := 1;
+          else
+            aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
+        end;
 
         aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_funcional').AsString);
         Case StrToIntDef(aServidor.SituacaoTCM.Codigo, 0) of
@@ -1017,6 +1397,7 @@ begin
           qrySourceDBDetails.SQL.Add('  , c.conta as nmconta');
           qrySourceDBDetails.SQL.Add('  , c.dvconta');
           qrySourceDBDetails.SQL.Add('  , c.conta || coalesce(''-'' || nullif(c.dvconta, ''''), '''') as conta');
+          qrySourceDBDetails.SQL.Add('  , c.padrao');
           qrySourceDBDetails.SQL.Add('from CONTASTRABALHADOR c');
           qrySourceDBDetails.SQL.Add('  inner join BANCOS b on (b.codigo = c.banco)');
           qrySourceDBDetails.SQL.Add('where c.empresa  = ' + QuotedStr( Trim(qrySourceDB.FieldByName('empresa').AsString) ));
@@ -1059,6 +1440,8 @@ begin
                   aEntidadeFinanc.NumeroConta :=
                     Copy(aEntidadeFinanc.NumeroConta, 1, Length(aEntidadeFinanc.NumeroConta) - 1) + '-' +
                     Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta), 1);
+
+                aEntidadeFinanc.Ativo := (Trim(qrySourceDBDetails.FieldByName('padrao').AsString) = 'S');
 
                 // Inserir CONTA BANCO SERVIDOR
                 if not dmConexaoTargetDB.InserirContaBancoServidor(aEntidadeFinanc) then
@@ -1259,8 +1642,10 @@ end;
 procedure TfrmSourceDBFiorilli.ImportarUnidadeLotacao(Sender: TObject);
 var
   aLotacao : TUnidadeLotacao;
+  aDepartamento : TGenerico;
 begin
   try
+    // Importar UNIDADES DE LOTAÇÃO
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
@@ -1274,7 +1659,8 @@ begin
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
-      aLotacao := TUnidadeLotacao.Create;
+      if not Assigned(aLotacao) then
+        aLotacao := TUnidadeLotacao.Create;
 
       aLotacao.ID        := 0;
       aLotacao.Codigo    := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('codigo').AsString);
@@ -1291,9 +1677,74 @@ begin
       qrySourceDB.Next;
     end;
 
+    try
+      fdSourceDB.ExecSQL('Update UNIDADE u Set u.nomeunidade = ''CRIADO P/CONVERSÃO DO SIP-7''           where u.nomeunidade = ''CRIADO P/CONVERSÃO DO SIP-7...''', True);
+      fdSourceDB.ExecSQL('Update UNIDADE u Set u.nomeunidade = ''DEPTO URBANIZACAO JARDIM E PAISAGISMO'' where u.nomeunidade = ''DEPTO URBANIZACAO JARDIN E PAISAGISMO''', True);
+      fdSourceDB.ExecSQL('Update UNIDADE u Set u.nomeunidade = ''GABINETE DO PREFEITO''                  where u.nomeunidade = ''GABINETE DO PREFEITO T''', True);
+      fdSourceDB.ExecSQL('Update UNIDADE u Set u.nomeunidade = ''GABINETE DO PREFEITO''                  where u.nomeunidade = ''GABINETE DO PREFEITO.''', True);
+      fdSourceDB.CommitRetaining;
+      fdSourceDB.ExecSQL('CREATE INDEX IDX_UNIDADE_NOME ON UNIDADE (NOMEUNIDADE)', True);
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+
+    // Importar DEPTOS
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('  x.*');
+    qrySourceDB.SQL.Add('from (');
+    qrySourceDB.SQL.Add('  Select');
+    qrySourceDB.SQL.Add('      min(u.codigo) as codigo');
+    qrySourceDB.SQL.Add('    , u.nomeunidade as nome');
+    qrySourceDB.SQL.Add('  from UNIDADE u');
+    qrySourceDB.SQL.Add('  where u.nomeunidade in (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        u.nomeunidade');
+    qrySourceDB.SQL.Add('    from UNIDADE u');
+    qrySourceDB.SQL.Add('  )');
+    qrySourceDB.SQL.Add('  group by');
+    qrySourceDB.SQL.Add('      u.nomeunidade');
+    qrySourceDB.SQL.Add(') x');
+    qrySourceDB.SQL.Add('  inner join UNIDADE u on (u.codigo = x.codigo)');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if not Assigned(aDepartamento) then
+        aDepartamento := TGenerico.Create;
+
+      aDepartamento.ID        := 0;
+      aDepartamento.Codigo    := FormatFloat('###0000', qrySourceDB.FieldByName('codigo').AsInteger);
+      aDepartamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
+
+      if not dmConexaoTargetDB.InserirDepartamento(aDepartamento) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Depto: ' +
+          QuotedStr(aDepartamento.Codigo + ' - ' + aDepartamento.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := 'Depto: ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_LOTACAO', 'UNID_LOTACAO', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_DEPTO'       , 'DEPTO',        'ID');
   finally
     dmRecursos.ExibriLog;
+    aLotacao.Free;
+    aDepartamento.Free;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

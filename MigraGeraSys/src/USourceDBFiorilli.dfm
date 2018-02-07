@@ -1,22 +1,22 @@
 inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
   Caption = 'SourceDB Fiorilli'
-  ClientHeight = 405
+  ClientHeight = 436
   ClientWidth = 670
   OnCreate = FormCreate
   ExplicitWidth = 676
-  ExplicitHeight = 434
+  ExplicitHeight = 465
   PixelsPerInch = 96
   TextHeight = 13
   inherited btnConfirmar: TButton
     Left = 479
-    Top = 365
+    Top = 396
     TabOrder = 4
     ExplicitLeft = 479
     ExplicitTop = 365
   end
   inherited btnCancelar: TButton
     Left = 575
-    Top = 365
+    Top = 396
     TabOrder = 5
     ExplicitLeft = 575
     ExplicitTop = 365
@@ -28,7 +28,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
   end
   inherited pnlControle: TPanel
     Width = 664
-    Height = 328
+    Height = 359
     ExplicitWidth = 664
     ExplicitHeight = 328
     object lblSourceDB: TLabel
@@ -40,7 +40,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object lblAndamento: TLabel
       Left = 16
-      Top = 281
+      Top = 312
       Width = 514
       Height = 13
       Anchors = [akLeft, akRight, akBottom]
@@ -73,6 +73,25 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       FocusControl = cmCompetencia
       Visible = False
     end
+    object lblInformeFolha: TLabel
+      Left = 206
+      Top = 270
+      Width = 312
+      Height = 52
+      Caption = 
+        '* Antes da importa'#231#227'o da folha mensal, verifique o campo '#13#10'INICI' +
+        'ALIZA_MES na tabela EVENTOS da base FIORILLI.'#13#10'* Os eventos que ' +
+        'inicializar'#227'o o m'#234's no REMUNERATU$ precisam'#13#10'est'#225' com valor S no' +
+        ' campo INICIALIZA_MES na tabela EVENTOS.'
+      FocusControl = cmCompetencia
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Visible = False
+    end
     object edSourceDB: TJvFilenameEdit
       Left = 16
       Top = 27
@@ -84,7 +103,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTodos: TCheckBox
       Left = 536
-      Top = 280
+      Top = 311
       Width = 113
       Height = 17
       TabStop = False
@@ -99,14 +118,16 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       ParentFont = False
       TabOrder = 1
       OnClick = chkTodosClick
+      ExplicitTop = 280
     end
     object prbAndamento: TProgressBar
       Left = 16
-      Top = 300
+      Top = 331
       Width = 633
       Height = 17
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 2
+      ExplicitTop = 300
     end
     object edUsuario: TEdit
       Left = 429
@@ -268,7 +289,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
   end
   inherited chkRotina: TCheckBox
     Left = 376
-    Top = 374
+    Top = 405
     TabOrder = 3
     ExplicitLeft = 376
     ExplicitTop = 374
@@ -276,7 +297,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
   object btnVisualizar: TButton
     AlignWithMargins = True
     Left = 3
-    Top = 365
+    Top = 396
     Width = 121
     Height = 35
     Anchors = [akLeft, akBottom]
@@ -285,6 +306,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Images = dmRecursos.img16x16
     TabOrder = 2
     OnClick = btnVisualizarClick
+    ExplicitTop = 365
   end
   object fdSourceDB: TFDConnection
     Params.Strings = (

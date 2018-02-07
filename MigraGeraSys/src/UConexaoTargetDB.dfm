@@ -2053,7 +2053,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         Name = 'CODIGO'
         DataType = ftString
         ParamType = ptInput
-        Size = 11
+        Size = 15
+        Value = Null
       end>
   end
   object updServidorDependente: TFDUpdateSQL
@@ -2603,7 +2604,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         Name = 'CODIGO'
         DataType = ftString
         ParamType = ptInput
-        Size = 11
+        Size = 15
+        Value = Null
       end>
   end
   object updPessoaDependente: TFDUpdateSQL

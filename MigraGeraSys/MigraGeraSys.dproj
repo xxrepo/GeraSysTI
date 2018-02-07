@@ -82,9 +82,9 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.68;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.74;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>68</VerInfo_Build>
+        <VerInfo_Build>74</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
@@ -97,8 +97,8 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.23;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
-        <VerInfo_Build>23</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=GeraSys TI;FileDescription=;FileVersion=1.0.0.28;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=MigraRemuneratu$;ProductVersion=1.0.0;Comments=Projeto desenvolvido por Isaque Marinho Ribeiro</VerInfo_Keys>
+        <VerInfo_Build>28</VerInfo_Build>
         <Icon_MainIcon>MigraGeraSys_Icon.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -142,6 +142,10 @@
         <DCCReference Include="src\UVersao.pas"/>
         <DCCReference Include="src\USourceDBFiorilliTabelas.pas">
             <Form>frmSourceDBFiorilliTabelas</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="src\ULimparDadosTargetDB.pas">
+            <Form>frmLimparDadosTargetDB</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

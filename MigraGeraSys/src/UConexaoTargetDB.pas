@@ -971,6 +971,7 @@ type
   public
     { Public declarations }
     procedure CriarCampoTabela(const pTabela, pCampo, pTipo : String);
+    procedure ExcluirCampoTabela(const pTabela, pCampo : String);
     procedure GetID(const pTabela, pCampo, pWhere : String; var aRetorno : TGenerico);
     procedure ExecutarStriptDB(const pSQL : TStringList); overload;
     procedure ExecutarStriptDB(const pSQL : String); overload;
@@ -981,6 +982,7 @@ type
     function NewID(pTabela, pCampo : String) : Integer;
     function GetValue(const pTabela, pCampo, pWhere : String) : Integer;
     function ObjectID(const pTabela, pCampoID, pCampoCodigo, pCampoDescricao, pCampoAtivo, pWhere : String) : TGenerico;
+    function ExisteCampoTabela(const pTabela, pCampo : String) : Boolean;
 
     function InserirCBO(var pCBO : TCBO) : Boolean;
     function InserirEscolaridade(var pEscolaridade : TGenerico) : Boolean;
@@ -1015,6 +1017,9 @@ var
   dmConexaoTargetDB: TdmConexaoTargetDB;
 
 const
+  ID_SYS_ANTER      = 'ID_SYS_ANTER';
+  ID_SYS_ANTER_TYPE = 'VARCHAR(15)';
+
   SEXO_PESSOA : TSexoLista = (
         'M'
       , 'F'
@@ -1081,8 +1086,8 @@ begin
     SQL.Add('SELECT ');
     SQL.Add('  f.rdb$field_name as CAMPO');
     SQL.Add('from RDB$RELATION_FIELDS f');
-    SQL.Add('where f.rdb$relation_name = ' + QuotedStr(Trim(pTabela)) );
-    SQL.Add('  and f.rdb$field_name    = ' + QuotedStr(Trim(pCampo)) );
+    SQL.Add('where f.rdb$relation_name = ' + QuotedStr(AnsiUpperCase(Trim(pTabela))) );
+    SQL.Add('  and f.rdb$field_name    = ' + QuotedStr(AnsiUpperCase(Trim(pCampo))) );
     OpenOrExecute;
 
     // Criar campo e índice, caso ele não exista
@@ -1100,6 +1105,58 @@ begin
         fdTargetDB.CommitRetaining;
       except
       end;
+    end;
+    Close;
+  end;
+end;
+
+procedure TdmConexaoTargetDB.ExcluirCampoTabela(const pTabela, pCampo : String);
+var
+  aRegistros : Currency;
+  sIndice    : String;
+begin
+  aRegistros := 0;
+
+  with qryBusca do
+  begin
+    // Verificar se campo existe
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT ');
+    SQL.Add('  f.rdb$field_name as CAMPO');
+    SQL.Add('from RDB$RELATION_FIELDS f');
+    SQL.Add('where f.rdb$relation_name = ' + QuotedStr(AnsiUpperCase(Trim(pTabela))) );
+    SQL.Add('  and f.rdb$field_name    = ' + QuotedStr(AnsiUpperCase(Trim(pCampo))) );
+    OpenOrExecute;
+
+    // Excluir campo e índice, caso eles existam
+    if (FieldByName('CAMPO').AsString <> EmptyStr) then
+    begin
+      // Verificar se existe dados no campo a ser excluído
+      with qryBusca do
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('SELECT COUNT(' + pCampo +  ') as QTDE FROM ' + pTabela + ' where ' + pCampo + ' is not null');
+        OpenOrExecute;
+
+        aRegistros := FieldByName('QTDE').AsCurrency;
+      end;
+
+      if (aRegistros = 0.0) then
+        try
+          sIndice := Trim(Copy('IDX_' + Trim(pTabela) + '_' + Trim(pCampo), 1, 30));
+          try
+            fdTargetDB.ExecSQL('DROP INDEX ' + sIndice, True);
+            fdTargetDB.CommitRetaining;
+          except
+          end;
+
+          fdTargetDB.ExecSQL('ALTER TABLE ' + Trim(pTabela) +
+            ' DROP ' + Trim(pCampo));
+          fdTargetDB.CommitRetaining;
+        except
+        end;
     end;
     Close;
   end;
@@ -1197,7 +1254,7 @@ begin
     try
       with qryCargoFuncao do
       begin
-        CriarCampoTabela('CARGO_FUNCAO', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('CARGO_FUNCAO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString := pCargoFuncao.Codigo;
@@ -1240,7 +1297,7 @@ begin
           FieldByName('tempo_ats').AsInteger         := pCargoFuncao.TempoATS;
           FieldByName('percent_ats').AsCurrency      := pCargoFuncao.PercentualATS;
           FieldByName('sal_min_automatico').AsString := IfThen(pCargoFuncao.SalarioMinimoAutomat, 'S', 'N');
-          FieldByName('id_sys_anter').AsString       := pCargoFuncao.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString         := pCargoFuncao.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -1303,7 +1360,7 @@ begin
     try
       with qryCategoriaEvento do
       begin
-        CriarCampoTabela('CATEG_EVENTO_GS', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('CATEG_EVENTO_GS', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger := pCategoria.ID;
@@ -1378,7 +1435,7 @@ begin
     try
       with qryCBO do
       begin
-        CriarCampoTabela('CBO', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('CBO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString := pCBO.Codigo;
@@ -1391,12 +1448,16 @@ begin
           FieldByName('id').AsInteger       := pCBO.ID;
           FieldByName('descricao').AsString := pCBO.Descricao;
           FieldByName('codigo').AsString    := pCBO.Codigo;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName(ID_SYS_ANTER).AsString := pCBO.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -1418,7 +1479,7 @@ begin
     try
       with qryServidorConta do
       begin
-        CriarCampoTabela('SERVIDOR_CONTA_BANC', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SERVIDOR_CONTA_BANC', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pConta.IDConta;
@@ -1445,8 +1506,8 @@ begin
           else
             FieldByName('num_conta').AsString := pConta.NumeroConta;
 
-          FieldByName('id_sys_anter').AsString := pConta.Servidor.Codigo;
-          FieldByName('ativa').AsString        := IfThen(pConta.Ativo, 'S', 'N');
+          FieldByName(ID_SYS_ANTER).AsString := pConta.Servidor.Codigo;
+          FieldByName('ativa').AsString      := IfThen(pConta.Ativo, 'S', 'N');
           Post;
 
           ApplyUpdates(0);
@@ -1480,7 +1541,7 @@ begin
     try
       with qryDepartamento do
       begin
-        CriarCampoTabela('DEPTO', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('DEPTO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pDepartamento.ID;
@@ -1495,14 +1556,17 @@ begin
           Append;
           FieldByName('id').AsInteger          := pDepartamento.ID;
           FieldByName('descricao').AsString    := Copy(Trim(pDepartamento.Descricao), 1, 40);
-          FieldByName('id_sys_anter').AsString := pDepartamento.Codigo;
           FieldByName('em_uso').AsString       := IfThen(pDepartamento.Ativo, 'S', 'N');
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName(ID_SYS_ANTER).AsString := pDepartamento.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -1525,7 +1589,7 @@ begin
       // Tabela SERVIDOR_DEPENDENTE
       with qryServidorDependente do
       begin
-        CriarCampoTabela('SERVIDOR_DEPENDENTE', 'ID_SYS_ANTER', 'VARCHAR(15)');
+        CriarCampoTabela('SERVIDOR_DEPENDENTE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger := pDependente.ID;
@@ -1561,9 +1625,9 @@ begin
           FieldByName('valor_pensao_aliment').AsCurrency   := pDependente.ValorPensaoAliment;
 
           if (Trim(pDependente.Codigo) = EmptyStr) then
-            FieldByName('id_sys_anter').Clear
+            FieldByName(ID_SYS_ANTER).Clear
           else
-            FieldByName('id_sys_anter').AsString := Trim(pDependente.Codigo);
+            FieldByName(ID_SYS_ANTER).AsString := Trim(pDependente.Codigo);
 
           Post;
 
@@ -1575,9 +1639,9 @@ begin
       end;
 
       // Tabela PESSOA_FISICA_DEPENDENTE
-      with qryServidorDependente do
+      with qryPessoaDependente do
       begin
-        CriarCampoTabela('PESSOA_FISICA_DEPENDENTE', 'ID_SYS_ANTER', 'VARCHAR(15)');
+        CriarCampoTabela('PESSOA_FISICA_DEPENDENTE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger := pDependente.ID;
@@ -1615,9 +1679,9 @@ begin
           FieldByName('val_p_aliment').AsCurrency   := pDependente.ValorPensaoAliment;
 
           if (Trim(pDependente.Codigo) = EmptyStr) then
-            FieldByName('id_sys_anter').Clear
+            FieldByName(ID_SYS_ANTER).Clear
           else
-            FieldByName('id_sys_anter').AsString := Trim(pDependente.Codigo);
+            FieldByName(ID_SYS_ANTER).AsString := Trim(pDependente.Codigo);
 
           Post;
 
@@ -1647,7 +1711,7 @@ begin
     try
       with qryInicializaMesServidor do
       begin
-        CriarCampoTabela('INICIALIZA_MES_SERVIDOR', 'ID_SYS_ANTER', 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
+        CriarCampoTabela('INICIALIZA_MES_SERVIDOR', ID_SYS_ANTER, 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
 
         Close;
         ParamByName('competencia').AsString := pInicializaMesServidor.AnoMes;
@@ -1722,7 +1786,7 @@ begin
           else
             FieldByName('dt_prim_admissao').AsDateTime := pInicializaMesServidor.DataPrimeiraAdmissao;
 
-          FieldByName('id_sys_anter').AsString := pInicializaMesServidor.AnoMes + FormatFloat('0000000000', StrToInt(pInicializaMesServidor.Servidor.Matricula)) + pInicializaMesServidor.Rubrica;
+          FieldByName(ID_SYS_ANTER).AsString := pInicializaMesServidor.AnoMes + FormatFloat('0000000000', StrToInt(pInicializaMesServidor.Servidor.Matricula)) + pInicializaMesServidor.Rubrica;
           Post;
 
           ApplyUpdates(0);
@@ -1749,7 +1813,7 @@ begin
     try
       with qryBaseCalculoMesServidor do
       begin
-        CriarCampoTabela('BASE_CALC_MES_SERVIDOR', 'ID_SYS_ANTER', 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
+        CriarCampoTabela('BASE_CALC_MES_SERVIDOR', ID_SYS_ANTER, 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
 
         Close;
         ParamByName('competencia').AsString := pBaseCalculoMesServidor.InicializaMes.AnoMes;
@@ -1782,7 +1846,7 @@ begin
           else
             FieldByName('dt_pagto').AsDateTime := pBaseCalculoMesServidor.DataPagamento;
 
-          FieldByName('id_sys_anter').AsString        := pBaseCalculoMesServidor.InicializaMes.AnoMes + FormatFloat('0000000000', StrToInt(pBaseCalculoMesServidor.InicializaMes.Servidor.Matricula)) + pBaseCalculoMesServidor.InicializaMes.Rubrica;
+          FieldByName(ID_SYS_ANTER).AsString := pBaseCalculoMesServidor.InicializaMes.AnoMes + FormatFloat('0000000000', StrToInt(pBaseCalculoMesServidor.InicializaMes.Servidor.Matricula)) + pBaseCalculoMesServidor.InicializaMes.Rubrica;
           Post;
 
           ApplyUpdates(0);
@@ -1809,7 +1873,7 @@ begin
     try
       with qryEventoBCMesServidor do
       begin
-        CriarCampoTabela('LANCTO_EVENTO_CALC', 'ID_SYS_ANTER', 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
+        CriarCampoTabela('LANCTO_EVENTO_CALC', ID_SYS_ANTER, 'VARCHAR(20)'); // 2017070000000000RRR, R - Rubrica/Evento Base
 
         Close;
         ParamByName('competencia').AsString := pEventoBCMesServidor.BaseCalculoMesServidor.InicializaMes.AnoMes;
@@ -1827,7 +1891,7 @@ begin
           FieldByName('qtd').AsCurrency        := pEventoBCMesServidor.Quantidade;
           FieldByName('valor').AsCurrency      := pEventoBCMesServidor.Valor;
           FieldByName('observacao').AsString   := pEventoBCMesServidor.Observacao;
-          FieldByName('id_sys_anter').AsString :=
+          FieldByName(ID_SYS_ANTER).AsString   :=
             pEventoBCMesServidor.BaseCalculoMesServidor.InicializaMes.AnoMes +
             FormatFloat('0000000000', StrToInt(pEventoBCMesServidor.BaseCalculoMesServidor.InicializaMes.Servidor.Matricula)) +
             pEventoBCMesServidor.EventoBaseCalculo.Codigo;
@@ -1858,7 +1922,7 @@ begin
     try
       with qryEntidadeFinanceira do
       begin
-        CriarCampoTabela('ENTID_FINANC', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('ENTID_FINANC', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger     := pEntidadeFinanceira.ID;
@@ -1880,7 +1944,7 @@ begin
           else
             FieldByName('cod_banco').AsString := pEntidadeFinanceira.Banco.Codigo;
 
-          FieldByName('id_sys_anter').AsString := pEntidadeFinanceira.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString  := pEntidadeFinanceira.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -1951,7 +2015,7 @@ begin
     try
       with qryEstadoCivil do
       begin
-        CriarCampoTabela('ESTADO_CIVIL', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('ESTADO_CIVIL', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pEstadoCivil.ID;
@@ -1964,13 +2028,16 @@ begin
           Append;
           FieldByName('id').AsInteger          := pEstadoCivil.ID;
           FieldByName('descricao').AsString    := pEstadoCivil.Descricao;
-          FieldByName('id_sys_anter').AsString := pEstadoCivil.Codigo;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName(ID_SYS_ANTER).AsString := pEstadoCivil.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -1992,7 +2059,7 @@ begin
     try
       with qryEstadoFuncional do
       begin
-        CriarCampoTabela('ESTADO_FUNCIONAL', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('ESTADO_FUNCIONAL', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString    := pEstadoFuncional.Codigo;
@@ -2000,7 +2067,8 @@ begin
         Open;
         if IsEmpty then
         begin
-          pEstadoFuncional.ID := NewID('ESTADO_FUNCIONAL', 'ID');
+          if (pEstadoFuncional.ID = 0) then
+            pEstadoFuncional.ID := NewID('ESTADO_FUNCIONAL', 'ID');
 
           Append;
           FieldByName('id').AsInteger       := pEstadoFuncional.ID;
@@ -2018,14 +2086,14 @@ begin
         else
           Edit;
 
-        FieldByName('id_sys_anter').AsString := pEstadoFuncional.Codigo;
+        FieldByName(ID_SYS_ANTER).AsString := pEstadoFuncional.Codigo;
+
         Post;
-
         ApplyUpdates(0);
-
         CommitUpdates;
-        end;
-        aRetorno := True;
+      end;
+
+      aRetorno := True;
     except
       On E : Exception do
         MensagemErro('Erro', 'Erro ao tentar inserir o Estado Funcional.' + #13#13 + E.Message);
@@ -2044,7 +2112,7 @@ begin
     try
       with qryEvento do
       begin
-        CriarCampoTabela('EVENTO', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('EVENTO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString := pEvento.Codigo;
@@ -2092,7 +2160,7 @@ begin
           FieldByName('copia_mes_anterior').AsString     := IfThen(pEvento.CopiaMesAnterior, 'S', 'N');
           FieldByName('permitir_usuario_alter').AsString := IfThen(pEvento.PermiteUsuarioAlterar, 'S', 'N');
           FieldByName('sem_uso').AsString                := IfThen(pEvento.SemUso, 'S', 'N');
-          FieldByName('id_sys_anter').AsString           := pEvento.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString             := pEvento.Codigo;
           FieldByName('cont_cod_item').Clear;// AsString          := pEvento.CodigoItem;
           FieldByName('cont_sub_elemen_desp').AsString   := pEvento.SubElementoDespesa;
           FieldByName('cont_conta_corrente').AsString    := pEvento.ContaCorrente;
@@ -2172,7 +2240,7 @@ begin
     try
       with qryNacionalidade do
       begin
-        CriarCampoTabela('NACIONALIDADE', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('NACIONALIDADE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pNacionalidade.ID;
@@ -2185,13 +2253,16 @@ begin
           Append;
           FieldByName('id').AsInteger          := pNacionalidade.ID;
           FieldByName('descricao').AsString    := pNacionalidade.Descricao;
-          FieldByName('id_sys_anter').AsString := pNacionalidade.Codigo;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName(ID_SYS_ANTER).AsString := pNacionalidade.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -2213,6 +2284,8 @@ begin
     try
       with qryPessoaFisica do
       begin
+        CriarCampoTabela('PESSOA_FISICA', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
         Close;
         ParamByName('cpf').AsString := pPessoaFisica.CPF_CNPJ.Numero;
         Open;
@@ -2292,10 +2365,10 @@ begin
           else
             FieldByName('ano_chegada_brasil').AsInteger := pPessoaFisica.AnoChegadaAoBrasil;
 
+          FieldByName(ID_SYS_ANTER).AsString := pPessoaFisica.Codigo;
+
           Post;
-
           ApplyUpdates(0);
-
           CommitUpdates;
         end;
         aRetorno := True;
@@ -2322,7 +2395,7 @@ begin
     try
       with qryServidor do
       begin
-        CriarCampoTabela('SERVIDOR', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SERVIDOR', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pServidor.IDServidor;
@@ -2434,7 +2507,7 @@ begin
           else
             FieldByName('ocorrencia_sefip').AsString := Trim(pServidor.OcorrenciaSEFIP);
 
-          FieldByName('id_sys_anter').AsString := pServidor.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString := pServidor.Codigo;
 
           if GetExistemCamposNulos(qryServidor, aCampoVazio) then
             raise Exception.Create('Campo(s) vazio(s) : ' + aCampoVazio.Text);
@@ -2509,7 +2582,7 @@ begin
     try
       with qrySetor do
       begin
-        CriarCampoTabela('SETOR', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SETOR', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString := pSetor.Codigo;
@@ -2521,13 +2594,16 @@ begin
           Append;
           FieldByName('id').AsInteger          := pSetor.ID;
           FieldByName('descricao').AsString    := Copy(Trim(pSetor.Descricao), 1, 40);
-          FieldByName('id_sys_anter').AsString := pSetor.Codigo;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName(ID_SYS_ANTER).AsString := pSetor.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -2549,7 +2625,7 @@ begin
     try
       with qrySituacaoTCM do
       begin
-        CriarCampoTabela('SITUACAO_TCM', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SITUACAO_TCM', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pSituacaoTCM.ID;
@@ -2566,14 +2642,14 @@ begin
         else
           Edit;
 
-        FieldByName('id_sys_anter').AsString := pSituacaoTCM.Codigo;
+        FieldByName(ID_SYS_ANTER).AsString := pSituacaoTCM.Codigo;
+
         Post;
-
         ApplyUpdates(0);
-
         CommitUpdates;
-        end;
-        aRetorno := True;
+      end;
+
+      aRetorno := True;
     except
       On E : Exception do
         MensagemErro('Erro', 'Erro ao tentar inserir a Situação TCM.' + #13#13 + E.Message);
@@ -2593,7 +2669,7 @@ begin
     try
       with qrySubUnidadeGest do
       begin
-        CriarCampoTabela('SUB_UNID_ORCAMENT', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('SUB_UNID_ORCAMENT', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('id').AsInteger    := pSubUnidadeOrcament.ID;
@@ -2643,7 +2719,7 @@ begin
           FieldByName('gera_gfip').AsString := Ifthen(pSubUnidadeOrcament.GeraGFIP, 'S', 'N');
           FieldByName('num_ficha_contab').Clear;
           FieldByName('cod_proj_ativ').Clear;
-          FieldByName('id_sys_anter').AsString := pSubUnidadeOrcament.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString := pSubUnidadeOrcament.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -2724,7 +2800,7 @@ begin
     try
       with qryUnidadeLotacao do
       begin
-        CriarCampoTabela('UNID_LOTACAO', 'ID_SYS_ANTER', 'VARCHAR(11)');
+        CriarCampoTabela('UNID_LOTACAO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
         ParamByName('codigo').AsString := pUnidadeLotacao.Codigo;
@@ -2740,7 +2816,7 @@ begin
           FieldByName('localidade').AsString   := IntToStr(Ord(pUnidadeLotacao.Localidade));
           FieldByName('id_regiao').AsInteger   := pUnidadeLotacao.Regiao.ID;
           FieldByName('ativo').AsString        := IfThen(pUnidadeLotacao.Ativo, 'S', 'N');
-          FieldByName('id_sys_anter').AsString := pUnidadeLotacao.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString   := pUnidadeLotacao.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -2881,7 +2957,7 @@ end;
          sNomeLayout     := qryUnidLotacaoESCOLA.AsString;
          sCodigoAnterior := sCodigo+';'+pv_banco;
 
-         if not cdsUnidLotacaofb.Locate('ID_SYS_ANTER', sCodigoAnterior, [])  then
+         if not cdsUnidLotacaofb.Locate(ID_SYS_ANTER, sCodigoAnterior, [])  then
          begin
 
            cdsUnidLotacaoFB.Append;
@@ -3003,6 +3079,33 @@ begin
   end;
 end;
 
+function TdmConexaoTargetDB.ExisteCampoTabela(const pTabela, pCampo : String) : Boolean;
+var
+  aRetorno : Boolean;
+begin
+  aRetorno := False;
+  try
+    with qryBusca do
+    begin
+      // Verificar se campo existe
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT ');
+      SQL.Add('  f.rdb$field_name as CAMPO');
+      SQL.Add('from RDB$RELATION_FIELDS f');
+      SQL.Add('where f.rdb$relation_name = ' + QuotedStr(AnsiUpperCase(Trim(pTabela))) );
+      SQL.Add('  and f.rdb$field_name    = ' + QuotedStr(AnsiUpperCase(Trim(pCampo))) );
+      OpenOrExecute;
+
+      aRetorno := (FieldByName('CAMPO').AsString <> EmptyStr);
+
+      Close;
+    end;
+  finally
+    Result := aRetorno;
+  end;
+end;
+
 procedure TdmConexaoTargetDB.qryError(ASender: TObject;
   const AInitiator: IFDStanObject; var AException: Exception);
 begin
@@ -3048,7 +3151,7 @@ begin
       if not IsEmpty then
       begin
         ID        := FieldByName('id').AsInteger;
-        Codigo    := FieldByName('id_sys_anter').AsString;
+        Codigo    := FieldByName(ID_SYS_ANTER).AsString;
         Descricao := FieldByName('descricao').AsString;
         Ativo     := (FieldByName('em_uso').AsString = 'S');
       end;
@@ -3369,7 +3472,7 @@ begin
         ID              := FieldByName('id').AsInteger;
         Descricao       := FieldByName('descricao').AsString;
         CodigoRubrica   := Trim(FieldByName('codigo').AsString);
-        Codigo          := FieldByName('id_sys_anter').AsString;
+        Codigo          := FieldByName(ID_SYS_ANTER).AsString;
         Tipo            := FieldByName('tipo').AsString;
         FormaCalculo    := TFormaCalculo(StrToInt(FieldByName('forma_calc').AsString));
         Categoria.ID    := FieldByName('id_categ').AsInteger;
@@ -3437,7 +3540,7 @@ begin
         ID              := FieldByName('id').AsInteger;
         Descricao       := FieldByName('descricao').AsString;
         CodigoRubrica   := Trim(FieldByName('codigo').AsString);
-        Codigo          := FieldByName('id_sys_anter').AsString;
+        Codigo          := FieldByName(ID_SYS_ANTER).AsString;
         Tipo            := FieldByName('tipo').AsString;
         FormaCalculo    := TFormaCalculo(StrToInt(FieldByName('forma_calc').AsString));
         Categoria.ID    := FieldByName('id_categ').AsInteger;
@@ -3703,7 +3806,7 @@ begin
       if not IsEmpty then
       begin
         IDServidor := FieldByName('id').AsInteger;
-        Codigo     := Trim(FieldByName('id_sys_anter').AsString);
+        Codigo     := Trim(FieldByName(ID_SYS_ANTER).AsString);
         ID         := FieldByName('id_pessoa_fisica').AsInteger;
         Matricula  := IntToStr(FieldByName('matricula').AsInteger);
         Efetivo    := (FieldByName('efetivo').AsString = 'S');

@@ -27,11 +27,13 @@ type
     BrBtnImportarFiorilli: TdxBarButton;
     lblTargetDB: TcxLabel;
     lblTarget: TLabel;
+    BrBtnLimparImportação: TdxBarButton;
     procedure BrBtnConfiguracaoClick(Sender: TObject);
     procedure BrBtnImportarInfoPublicClick(Sender: TObject);
     procedure BrBtnImportarFiorilliClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure BrBtnLimparImportaçãoClick(Sender: TObject);
   private
     { Private declarations }
     procedure UpdateLabelTargetDB;
@@ -92,6 +94,11 @@ end;
 procedure TfrmMain.BrBtnImportarInfoPublicClick(Sender: TObject);
 begin
   gFormularios.ShowModalForm(Self, 'frmSourceDBInfoPublic');
+end;
+
+procedure TfrmMain.BrBtnLimparImportaçãoClick(Sender: TObject);
+begin
+  gFormularios.ShowModalForm(Self, 'frmLimparDadosTargetDB')
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);

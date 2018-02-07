@@ -49,6 +49,7 @@ type
     chkLancamentoMesServidor: TCheckBox;
     lblCompetencia: TLabel;
     cmCompetencia: TComboBox;
+    lblInformeFolha: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTodosClick(Sender: TObject);
@@ -113,8 +114,9 @@ end;
 
 procedure TfrmSourceDBFiorilli.chkLancamentoMesServidorClick(Sender: TObject);
 begin
-  lblCompetencia.Visible := chkLancamentoMesServidor.Checked;
-  cmCompetencia.Visible  := chkLancamentoMesServidor.Checked;
+  lblCompetencia.Visible  := chkLancamentoMesServidor.Checked;
+  cmCompetencia.Visible   := chkLancamentoMesServidor.Checked;
+  lblInformeFolha.Visible := chkLancamentoMesServidor.Checked;
 end;
 
 procedure TfrmSourceDBFiorilli.chkTabelaCargoFuncaoClick(Sender: TObject);
@@ -216,6 +218,9 @@ begin
       end;
     end;
   finally
+    if aRetorno then
+      MensagemInforme('Importação', 'Importação de dados realizada com sucesso.');
+
     dmRecursos.ExibriLog;
 
     btnConectar.Enabled   := True;
@@ -548,7 +553,8 @@ CODIGO	NOME
       qrySourceDB.Next;
     end;
 
-    dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR_DEPENDENTE', 'SERVIDOR_DEPENDENTE', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR_DEPENDENTE',  'SERVIDOR_DEPENDENTE',      'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA_DEPEND', 'PESSOA_FISICA_DEPENDENTE', 'ID');
   finally
     dmRecursos.ExibriLog;
 
@@ -674,6 +680,13 @@ var
   aEstadoFunc : TEstadoFuncional;
 begin
   try
+    // Inserir Estado Funcional Padrão
+    aEstadoFunc := TEstadoFuncional.Create;
+    aEstadoFunc.ID        := 1;
+    aEstadoFunc.Codigo    := EmptyStr;
+    aEstadoFunc.Descricao := 'ATIVO';
+    dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc);
+
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
@@ -687,8 +700,6 @@ begin
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
-      aEstadoFunc := TEstadoFuncional.Create;
-
       aEstadoFunc.ID        := 0;
       aEstadoFunc.Codigo    := FormatFloat('000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
       aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
@@ -804,7 +815,7 @@ begin
             QuotedStr(aEventoFixo.Servidor.Codigo + ' - Evento Fixo : ' + aEventoFixo.Evento.Codigo) + ' não importado');
       end;
 
-      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nome').AsString);
+      lblAndamento.Caption  := 'Evento Fixo para : ' + Trim(qrySourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
       Application.ProcessMessages;
@@ -1497,6 +1508,8 @@ begin
     aNacionalidade.Free;
     aEstadoCivil.Free;
     aSubUnidadeOrca.Free;
+
+    ImportarEventoFixoServidor(Sender);
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

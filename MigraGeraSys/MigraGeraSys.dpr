@@ -15,7 +15,8 @@ uses
   USourceDBInfoPublicTabelas in 'src\USourceDBInfoPublicTabelas.pas' {frmSourceDBInfoPublicTabelas},
   USourceDBFiorilli in 'src\USourceDBFiorilli.pas' {frmSourceDBFiorilli},
   UVersao in 'src\UVersao.pas',
-  USourceDBFiorilliTabelas in 'src\USourceDBFiorilliTabelas.pas' {frmSourceDBFiorilliTabelas};
+  USourceDBFiorilliTabelas in 'src\USourceDBFiorilliTabelas.pas' {frmSourceDBFiorilliTabelas},
+  ULimparDadosTargetDB in 'src\ULimparDadosTargetDB.pas' {frmLimparDadosTargetDB};
 
 {$R *.res}
 

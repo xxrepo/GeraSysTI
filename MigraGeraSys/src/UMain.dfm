@@ -1,4 +1,4 @@
-object frmMain: TfrmMain
+﻿object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'MigraRemuneratu$'
@@ -17386,6 +17386,10 @@ object frmMain: TfrmMain
         item
           Visible = True
           ItemName = 'BrBtnConfiguracao'
+        end
+        item
+          Visible = True
+          ItemName = 'BrBtnLimparImporta'#231#227'o'
         end>
     end
     object mnImportacao: TdxBarSubItem
@@ -17410,6 +17414,15 @@ object frmMain: TfrmMain
       ImageIndex = 335
       LargeImageIndex = 345
       OnClick = BrBtnConfiguracaoClick
+    end
+    object BrBtnLimparImportação: TdxBarButton
+      Caption = 'Limpar Base de Dados (Dados de Importa'#231#227'o)'
+      Category = 1
+      Hint = 'Limpar Base de Dados (Dados de Importa'#231#227'o)'
+      Visible = ivAlways
+      ImageIndex = 5
+      LargeImageIndex = 5
+      OnClick = BrBtnLimparImportaçãoClick
     end
     object BrBtnImportarInfoPublic: TdxBarButton
       Caption = 'Fornecedor Info Public'

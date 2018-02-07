@@ -150,6 +150,9 @@ begin
       end;
     end;
   finally
+    if aRetorno then
+      MensagemInforme('Importação', 'Importação de dados realizada com sucesso.');
+
     dmRecursos.ExibriLog;
 
     btnVisualizar.Enabled := True;

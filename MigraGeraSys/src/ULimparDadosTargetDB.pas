@@ -24,6 +24,7 @@ type
     chkTabelaSituacao: TCheckBox;
     lblCompetencia: TLabel;
     cmCompetencia: TComboBox;
+    chkTabelaEventoFixo: TCheckBox;
     procedure chkLancamentoMesServidorClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure chkTabelaCBOClick(Sender: TObject);
@@ -102,7 +103,10 @@ end;
 procedure TfrmLimparDadosTargetDB.chkTabelaEventoClick(Sender: TObject);
 begin
   if chkTabelaEvento.Checked then
+  begin
+    chkTabelaEventoFixo.Checked      := True;
     chkLancamentoMesServidor.Checked := True;
+  end;
 end;
 
 procedure TfrmLimparDadosTargetDB.chkTabelaPFServidorClick(Sender: TObject);
@@ -135,6 +139,7 @@ begin
 //        if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
 //        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
         if chkLancamentoMesServidor.Checked then ExcluirFolhaMensalServidor(chkLancamentoMesServidor);
+        if chkTabelaEventoFixo.Checked      then ExcluirEventoFixoServidor(chkTabelaDependente);
         if chkTabelaEvento.Checked          then ExcluirEventos(chkTabelaEvento);
         if chkTabelaDependente.Checked      then ExcluirDependente(chkTabelaDependente);
         if chkTabelaPFServidor.Checked      then ExcluirPessoaFisica(chkTabelaPFServidor);

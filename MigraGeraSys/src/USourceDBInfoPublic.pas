@@ -780,7 +780,7 @@ begin
         2 : aEvento.Tipo := 'D';
       end;
 
-      aEvento.FormaCalculo := formaCalculoUm;
+      aEvento.FormaCalculo := formaCalculoAutomatico;
       aEvento.Categoria.ID         := 16;
       aEvento.Categoria.Descricao  := 'OUTRA';
       aEvento.CategoriaTCM.ID      := 0;
@@ -918,7 +918,7 @@ procedure TfrmSourceDBInfoPublic.ImportarFolhaMensalServidor(Sender: TObject);
             aInicializaMesServidor.CalculaVencimentoBase := True;
             aInicializaMesServidor.VencimentoBaseCargo   := StrToCurr(Trim(dbfSourceDB.FieldByName('VALOR').AsString));
             aInicializaMesServidor.TipoSalario           := tipoSalarioUm;
-            aInicializaMesServidor.FormaCalculo          := formaCalculoUm;
+            aInicializaMesServidor.FormaCalculo          := formaCalculoAutomatico;
             aInicializaMesServidor.BaseCalculoHoraAula   := 180;
 
             // Registrar cabeçalho INICIALIZA_MES_SERVIDOR e BASE_CALCULO_MES_SERVIDOR

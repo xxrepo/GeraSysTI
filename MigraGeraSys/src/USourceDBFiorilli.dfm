@@ -12,14 +12,14 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Top = 396
     TabOrder = 4
     ExplicitLeft = 479
-    ExplicitTop = 365
+    ExplicitTop = 396
   end
   inherited btnCancelar: TButton
     Left = 575
     Top = 396
     TabOrder = 5
     ExplicitLeft = 575
-    ExplicitTop = 365
+    ExplicitTop = 396
   end
   inherited pnlTitulo: TPanel
     Width = 664
@@ -30,7 +30,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Width = 664
     Height = 359
     ExplicitWidth = 664
-    ExplicitHeight = 328
+    ExplicitHeight = 359
     object lblSourceDB: TLabel
       Left = 16
       Top = 8
@@ -118,7 +118,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       ParentFont = False
       TabOrder = 1
       OnClick = chkTodosClick
-      ExplicitTop = 280
     end
     object prbAndamento: TProgressBar
       Left = 16
@@ -127,7 +126,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Height = 17
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 2
-      ExplicitTop = 300
     end
     object edUsuario: TEdit
       Left = 429
@@ -219,40 +217,40 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       TabOrder = 12
     end
     object chkTabelaSituacao: TCheckBox
-      Left = 192
-      Top = 64
+      Left = 16
+      Top = 225
       Width = 141
       Height = 17
       Caption = 'Tabela Situa'#231#227'o'
       TabOrder = 13
     end
     object chkTabelaSetor: TCheckBox
-      Left = 192
-      Top = 87
+      Left = 191
+      Top = 64
       Width = 141
       Height = 17
       Caption = 'Tabela Setor'
       TabOrder = 14
     end
     object chkTabelaEvento: TCheckBox
-      Left = 192
-      Top = 110
+      Left = 191
+      Top = 87
       Width = 141
       Height = 17
       Caption = 'Tabela Eventos'
       TabOrder = 15
     end
     object chkTabelaBanco: TCheckBox
-      Left = 191
-      Top = 133
+      Left = 190
+      Top = 110
       Width = 141
       Height = 17
       Caption = 'Tabela Bancos'
       TabOrder = 16
     end
     object chkTabelaPFServidor: TCheckBox
-      Left = 191
-      Top = 156
+      Left = 190
+      Top = 133
       Width = 178
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
@@ -260,8 +258,8 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       OnClick = chkTabelaPFServidorClick
     end
     object chkTabelaDependente: TCheckBox
-      Left = 191
-      Top = 179
+      Left = 190
+      Top = 156
       Width = 141
       Height = 17
       Caption = 'Tabela Dependentes'
@@ -274,7 +272,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Width = 178
       Height = 17
       Caption = 'Folha Mensal do Servidor'
-      TabOrder = 19
+      TabOrder = 20
       OnClick = chkLancamentoMesServidorClick
     end
     object cmCompetencia: TComboBox
@@ -283,8 +281,17 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Width = 75
       Height = 21
       Style = csDropDownList
-      TabOrder = 20
+      TabOrder = 21
       Visible = False
+    end
+    object chkTabelaEventoFixo: TCheckBox
+      Left = 190
+      Top = 178
+      Width = 179
+      Height = 17
+      Caption = 'Tabela Eventos Fixos por Servidor'
+      TabOrder = 19
+      OnClick = chkTabelaEventoFixoClick
     end
   end
   inherited chkRotina: TCheckBox
@@ -292,7 +299,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Top = 405
     TabOrder = 3
     ExplicitLeft = 376
-    ExplicitTop = 374
+    ExplicitTop = 405
   end
   object btnVisualizar: TButton
     AlignWithMargins = True
@@ -306,7 +313,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     Images = dmRecursos.img16x16
     TabOrder = 2
     OnClick = btnVisualizarClick
-    ExplicitTop = 365
   end
   object fdSourceDB: TFDConnection
     Params.Strings = (

@@ -50,6 +50,7 @@ type
     lblCompetencia: TLabel;
     cmCompetencia: TComboBox;
     lblInformeFolha: TLabel;
+    chkTabelaEventoFixo: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTodosClick(Sender: TObject);
@@ -58,6 +59,7 @@ type
     procedure chkTabelaPFServidorClick(Sender: TObject);
     procedure chkTabelaDependenteClick(Sender: TObject);
     procedure chkLancamentoMesServidorClick(Sender: TObject);
+    procedure chkTabelaEventoFixoClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarIni;
@@ -137,6 +139,15 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBFiorilli.chkTabelaEventoFixoClick(Sender: TObject);
+begin
+  if chkTabelaEventoFixo.Checked then
+  begin
+    chkTabelaEvento.Checked     := True;
+    chkTabelaPFServidor.Checked := True;
+  end;
+end;
+
 procedure TfrmSourceDBFiorilli.chkTabelaPFServidorClick(Sender: TObject);
 begin
   if chkTabelaPFServidor.Checked then
@@ -212,6 +223,7 @@ begin
         if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
         if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
         if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
+        if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
         if chkLancamentoMesServidor.Checked then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
 
         aRetorno := True;
@@ -322,7 +334,7 @@ begin
     qrySourceDB.SQL.Add('  , h.horasmes');
     qrySourceDB.SQL.Add('  , c.instrucao');
     qrySourceDB.SQL.Add('  , c.obs');
-    qrySourceDB.SQL.Add('  , 0.0 as valor');
+    qrySourceDB.SQL.Add('  , s.valor');
     qrySourceDB.SQL.Add('from CARGOS c');
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select');
@@ -332,6 +344,16 @@ begin
     qrySourceDB.SQL.Add('    group by');
     qrySourceDB.SQL.Add('        c.codigo');
     qrySourceDB.SQL.Add('  ) h on (h.codigo = c.codigo)');
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select');
+    qrySourceDB.SQL.Add('        t.cargoatual  as codigo');
+    qrySourceDB.SQL.Add('      , max(sl.valor) as valor');
+    qrySourceDB.SQL.Add('    from TRABALHADOR t');
+    qrySourceDB.SQL.Add('      inner join SALARIOS sl on (sl.empresa = t.empresa and sl.codigo = t.refsalatual)');
+    qrySourceDB.SQL.Add('    where t.situacao = ' + QuotedStr('1')); // Normal
+    qrySourceDB.SQL.Add('    group by');
+    qrySourceDB.SQL.Add('        t.cargoatual');
+    qrySourceDB.SQL.Add('  ) s on (s.codigo = c.codigo)');
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -731,6 +753,16 @@ var
   aEventoFixo : TEventoFixoServidor;
 begin
   try
+    try
+      fdSourceDB.ExecSQL('ALTER TABLE EVENTOSFIXOS ADD IMPORTAR BOOLEAN DEFAULT ''S''', True);
+      fdSourceDB.CommitRetaining;
+      fdSourceDB.ExecSQL('Update EVENTOSFIXOS Set IMPORTAR = ''S'' where IMPORTAR is null', True);
+      fdSourceDB.CommitRetaining;
+      fdSourceDB.ExecSQL('Update EVENTOSFIXOS Set IMPORTAR = ''N'' where EVENTO in (''001'') and IMPORTAR = ''S'' ', True);
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
@@ -758,11 +790,20 @@ begin
     qrySourceDB.SQL.Add('  , e.tipolegal_cessacao');
     qrySourceDB.SQL.Add('  , e.numdoc_cessacao');
     qrySourceDB.SQL.Add('  , e.obs');
+
+    qrySourceDB.SQL.Add('  , v.formula');
+    qrySourceDB.SQL.Add('  , v.tipovalor');
+    qrySourceDB.SQL.Add('  , v.percentual');
+    qrySourceDB.SQL.Add('  , v.basevalor');
+    qrySourceDB.SQL.Add('  , (case when v.formula = ''N'' then e.valor else (v.basevalor * v.percentual / 100.0) end) as valor_base');
+
     qrySourceDB.SQL.Add('from EVENTOSFIXOS e');
     qrySourceDB.SQL.Add('  inner join TRABALHADOR f on (f.empresa = e.empresa and f.registro = e.registro)');
     qrySourceDB.SQL.Add('  inner join EVENTOS v on (v.empresa = e.empresa and v.codigo = e.evento)');
-    qrySourceDB.SQL.Add('  left join EVENTOSFIXOS_PARAM p on (p.codigo = e.param)');
-    qrySourceDB.SQL.Add('where e.ativo = ' + QuotedStr('S'));
+    qrySourceDB.SQL.Add('where e.ativo    = ' + QuotedStr('S'));
+    qrySourceDB.SQL.Add('  and e.importar = ' + QuotedStr('S'));
+    qrySourceDB.SQL.Add('  and ((f.situacao <> ' + QuotedStr('0') + ') and (f.situacao <> ' + QuotedStr('6') + '))'); // 0. Calculo Desativado, 6. Desligado
+    qrySourceDB.SQL.Add('  and e.param is null');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    f.empresa');
     qrySourceDB.SQL.Add('  , f.nome');
@@ -792,10 +833,33 @@ begin
         aEventoFixo.Servidor.ID         := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID_PESSOA_FISICA', 'ID_SYS_ANTER = ' + QuotedStr(aEventoFixo.Servidor.Codigo));
         aEventoFixo.Evento.Codigo       := Trim(qrySourceDB.FieldByName('evento').AsString);
         aEventoFixo.Evento.ID           := dmConexaoTargetDB.GetValue('EVENTO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aEventoFixo.Evento.Codigo));
-
-        aEventoFixo.Quantidade := qrySourceDB.FieldByName('qtde').AsCurrency;
-        aEventoFixo.Valor      := qrySourceDB.FieldByName('valor').AsCurrency;
         aEventoFixo.Observacao := Trim(qrySourceDB.FieldByName('obs').AsString);
+
+        (*
+        0 - Null
+        1 - (%) Acréstimo na Hora x Quantidade
+        2 - (%) da Hora x Quantidade
+        3 - (%) do Valor x Quantidade
+        4 - Quantidade x Valor
+        5 - (%) x Valor
+        *)
+        case StrToIntDef(qrySourceDB.FieldByName('tipovalor').AsString, 0) of
+          0 :  // aEvento.FormaCalculo := formaCalculoAutomatico;
+            begin
+              aEventoFixo.Quantidade := qrySourceDB.FieldByName('qtde').AsCurrency;
+              aEventoFixo.Valor      := qrySourceDB.FieldByName('valor').AsCurrency;
+            end;
+          4 :  // aEvento.FormaCalculo := formaCalculoQuantidadeValor;
+            begin
+              aEventoFixo.Quantidade := qrySourceDB.FieldByName('qtde').AsCurrency;
+              aEventoFixo.Valor      := qrySourceDB.FieldByName('valor').AsCurrency;
+            end;
+          else // aEvento.FormaCalculo := formaCalculoPorPercentual;
+            begin
+              aEventoFixo.Quantidade := qrySourceDB.FieldByName('perc').AsCurrency;
+              aEventoFixo.Valor      := qrySourceDB.FieldByName('valor').AsCurrency;
+            end;
+        end;
 
         if qrySourceDB.FieldByName('data_base').IsNull then
           aEventoFixo.ValidadeInicial := FormatDateTime('YYYYMM', Date)
@@ -815,7 +879,7 @@ begin
             QuotedStr(aEventoFixo.Servidor.Codigo + ' - Evento Fixo : ' + aEventoFixo.Evento.Codigo) + ' não importado');
       end;
 
-      lblAndamento.Caption  := 'Evento Fixo para : ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+      lblAndamento.Caption  := 'Evento(s) Fixo(s) para : ' + Trim(qrySourceDB.FieldByName('nome').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;
 
       Application.ProcessMessages;
@@ -897,7 +961,6 @@ begin
       if (Trim(qrySourceDB.FieldByName('natureza').AsString) = 'V') then
         aEvento.Tipo := 'D';
 
-      aEvento.FormaCalculo := formaCalculoUm;
       aEvento.Categoria.ID         := 16;
       aEvento.Categoria.Descricao  := 'OUTRA';
       aEvento.CategoriaTCM.ID      := 0;
@@ -914,10 +977,6 @@ begin
       aEvento.IndiceOutraBC1       := False;
       aEvento.IndiceOutraBC2       := False;
       aEvento.IndiceOutraBC3       := False;
-      aEvento.ValorFixo  := qrySourceDB.FieldByName('basevalor').AsCurrency;
-      aEvento.Divisor    := 0.0;
-      aEvento.SubDivisor := 0.0;
-      aEvento.Max_x_vencimentoBase  := 1;
       aEvento.GeraRAIS              := (Trim(qrySourceDB.FieldByName('rais').AsString) = 'S');
       aEvento.CopiaMesAnterior      := False;
       aEvento.PermiteUsuarioAlterar := True;
@@ -928,6 +987,26 @@ begin
       aEvento.ValorBCFixa        := 0.0;
       aEvento.Natureza           := naturezaEventoDois;
       aEvento.Remuneracao        := EmptyStr;
+
+      (*
+      0 - Null
+      1 - (%) Acréstimo na Hora x Quantidade
+      2 - (%) da Hora x Quantidade
+      3 - (%) do Valor x Quantidade
+      4 - Quantidade x Valor
+      5 - (%) x Valor
+      *)
+      case StrToIntDef(qrySourceDB.FieldByName('tipovalor').AsString, 0) of
+        0 : aEvento.FormaCalculo := formaCalculoAutomatico;
+        4 : aEvento.FormaCalculo := formaCalculoQuantidadeValor;
+        else
+          aEvento.FormaCalculo := formaCalculoPorPercentual;
+      end;
+
+      aEvento.ValorFixo  := qrySourceDB.FieldByName('basevalor').AsCurrency;
+      aEvento.Divisor    := 0.0;
+      aEvento.SubDivisor := 0.0;
+      aEvento.Max_x_vencimentoBase  := 1;
 
       dmConexaoTargetDB.InserirCategoria(aEvento.Categoria);
 
@@ -1081,7 +1160,7 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
           aInicializaMesServidor.CalculaVencimentoBase := True;
           aInicializaMesServidor.VencimentoBaseCargo   := qrySourceDB.FieldByName('VALORINT').AsCurrency;
           aInicializaMesServidor.TipoSalario           := tipoSalarioUm;
-          aInicializaMesServidor.FormaCalculo          := formaCalculoUm;
+          aInicializaMesServidor.FormaCalculo          := formaCalculoAutomatico;
           aInicializaMesServidor.BaseCalculoHoraAula   := 180;
 
           // Registrar cabeçalho INICIALIZA_MES_SERVIDOR e BASE_CALCULO_MES_SERVIDOR
@@ -1155,10 +1234,6 @@ var
   x : Integer;
 begin
   try
-    ImportarEventoFixoServidor(Sender);
-    if (Sender is TCheckBox) then
-      TCheckBox(Sender).Checked := True;
-
     if cmCompetencia.ItemIndex = 0 then
       for x := 1 to cmCompetencia.Items.Count - 1 do
       begin
@@ -1248,12 +1323,18 @@ begin
     qrySourceDB.SQL.Add('  , c2.cbo as cbo_atual');
     qrySourceDB.SQL.Add('  , t.depdespesa  as depto');
     qrySourceDB.SQL.Add('  , u.nomeunidade as depto_nome');
+    qrySourceDB.SQL.Add('  , ss.nome as situacao_nome');
+    qrySourceDB.SQL.Add('  , sf.nome as situacao_nome_nome');
+    qrySourceDB.SQL.Add('  , sl.valor as vencimento_base');
     qrySourceDB.SQL.Add('from TRABALHADOR t');
     qrySourceDB.SQL.Add('  left join NACIONALIDADE n on (n.codigo = t.nacionalidade)');
     qrySourceDB.SQL.Add('  left join ESTADOCIVIL e on (e.codigo = t.estadocivil)');
     qrySourceDB.SQL.Add('  left join CARGOS c1 on (c1.empresa = t.empresa and c1.codigo = t.cargoinicial)');
     qrySourceDB.SQL.Add('  left join CARGOS c2 on (c2.empresa = t.empresa and c2.codigo = t.cargoatual)');
     qrySourceDB.SQL.Add('  left join UNIDADE u on (u.codigo = t.depdespesa)');
+    qrySourceDB.SQL.Add('  left join SITUACOES ss on (ss.codigo = t.situacao)');
+    qrySourceDB.SQL.Add('  left join SITUACAO_FUNCIONAL sf on (sf.codigo = t.situacao_funcional)');
+    qrySourceDB.SQL.Add('  left join SALARIOS sl on (sl.empresa = t.empresa and sl.codigo = t.refsalatual)');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    t.empresa');
     qrySourceDB.SQL.Add('  , t.nome');
@@ -1379,7 +1460,7 @@ begin
         aServidor.CargoAtual.Codigo      := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargoatual').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo_atual').AsString), 0));
         aServidor.CargoAtual             := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
         aServidor.ReferenciaSalario      := 0;
-        aServidor.VencimentoBase         := 0.0;
+        aServidor.VencimentoBase         := qrySourceDB.FieldByName('vencimento_base').AsCurrency;
         aServidor.Escolaridade.Codigo    := FormatFloat('00', StrToIntDef(Trim(qrySourceDB.FieldByName('instrucao').AsString), 0));
         aServidor.Escolaridade           := TCargoFuncao(dmConexaoTargetDB.ObjectID('ESCOLARIDADE', 'ID', 'COD_RAIS', 'DESCRICAO', EmptyStr, 'COD_RAIS = ' + QuotedStr(aServidor.Escolaridade.Codigo)));
         aServidor.Formacao               := EmptyStr;
@@ -1508,8 +1589,6 @@ begin
     aNacionalidade.Free;
     aEstadoCivil.Free;
     aSubUnidadeOrca.Free;
-
-    ImportarEventoFixoServidor(Sender);
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

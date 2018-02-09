@@ -2716,8 +2716,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  ID_SUB_UNID_ORCAM, ID_CARGO_ATUAL, NOME_SERVIDOR'
       'FROM SERVIDOR_EVENTO_FIXO'
       'WHERE ID_SERVIDOR = :ID_SERVIDOR AND ID_EVENTO = :ID_EVENTO')
-    Left = 856
-    Top = 392
+    Left = 712
+    Top = 344
   end
   object qryServidorEventoFixo: TFDQuery
     CachedUpdates = True
@@ -2741,8 +2741,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       'where ef.id_servidor = :servidor'
       '  and ef.id_evento   = :evento'
       '')
-    Left = 856
-    Top = 344
+    Left = 712
+    Top = 296
     ParamData = <
       item
         Name = 'SERVIDOR'

@@ -15,7 +15,7 @@ Type
   TTipoSalario         = (tipoSalarioUm = 1, tipoSalarioDois = 2);
   TTipoBaseCalculo     = (baseCalculoZero = 0, baseCalculoUm = 1, baseCalculoDois = 2, baseCalculores = 3);
   TTipoNaturezaEvento  = (naturezaEventoNULL, naturezaEventoDois = 2);
-  TFormaCalculo        = (formaCalculoUm = 1, formaCalculoDois = 2);
+  TFormaCalculo        = (formaCalculoAutomatico = 1, formaCalculoPorPercentual = 2, formaCalculoQuantidade = 3, formaCalculoQuantidadeValor = 4, formaCalculoValorFixo = 5);
   TFormaCalculoRecisao = (formaCalculoRecisaoUm = 1, formaCalculoRecisaoDois = 2);
   TLocalidade = (localZonaUrbana = 1, localZonaRural = 2);
   TSexo = (sexoMasculino = 0, sexoFemino = 1);
@@ -1272,7 +1272,6 @@ begin
             FieldByName('id_tipo_cargo_tcm').AsInteger := 20
           else
             FieldByName('id_tipo_cargo_tcm').AsInteger := StrToIntDef(pCargoFuncao.TipoTCM.Codigo, 20);
-          FieldByName('vencto_base').AsCurrency        := pCargoFuncao.VencimentoBase;
           FieldByName('tipo_sal').AsString             := IntToSTr(Ord(pCargoFuncao.TipoSalario));
           FieldByName('forma_calc').AsString           := IntToSTr(Ord(pCargoFuncao.FormaCalculo));
           FieldByName('base_calc_hora_aula').AsInteger := pCargoFuncao.BaseCalculoHoraAula;
@@ -1289,21 +1288,25 @@ begin
           FieldByName('id_evento_base').AsInteger      := pCargoFuncao.EventoBase.ID;
           FieldByName('calc_ats').AsString             := IfThen(pCargoFuncao.CalculaATS, 'S', 'N');
           FieldByName('calc_ats_sobre_vencto_base').AsString := IfThen(pCargoFuncao.CalculaATSVencimentoBase, 'S', 'N');
-          FieldByName('calc_dec_terc').AsString         := IfThen(pCargoFuncao.CalculaDecimoTerc, 'S', 'N');
-          FieldByName('calc_contrib_sindical').AsString := IfThen(pCargoFuncao.CalculaContribSind, 'S', 'N');
+          FieldByName('calc_dec_terc').AsString              := IfThen(pCargoFuncao.CalculaDecimoTerc, 'S', 'N');
+          FieldByName('calc_contrib_sindical').AsString      := IfThen(pCargoFuncao.CalculaContribSind, 'S', 'N');
           FieldByName('situacao').Clear;
           FieldByName('dt_extinsao').Clear;
           FieldByName('observacao').AsString         := pCargoFuncao.Observacao;
           FieldByName('tempo_ats').AsInteger         := pCargoFuncao.TempoATS;
           FieldByName('percent_ats').AsCurrency      := pCargoFuncao.PercentualATS;
           FieldByName('sal_min_automatico').AsString := IfThen(pCargoFuncao.SalarioMinimoAutomat, 'S', 'N');
-          FieldByName(ID_SYS_ANTER).AsString         := pCargoFuncao.Codigo;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName('vencto_base').AsCurrency := pCargoFuncao.VencimentoBase;
+        FieldByName(ID_SYS_ANTER).AsString    := pCargoFuncao.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -2126,7 +2129,6 @@ begin
           FieldByName('descricao').AsString    := Copy(Trim(pEvento.Descricao), 1, 40);
           FieldByName('codigo').AsString       := pEvento.CodigoRubrica;
           FieldByName('tipo').AsString         := pEvento.Tipo;
-          FieldByName('forma_calc').AsString   := IntToStr(Ord(pEvento.FormaCalculo));
           FieldByName('id_categ').AsInteger    := pEvento.Categoria.ID;
 
           if (pEvento.CategoriaTCM.ID > 0) then
@@ -2160,7 +2162,6 @@ begin
           FieldByName('copia_mes_anterior').AsString     := IfThen(pEvento.CopiaMesAnterior, 'S', 'N');
           FieldByName('permitir_usuario_alter').AsString := IfThen(pEvento.PermiteUsuarioAlterar, 'S', 'N');
           FieldByName('sem_uso').AsString                := IfThen(pEvento.SemUso, 'S', 'N');
-          FieldByName(ID_SYS_ANTER).AsString             := pEvento.Codigo;
           FieldByName('cont_cod_item').Clear;// AsString          := pEvento.CodigoItem;
           FieldByName('cont_sub_elemen_desp').AsString   := pEvento.SubElementoDespesa;
           FieldByName('cont_conta_corrente').AsString    := pEvento.ContaCorrente;
@@ -2169,12 +2170,18 @@ begin
           FieldByName('natureza').AsString   := IntToStr(Ord(pEvento.Natureza));
           FieldByName('remunerac').AsString  := pEvento.Remuneracao;
           FieldByName('legalidade').AsString := pEvento.Descricao;
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName('forma_calc').AsString   := IntToStr(Ord(pEvento.FormaCalculo));
+        FieldByName('valor_fixo').AsCurrency := pEvento.ValorFixo;
+        FieldByName(ID_SYS_ANTER).AsString   := pEvento.Codigo;
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except
@@ -2544,25 +2551,31 @@ begin
         ParamByName('servidor').AsInteger := pServidorEvento.Servidor.IDServidor;
         ParamByName('evento').AsInteger   := pServidorEvento.Evento.ID;
         Open;
-        if IsEmpty and (pServidorEvento.Servidor.IDServidor > 0) and (pServidorEvento.Evento.ID > 0) then
+        if (pServidorEvento.Servidor.IDServidor > 0) and (pServidorEvento.Evento.ID > 0) then
         begin
-          Append;
-          FieldByName('id_servidor').AsInteger  := pServidorEvento.Servidor.IDServidor;
-          FieldByName('id_evento').AsInteger    := pServidorEvento.Evento.ID;
-          FieldByName('qtd').AsCurrency         := pServidorEvento.Quantidade;
-          FieldByName('valor').AsCurrency       := pServidorEvento.Valor;
-          FieldByName('observacao').AsString    := pServidorEvento.Observacao;
-          FieldByName('ini_validade').AsString  := pServidorEvento.ValidadeInicial;
-          FieldByName('fim_validade').AsString  := pServidorEvento.ValidadeFinal;
-          FieldByName('calc_dec_terc').AsString := IfThen(pServidorEvento.CalcularDecimoTerc, 'S', 'N');
-          FieldByName('participa').AsString     := IfThen(pServidorEvento.Participa, 'S', 'N');
+          if IsEmpty then
+          begin
+            Append;
+            FieldByName('id_servidor').AsInteger  := pServidorEvento.Servidor.IDServidor;
+            FieldByName('id_evento').AsInteger    := pServidorEvento.Evento.ID;
+            FieldByName('observacao').AsString    := pServidorEvento.Observacao;
+            FieldByName('ini_validade').AsString  := pServidorEvento.ValidadeInicial;
+            FieldByName('fim_validade').AsString  := pServidorEvento.ValidadeFinal;
+            FieldByName('calc_dec_terc').AsString := IfThen(pServidorEvento.CalcularDecimoTerc, 'S', 'N');
+            FieldByName('participa').AsString     := IfThen(pServidorEvento.Participa, 'S', 'N');
+          end
+          else
+            Edit;
+
+          FieldByName('qtd').AsCurrency   := pServidorEvento.Quantidade;
+          FieldByName('valor').AsCurrency := pServidorEvento.Valor;
+
           Post;
-
           ApplyUpdates(0);
-
           CommitUpdates;
+
+          aRetorno := True;
         end;
-        aRetorno := True;
       end;
     except
       On E : Exception do
@@ -3276,7 +3289,7 @@ begin
   FTipoTCM   := TGenerico.Create;
   FVencimentoBase := 0.0;
   FTipoSalario    := tipoSalarioUm;
-  FFormaCalculo   := formaCalculoUm;
+  FFormaCalculo   := formaCalculoAutomatico;
   FBaseCalculoHoraAula := 1;
   FCargaHorariaMensal  := 1;
   FQuantidadeVaga      := 1;
@@ -3589,7 +3602,7 @@ begin
   inherited Create;
   FCodigoRubrica := EmptyStr;
   FTipo          := 'V';
-  FFormaCalculo  := formaCalculoUm;
+  FFormaCalculo  := formaCalculoAutomatico;
   FCategoria     := TGenerico.Create;
   FCategoriaTCM  := TGenerico.Create;
   FPercentualHoraExtra  := 0.0;

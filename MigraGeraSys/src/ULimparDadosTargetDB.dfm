@@ -102,16 +102,16 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkLancamentoMesServidorClick
     end
     object chkTabelaDependente: TCheckBox
-      Left = 191
-      Top = 123
+      Left = 190
+      Top = 100
       Width = 141
       Height = 17
       Caption = 'Tabela Dependentes'
       TabOrder = 8
     end
     object chkTabelaPFServidor: TCheckBox
-      Left = 191
-      Top = 100
+      Left = 190
+      Top = 77
       Width = 178
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
@@ -119,16 +119,16 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkTabelaPFServidorClick
     end
     object chkTabelaBanco: TCheckBox
-      Left = 191
-      Top = 77
+      Left = 190
+      Top = 54
       Width = 141
       Height = 17
       Caption = 'Tabela Bancos'
       TabOrder = 10
     end
     object chkTabelaEvento: TCheckBox
-      Left = 192
-      Top = 54
+      Left = 191
+      Top = 31
       Width = 141
       Height = 17
       Caption = 'Tabela Eventos'
@@ -136,8 +136,8 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkTabelaEventoClick
     end
     object chkTabelaSetor: TCheckBox
-      Left = 192
-      Top = 31
+      Left = 191
+      Top = 8
       Width = 141
       Height = 17
       Caption = 'Tabela Setor'
@@ -145,13 +145,13 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       TabOrder = 12
     end
     object chkTabelaSituacao: TCheckBox
-      Left = 192
-      Top = 8
+      Left = 16
+      Top = 169
       Width = 141
       Height = 17
       Caption = 'Tabela Situa'#231#227'o'
       Enabled = False
-      TabOrder = 13
+      TabOrder = 14
     end
     object cmCompetencia: TComboBox
       Left = 207
@@ -159,8 +159,16 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Width = 75
       Height = 21
       Style = csDropDownList
-      TabOrder = 14
+      TabOrder = 15
       Visible = False
+    end
+    object chkTabelaEventoFixo: TCheckBox
+      Left = 191
+      Top = 123
+      Width = 179
+      Height = 17
+      Caption = 'Tabela Eventos Fixos por Servidor'
+      TabOrder = 13
     end
   end
   inherited chkRotina: TCheckBox

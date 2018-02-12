@@ -2445,7 +2445,6 @@ begin
           else
             FieldByName('ano_prim_emprego').AsString := Trim(pServidor.AnoPrimeiroEmprego);
 
-          FieldByName('id_situacao_tcm').AsInteger      := pServidor.SituacaoTCM.ID;
           FieldByName('id_sub_unid_orcament').AsInteger := pServidor.SubUnidadeOrcamentaria.ID;
           FieldByName('id_unid_lotacao').AsInteger      := pServidor.UnidadeLotacao.ID;
           FieldByName('id_depto').AsInteger             := pServidor.Departamento.ID;
@@ -2484,13 +2483,11 @@ begin
           FieldByName('bloq_lancto_evento_auto').AsString := IfThen(pServidor.BloqueaLanctoEventoAuto, 'S', 'N');
           FieldByName('calc_previd').AsString             := IfThen(pServidor.CalculaPrevidencia, 'S', 'N');
           FieldByName('calc_irrf').AsString               := IfThen(pServidor.CalculaIRRF, 'S', 'N');
-          FieldByName('id_est_funcional').AsInteger       := pServidor.EstadoFuncional.ID;
           FieldByName('hora_entrada1').Clear;
           FieldByName('hora_saida1').Clear;
           FieldByName('hora_entrada2').Clear;
           FieldByName('hora_saida2').Clear;
           FieldByName('observacao').Clear;
-          FieldByName('status').AsString           := IntToStr(Ord(pServidor.Status));
           FieldByName('nao_calcular_ats').AsString := IfThen(pServidor.NaoCalculaATS, 'S', 'N');
           FieldByName('id_horario').Clear;
           FieldByName('calc_sal_cargo_origem').AsString := IfThen(pServidor.CalculaSalarioCargoOrigem, 'S', 'N');
@@ -2514,19 +2511,23 @@ begin
           else
             FieldByName('ocorrencia_sefip').AsString := Trim(pServidor.OcorrenciaSEFIP);
 
-          FieldByName(ID_SYS_ANTER).AsString := pServidor.Codigo;
-
-          if GetExistemCamposNulos(qryServidor, aCampoVazio) then
-            raise Exception.Create('Campo(s) vazio(s) : ' + aCampoVazio.Text);
-          begin
-            Post;
-            ApplyUpdates(0);
-            CommitUpdates;
-            aRetorno := True;
-          end;
         end
         else
+          Edit;
+
+        FieldByName('status').AsString            := IntToStr(Ord(pServidor.Status));
+        FieldByName('id_situacao_tcm').AsInteger  := pServidor.SituacaoTCM.ID;
+        FieldByName('id_est_funcional').AsInteger := pServidor.EstadoFuncional.ID;
+        FieldByName(ID_SYS_ANTER).AsString        := pServidor.Codigo;
+
+        if GetExistemCamposNulos(qryServidor, aCampoVazio) then
+          raise Exception.Create('Campo(s) vazio(s) : ' + aCampoVazio.Text);
+        begin
+          Post;
+          ApplyUpdates(0);
+          CommitUpdates;
           aRetorno := True;
+        end;
       end;
     except
       On E : Exception do

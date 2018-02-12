@@ -1338,6 +1338,8 @@ begin
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    t.empresa');
     qrySourceDB.SQL.Add('  , t.nome');
+    qrySourceDB.SQL.Add('  , t.matricula');
+    qrySourceDB.SQL.Add('  , t.contrato');
     qrySourceDB.SQL.EndUpdate;
 
     qrySourceDB.Open;

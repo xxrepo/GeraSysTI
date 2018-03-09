@@ -4,7 +4,10 @@ uses
   MidasLib,
   Vcl.Forms,
   UMain in 'UMain.pas' {frmMain},
-  UDados in 'UDados.pas' {dmDados: TDataModule};
+  UDados in 'UDados.pas' {dmDados: TDataModule},
+  gsLib in 'gsLib.pas',
+  VarGlobais in 'VarGlobais.pas',
+  ULancarCH in 'ULancarCH.pas' {frmLancarCH};
 
 {$R *.res}
 

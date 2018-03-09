@@ -2,25 +2,27 @@ object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'EscalaGeraSys | Lan'#231'amento de Carga Hor'#225'ria (Portable)'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 522
+  ClientWidth = 977
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  FormStyle = fsMDIForm
   OldCreateOrder = True
   Position = poScreenCenter
   WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object dxRibbon1: TdxRibbon
+  object RibbonBar: TdxRibbon
     Left = 0
     Top = 0
-    Width = 640
+    Width = 977
     Height = 155
     ApplicationButton.Menu = dxRibbonBackstageView1
     BarManager = brManager
@@ -55,7 +57,7 @@ object frmMain: TfrmMain
         Item = BrBtnFechar
         Position = mbpAfterTabs
       end>
-    Ribbon = dxRibbon1
+    Ribbon = RibbonBar
     object dxRibbonBackstageViewTabSheet1: TdxRibbonBackstageViewTabSheet
       Left = 132
       Top = 0
@@ -78,7 +80,7 @@ object frmMain: TfrmMain
         OptionsView.Item.Text.AlignVert = vaCenter
         OptionsView.Item.Text.Position = posRight
         OptionsView.Item.PinMode = bgipmTag
-        Ribbon = dxRibbon1
+        Ribbon = RibbonBar
         object dxRibbonBackstageViewGalleryControl1Group1: TdxRibbonBackstageViewGalleryGroup
           ShowCaption = False
           object dxRibbonBackstageViewGalleryControl1Group1Item1: TdxRibbonBackstageViewGalleryItem
@@ -108,13 +110,18 @@ object frmMain: TfrmMain
       end
     end
   end
-  object dxRibbonStatusBar1: TdxRibbonStatusBar
+  object rsbInformacao: TdxRibbonStatusBar
     Left = 0
-    Top = 457
-    Width = 640
+    Top = 499
+    Width = 977
     Height = 23
     Images = dmDados.img16
     Panels = <
+      item
+        PanelStyleClassName = 'TdxStatusBarContainerPanelStyle'
+        PanelStyle.Container = rsbInformacaoContainer4
+        Width = 250
+      end
       item
         PanelStyleClassName = 'TdxStatusBarKeyboardStatePanelStyle'
         PanelStyle.CapsLockKeyAppearance.ActiveFontColor = clDefault
@@ -134,7 +141,7 @@ object frmMain: TfrmMain
         PanelStyleClassName = 'TdxStatusBarTextPanelStyle'
         PanelStyle.ImageIndex = 0
         PanelStyle.Font.Charset = DEFAULT_CHARSET
-        PanelStyle.Font.Color = clDefault
+        PanelStyle.Font.Color = clBlack
         PanelStyle.Font.Height = -11
         PanelStyle.Font.Name = 'Tahoma'
         PanelStyle.Font.Style = [fsBold]
@@ -146,19 +153,48 @@ object frmMain: TfrmMain
         PanelStyleClassName = 'TdxStatusBarTextPanelStyle'
         PanelStyle.ImageIndex = 4
         PanelStyle.Font.Charset = DEFAULT_CHARSET
-        PanelStyle.Font.Color = clDefault
+        PanelStyle.Font.Color = clBlack
         PanelStyle.Font.Height = -11
         PanelStyle.Font.Name = 'Tahoma'
         PanelStyle.Font.Style = [fsBold]
         PanelStyle.ParentFont = False
         Text = 'UNIDADE DE LOTA'#199#195'O'
+        Width = 350
+      end
+      item
+        PanelStyleClassName = 'TdxStatusBarTextPanelStyle'
+        PanelStyle.Font.Charset = DEFAULT_CHARSET
+        PanelStyle.Font.Color = clBlack
+        PanelStyle.Font.Height = -11
+        PanelStyle.Font.Name = 'Tahoma'
+        PanelStyle.Font.Style = [fsBold]
+        PanelStyle.ParentFont = False
+        Text = 'Tipo'
+        Width = 150
       end>
-    Ribbon = dxRibbon1
+    Ribbon = RibbonBar
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clDefault
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
+    ExplicitTop = 457
+    ExplicitWidth = 640
+    object rsbInformacaoContainer4: TdxStatusBarContainerControl
+      Left = 0
+      Top = 0
+      Width = 252
+      Height = 23
+      object pgsBar: TcxProgressBar
+        Left = 0
+        Top = 0
+        Align = alClient
+        Position = 65.000000000000000000
+        Properties.PeakValue = 65.000000000000000000
+        TabOrder = 0
+        Width = 252
+      end
+    end
   end
   object brManager: TdxBarManager
     AllowReset = False
@@ -266,12 +302,14 @@ object frmMain: TfrmMain
       Hint = 'Importar Planilha'
       Visible = ivAlways
       LargeImageIndex = 2
+      OnClick = BrBtnImportarPlanilhaClick
       SyncImageIndex = False
       ImageIndex = 2
     end
     object BrBtnImportarArquivoTXT: TdxBarLargeButton
       Caption = 'Importar Arquivo TXT'
       Category = 1
+      Enabled = False
       Hint = 'Importar Arquivo TXT'
       Visible = ivAlways
       LargeImageIndex = 3
@@ -283,12 +321,18 @@ object frmMain: TfrmMain
       Category = 1
       Hint = 'Lan'#231'ar Carga Hor'#225'ria'
       Visible = ivAlways
+      LargeImageIndex = 5
+      OnClick = BrBtnLancarCHClick
+      SyncImageIndex = False
+      ImageIndex = 5
     end
     object BrBtnExportarCH: TdxBarLargeButton
       Caption = 'Exportar Lan'#231'amento'
       Category = 1
+      Enabled = False
       Hint = 'Exportar Lan'#231'amento'
       Visible = ivAlways
+      LargeImageIndex = 6
     end
   end
   object sknController: TdxSkinController

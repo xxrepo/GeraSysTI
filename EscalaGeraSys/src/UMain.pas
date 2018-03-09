@@ -12,17 +12,18 @@ uses
   dxSkinOffice2013LightGray, dxSkinOffice2013White, dxSkinsdxRibbonPainter,
   dxRibbonCustomizationForm, dxSkinsdxBarPainter, cxContainer, cxEdit,
   dxSkinsForm, dxStatusBar, dxRibbonStatusBar, cxLabel, dxGallery,
-  dxGalleryControl, dxRibbonBackstageViewGalleryControl;
+  dxGalleryControl, dxRibbonBackstageViewGalleryControl, cxProgressBar, cxPC,
+  dxSkinscxPCPainter, dxBarBuiltInMenu;
 
 type
   TfrmMain = class(TdxRibbonForm)
     brManager: TdxBarManager;
     dxBarManager1Bar1: TdxBar;
-    dxRibbon1: TdxRibbon;
+    RibbonBar: TdxRibbon;
     rbtArquivo: TdxRibbonTab;
     dxRibbonBackstageView1: TdxRibbonBackstageView;
     dxRibbonBackstageViewTabSheet1: TdxRibbonBackstageViewTabSheet;
-    dxRibbonStatusBar1: TdxRibbonStatusBar;
+    rsbInformacao: TdxRibbonStatusBar;
     dxRibbonBackstageViewGalleryControl1: TdxRibbonBackstageViewGalleryControl;
     cxLabel1: TcxLabel;
     dxRibbonBackstageViewGalleryControl1Group1: TdxRibbonBackstageViewGalleryGroup;
@@ -35,11 +36,17 @@ type
     mbrControle: TdxBar;
     BrBtnExportarCH: TdxBarLargeButton;
     BrBtnFechar: TdxBarButton;
+    rsbInformacaoContainer4: TdxStatusBarContainerControl;
+    pgsBar: TcxProgressBar;
     procedure FormCreate(Sender: TObject);
     procedure BrBtnFecharClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure BrBtnImportarPlanilhaClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure BrBtnLancarCHClick(Sender: TObject);
   private
     { Private declarations }
+    procedure AtualizarStatusBar;
   public
     { Public declarations }
   end;
@@ -51,13 +58,53 @@ implementation
 
 {$R *.dfm}
 
-uses UDados;
+uses UDados, ULancarCH;
 
-{ TForm1 }
+{ TfrmMain }
+
+procedure TfrmMain.AtualizarStatusBar;
+begin
+  with dmDados, rsbInformacao do
+  begin
+    if not cdsUnidadeLotacao.IsEmpty then
+    begin
+      Panels[2].Text := FieldValueStr(cdsUnidadeLotacao, 'Referencia');
+      Panels[3].Text := FieldValueStr(cdsUnidadeLotacao, 'Codigo') + ' - ' + FieldValueStr(cdsUnidadeLotacao, 'Descricao');
+      Panels[4].Text := AnsiUpperCase(StrTipoPlanilha( TTipoPlanilha(StrToIntDef(FieldValueStr(cdsUnidadeLotacao, 'Tipo'), 1)) ));
+    end
+    else
+    begin
+      Panels[2].Text := FormatDateTime('yyyymm', Date);
+      Panels[3].Text := 'UNIDADE DE LOTAÇÃO';
+      Panels[4].Text := 'TIPO PLANILHA';
+    end;
+
+    pgsBar.Position := 0;
+    pgsBar.Visible  := False;
+  end;
+end;
 
 procedure TfrmMain.BrBtnFecharClick(Sender: TObject);
 begin
   Self.Close;
+end;
+
+procedure TfrmMain.BrBtnImportarPlanilhaClick(Sender: TObject);
+begin
+  BrBtnImportarPlanilha.Enabled := False;
+  try
+    if dmDados.ImportarPlanilha(pgsBar) then
+      AtualizarStatusBar;
+  finally
+    BrBtnImportarPlanilha.Enabled := True;
+  end;
+end;
+
+procedure TfrmMain.BrBtnLancarCHClick(Sender: TObject);
+begin
+  if (frmLancarCH = nil) then
+    frmLancarCH := TfrmLancarCH.Create(Self);
+  frmLancarCH.Show;
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -73,6 +120,13 @@ end;
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   DisableAero := True;
+  pgsBar.Position := 0;
+end;
+
+procedure TfrmMain.FormShow(Sender: TObject);
+begin
+  dmDados.CarregarTabelas;
+  AtualizarStatusBar;
 end;
 
 end.

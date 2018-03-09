@@ -105,6 +105,12 @@
             <Form>dmDados</Form>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
+        <DCCReference Include="gsLib.pas"/>
+        <DCCReference Include="VarGlobais.pas"/>
+        <DCCReference Include="ULancarCH.pas">
+            <Form>frmLancarCH</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

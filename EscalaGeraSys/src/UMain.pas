@@ -44,6 +44,7 @@ type
     procedure BrBtnImportarPlanilhaClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure BrBtnLancarCHClick(Sender: TObject);
+    procedure BrBtnExportarCHClick(Sender: TObject);
   private
     { Private declarations }
     procedure AtualizarStatusBar;
@@ -58,7 +59,7 @@ implementation
 
 {$R *.dfm}
 
-uses UDados, ULancarCH;
+uses UDados, ULancarCH, gsLib;
 
 { TfrmMain }
 
@@ -81,6 +82,20 @@ begin
 
     pgsBar.Position := 0;
     pgsBar.Visible  := False;
+  end;
+end;
+
+procedure TfrmMain.BrBtnExportarCHClick(Sender: TObject);
+begin
+  if not Confirma('Confirma a atualização da planilha com os dados lançados?') then
+    Abort;
+
+  BrBtnExportarCH.Enabled := False;
+  try
+    if dmDados.ExportarPlanilha(pgsBar) then
+      AtualizarStatusBar;
+  finally
+    BrBtnExportarCH.Enabled := True;
   end;
 end;
 

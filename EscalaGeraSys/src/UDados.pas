@@ -36,6 +36,8 @@ type
 
     procedure ProcessarPlanilha(const aFileName : TFileName; var OK : Boolean;
       aProgressBar : TcxProgressBar);
+    procedure AtualizarPlanilha(const aFileName : TFileName; var OK : Boolean;
+      aProgressBar : TcxProgressBar);
 
     function GetReferencia : Integer;
     function GetTipoPlanilha : TTipoPlanilha;
@@ -52,6 +54,7 @@ type
     function FieldValueInt(const aCds : TClientDataSet; const aField : String) : Integer;
 
     function ImportarPlanilha(aProgressBar : TcxProgressBar) : Boolean;
+    function ExportarPlanilha(aProgressBar : TcxProgressBar) : Boolean;
   end;
 
 
@@ -113,6 +116,107 @@ begin
   end;
 end;
 
+
+procedure TdmDados.AtualizarPlanilha(const aFileName: TFileName;
+  var OK: Boolean; aProgressBar: TcxProgressBar);
+const
+   xlCellTypeLastCell = $0000000B;
+var
+  XLSAplicacao,
+  AbaXLS      : OLEVariant;
+  RangeMatrix : Variant;
+  I : Integer;
+  aRegistro    ,
+  aCargoFuncao ,
+  aMatricula   : String;
+  aTipo : TTipoPlanilha;
+begin
+  KillTask('Excel.exe');
+
+  OK := False;
+  Screen.Cursor := crSQLWait;
+  XLSAplicacao  := CreateOleObject('Excel.Application');
+  try
+    try
+      CarregarTabelaServidor(cdsUnidadeLotacao.FieldByName('Referencia').AsInteger);
+      aTipo := TTipoPlanilha(cdsUnidadeLotacao.FieldByName('Tipo').AsInteger);
+
+      XLSAplicacao.Visible := False;
+      XLSAplicacao.Workbooks.Open(aFileName);
+      XLSAplicacao.WorkSheets[1].Activate;
+
+      AbaXLS := XLSAplicacao.Workbooks[ExtractFileName(aFileName)].WorkSheets[1];
+
+      AbaXLS.Cells.SpecialCells(xlCellTypeLastCell, EmptyParam).Activate;
+
+      cdsServidor.Last;
+      cdsServidor.First;
+
+      aProgressBar.Position       := 0;
+      aProgressBar.Properties.Max := cdsServidor.RecordCount;
+      aProgressBar.Visible := True;
+
+      while not cdsServidor.Eof do
+      begin
+        I := cdsServidor.FieldByName('Linha').AsInteger;
+        if (I > 0) then
+        begin
+          if (aTipo = tpAdministrativo) then
+          begin
+            AbaXLS.Cells[I, cF] := cdsServidor.FieldByName('QuantidadeCH').AsInteger;
+            AbaXLS.Cells[I, cG] := cdsServidor.FieldByName('HoraExtra').AsInteger;
+            AbaXLS.Cells[I, cI] := cdsServidor.FieldByName('Falta').AsInteger;
+            AbaXLS.Cells[I, cK] := cdsServidor.FieldByName('Observacao').AsString;
+
+            OK := True;
+          end
+          else
+          if (aTipo = tpEducacao) then
+          begin
+            AbaXLS.Cells[I, cG] := cdsServidor.FieldByName('QuantidadeCH').AsInteger;
+            AbaXLS.Cells[I, cH] := cdsServidor.FieldByName('HoraExtra').AsInteger;
+            AbaXLS.Cells[I, cI] := cdsServidor.FieldByName('Falta').AsInteger;
+            AbaXLS.Cells[I, cL] := cdsServidor.FieldByName('Observacao').AsString;
+
+            OK := True;
+          end;
+        end;
+
+        aProgressBar.Position := cdsServidor.RecNo;
+        cdsServidor.Next;
+      end;
+
+      AbaXLS.Cells[1, 1].Select;
+
+      OK := True;
+    except
+      On E : Exception do
+      begin
+        OK := False;
+        Mensagem('Erro ao tentar atualizar arquivo!' + #13#13 + E.Message, 'Erro', MB_ICONERROR);
+      end;
+    end;
+  finally
+    Screen.Cursor := crDefault;
+
+    // Fecha o Microsoft Excel
+    if not VarIsEmpty(XLSAplicacao) then
+    begin
+      if OK then
+      begin
+        XLSAplicacao.DisplayAlerts := False;
+        XLSAplicacao.Workbooks[1].SaveAs(aFileName);
+      end;
+
+      XLSAplicacao.Quit;
+      XLSAplicacao := Unassigned;
+      AbaXLS       := Unassigned;
+    end;
+
+    if OK then
+      Mensagem('Importação da planilha finalizada com sucesso.', 'Informação', MB_ICONINFORMATION);
+  end;
+end;
 
 procedure TdmDados.CarregarTabelas;
 begin
@@ -237,6 +341,22 @@ begin
       cdsUnidadeLotacao.SaveToFile;
 
     cdsUnidadeLotacao.Close;
+  end;
+end;
+
+function TdmDados.ExportarPlanilha(aProgressBar: TcxProgressBar): Boolean;
+var
+  aRetorno : Boolean;
+begin
+  aRetorno := False;
+  try
+    aRetorno := FileExists(cdsUnidadeLotacao.FieldByName('Arquivo').AsString);
+    if aRetorno then
+      AtualizarPlanilha(cdsUnidadeLotacao.FieldByName('Arquivo').AsString, aRetorno, aProgressBar)
+    else
+      Mensagem('Planlha não localizada!' + #13 + cdsUnidadeLotacao.FieldByName('Arquivo').AsString, 'Alerta', MB_ICONWARNING);
+  finally
+    Result := aRetorno;
   end;
 end;
 

@@ -329,10 +329,10 @@ object frmMain: TfrmMain
     object BrBtnExportarCH: TdxBarLargeButton
       Caption = 'Exportar Lan'#231'amento'
       Category = 1
-      Enabled = False
       Hint = 'Exportar Lan'#231'amento'
       Visible = ivAlways
       LargeImageIndex = 6
+      OnClick = BrBtnExportarCHClick
     end
   end
   object sknController: TdxSkinController

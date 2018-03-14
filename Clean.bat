@@ -1,4 +1,4 @@
-cd "D:\Projetos\GeraSysTI\trunk"
+cd "D:\Projetos\GeraSysTI\GeraSysTI\trunk"
 pause
 del /S *.exe.bak
 del /S *.~*

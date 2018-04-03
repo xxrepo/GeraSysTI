@@ -1519,6 +1519,7 @@ begin
           qrySourceDBDetails.SQL.Add('  , c.dvconta');
           qrySourceDBDetails.SQL.Add('  , c.conta || coalesce(''-'' || nullif(c.dvconta, ''''), '''') as conta');
           qrySourceDBDetails.SQL.Add('  , c.padrao');
+          qrySourceDBDetails.SQL.Add('  , c.tipo');
           qrySourceDBDetails.SQL.Add('from CONTASTRABALHADOR c');
           qrySourceDBDetails.SQL.Add('  inner join BANCOS b on (b.codigo = c.banco)');
           qrySourceDBDetails.SQL.Add('where c.empresa  = ' + QuotedStr( Trim(qrySourceDB.FieldByName('empresa').AsString) ));
@@ -1540,6 +1541,14 @@ begin
             aEntidadeFinanc.NumeroConta  := Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta) - 10, 11);
             aEntidadeFinanc.EBanco       := False;
             aEntidadeFinanc.TipoConta    := tipoContaCorrente;
+
+            // Banco Caixa Econômica
+            if (aEntidadeFinanc.Banco.Codigo = '104') then
+              if StrToIntDef(Trim(qrySourceDBDetails.FieldByName('tipo').AsString), 0) = 37 then
+                aEntidadeFinanc.TipoConta := tipoContaSalario
+              else
+              if StrToIntDef(Trim(qrySourceDBDetails.FieldByName('tipo').AsString), 0) = 13 then
+                aEntidadeFinanc.TipoConta := tipoContaPoupanca;
 
             aEntidadeFinanc.Descricao       := Trim(qrySourceDBDetails.FieldByName('nome').AsString);
             aEntidadeFinanc.Banco.ID        := StrToIntDef(aEntidadeFinanc.Banco.Codigo, 0);

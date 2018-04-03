@@ -21,7 +21,7 @@ Type
   TSexo = (sexoMasculino = 0, sexoFemino = 1);
   TStatusServidor = (statusServidorUm = 1);
   TTipoVinculo = (tipoVinculoUm = 1);
-  TTipoConta   = (tipoContaCorrente = 1, tipoContaSalario, tipoContaPoupanca);
+  TTipoConta   = (tipoContaCorrente = 1, tipoContaSalario = 2, tipoContaPoupanca = 3);
   TParentesco  = (parentescoFilho = 1, parentescoConjuge = 2, parentescoFilhoAdotivo = 3, parentescoPais = 4, parentescoOutros = 5);
   TTipoMovimento = (tipoMovimentoNulo = 0, tipoMovimentoUm = 1, tipoMovimentoDois, tipoMovimentoTres);
 
@@ -1500,9 +1500,8 @@ begin
           Append;
           FieldByName('id').AsInteger          := pConta.IDConta;
           FieldByName('id_servidor').AsInteger := pConta.Servidor.ID;
-          FieldByName('tipo_conta').AsInteger  := Ord(pConta.TipoConta);
           FieldByName('id_entid_financ').AsInteger := pConta.ID;
-          FieldByName('agencia').AsString      := pConta.Agencia;
+          FieldByName('agencia').AsString          := pConta.Agencia;
 
           if (pConta.NumeroConta = '0') or (pConta.NumeroConta = '-0') then
             FieldByName('num_conta').Clear
@@ -1511,12 +1510,16 @@ begin
 
           FieldByName(ID_SYS_ANTER).AsString := pConta.Servidor.Codigo;
           FieldByName('ativa').AsString      := IfThen(pConta.Ativo, 'S', 'N');
-          Post;
+        end
+        else
+          Edit;
 
-          ApplyUpdates(0);
+        FieldByName('tipo_conta').AsInteger := Ord(pConta.TipoConta);
 
-          CommitUpdates;
-        end;
+        Post;
+        ApplyUpdates(0);
+        CommitUpdates;
+
         aRetorno := True;
       end;
     except

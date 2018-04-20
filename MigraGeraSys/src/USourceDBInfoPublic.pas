@@ -1005,9 +1005,13 @@ begin
       begin
         cmCompetencia.Text := cmCompetencia.Items.Strings[x];
         ImportarFolha( TGenerico(cmCompetencia.Items.Objects[x]) );
+        dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[x]) );
       end
     else
+    begin
       ImportarFolha( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+      dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+    end;
   finally
     dmRecursos.ExibriLog;
 

@@ -27,6 +27,7 @@ Type
 
   TSexoCollection = Set of TSexo;
   TSexoLista      = Array[Low(sexoMasculino)..High(sexoMasculino)] of String;
+  TEventoIDList   = Array of Integer;
 
 //  TDocumentoCPF = record
 //    Numero      : String;
@@ -386,7 +387,8 @@ Type
       FRemuneracao : String;
     public
       procedure CarregarDados; override;
-      procedure CarregarDados_v2(aIdentificador_OLD : Integer);
+      procedure CarregarDados_v2(aIdentificador_OLD : Integer); overload;
+      procedure CarregarDados_v2(aIdentificador_OLD : TEventoIDList); overload;
 
       property CodigoRubrica : String read FCodigoRubrica write FCodigoRubrica;
       property Tipo          : String read FTipo write FTipo;
@@ -977,6 +979,7 @@ type
     procedure ExecutarStriptDB(const pSQL : String); overload;
     procedure UpdateGenerator(const pGeneretorName, pTableName, pKeyField : String);
     procedure CreateDomains;
+    procedure ReplicarLancaEvento(const aCompetencia : TGenerico);
 
     function ConectarTargetDB : Boolean;
     function NewID(pTabela, pCampo : String) : Integer;
@@ -1071,6 +1074,55 @@ begin
     fdTargetDB.CommitRetaining;
   except
   end;
+end;
+
+procedure TdmConexaoTargetDB.ReplicarLancaEvento(const aCompetencia : TGenerico);
+var
+  aSQL : TStringList;
+begin
+(*
+Insert Into LANCTO_EVENTO (
+    ANO_MES
+  , PARCELA
+  , ID_SERVIDOR
+  , ID_EVENTO
+  , QTD
+  , VALOR
+  , OBSERVACAO
+  , PARTICIPA
+)
+Select
+    c.ano_mes
+  , c.parcela
+  , c.id_servidor
+  , c.id_evento
+  , c.qtd
+  , c.valor
+  , c.observacao
+  , 'S' as participa
+from LANCTO_EVENTO_CALC c
+  left join LANCTO_EVENTO x on (x.ano_mes = c.ano_mes and x.parcela = c.parcela and x.id_servidor = c.id_servidor and x.id_evento = c.id_evento)
+where c.ano_mes = '201712'
+  and x.ano_mes is null
+
+    qrySourceDB.ParamByName('ano').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 3, 4));
+    qrySourceDB.ParamByName('mes').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 1, 2));
+
+*)
+//  aSQL := TStringList.Create;
+//  try
+//    aSQL.BeginUpdate;
+//    aSQL.Clear;
+//    aSQL.Add('');
+//    aSQL.EndUpdate;
+//    try
+//      fdTargetDB.ExecSQL(aSQL.Text);
+//      fdTargetDB.CommitRetaining;
+//    except
+//    end;
+//  finally
+//    aSQL.Free;
+//  end;
 end;
 
 procedure TdmConexaoTargetDB.CriarCampoTabela(const pTabela, pCampo,
@@ -3545,9 +3597,98 @@ begin
       ParamByName('codigo').AsString := Codigo;
       Open;
 
-      if (aIdentificador_OLD > 0) then
+      if (aIdentificador_OLD > 0) and (RecordCount > 1) then
         while ( (I < 15) or ((not Eof) and (aIdentificador_OLD = FieldByName('id').AsInteger)) ) do  // Até 15 tentativas
         begin
+          if (aIdentificador_OLD <> FieldByName('id').AsInteger) then
+            Break;
+          Next;
+          Inc(I);
+        end;
+
+      if not IsEmpty then
+      begin
+        ID              := FieldByName('id').AsInteger;
+        Descricao       := FieldByName('descricao').AsString;
+        CodigoRubrica   := Trim(FieldByName('codigo').AsString);
+        Codigo          := FieldByName(ID_SYS_ANTER).AsString;
+        Tipo            := FieldByName('tipo').AsString;
+        FormaCalculo    := TFormaCalculo(StrToInt(FieldByName('forma_calc').AsString));
+        Categoria.ID    := FieldByName('id_categ').AsInteger;
+        CategoriaTCM.ID := FieldByName('id_categ_tcm').AsInteger;
+
+        PercentualHoraExtra   := FieldByName('percent_hora_extra').AsCurrency;
+        HRSobreHoraNormal     := FieldByName('he_sobre_hora_normal').AsString;
+        TipoBaseCalculo       := TTipoBaseCalculo(StrToInt(FieldByName('tipo_base_calc').AsString));
+        IndiceSalarioFamilia  := (FieldByName('incide_sal_familia').AsString = 'S');
+        IndiceATS             := (FieldByName('incide_ats').AsString = 'S');
+        IndiceFerias          := (FieldByName('incide_ferias').AsString = 'S');
+        IndiceDecimoTerceiro  := (FieldByName('incide_dec_terc').AsString = 'S');
+        IndiceFalta           := (FieldByName('incide_falta').AsString = 'S');
+        IndicePrevidencia     := (FieldByName('incide_previd').AsString = 'S');
+        IndiceIRRF            := (FieldByName('incide_irrf').AsString = 'S');
+        IndiceOutraBC1        := (FieldByName('incide_outra_bc1').AsString = 'S');
+        IndiceOutraBC2        := (FieldByName('incide_outra_bc2').AsString = 'S');
+        IndiceOutraBC3        := (FieldByName('incide_outra_bc3').AsString = 'S');
+        ValorFixo             := FieldByName('valor_fixo').AsCurrency;
+        Divisor               := FieldByName('divisor').AsCurrency;
+        SubDivisor            := FieldByName('subdivisor').AsCurrency;
+        Max_x_vencimentoBase  := FieldByName('max_x_vencto_base').AsCurrency;
+        GeraRAIS              := (FieldByName('gera_rais').AsString = 'S');
+        CopiaMesAnterior      := (FieldByName('copia_mes_anterior').AsString = 'S');
+        PermiteUsuarioAlterar := (FieldByName('permitir_usuario_alter').AsString = 'S');
+        SemUso                := (FieldByName('sem_uso').AsString = 'S');
+        CodigoItem            := Trim(FieldByName('cont_cod_item').AsString);
+        SubElementoDespesa    := FieldByName('cont_sub_elemen_desp').AsString;
+        ContaCorrente         := FieldByName('cont_conta_corrente').AsString;
+        BCMargemConsignada    := (FieldByName('bc_margem_consig').AsString = 'S');
+        ValorBCFixa           := FieldByName('val_bc_fixa').AsCurrency;
+        Natureza              := TTipoNaturezaEvento(StrToInt(FieldByName('natureza').AsString));
+        Remuneracao           := FieldByName('remunerac').AsString;
+        Descricao             := FieldByName('legalidade').AsString;
+      end;
+      Close;
+    end;
+  except
+    On E : Exception do
+      MensagemErro('Erro', 'Erro ao tentar carregar dados do Evento : ' + #13 + E.Message);
+  end;
+end;
+
+procedure TEvento.CarregarDados_v2(aIdentificador_OLD : TEventoIDList);
+  function EqualEvent(const aEvento : TEventoIDList; const ID : Integer) : Boolean;
+  var
+    I : Integer;
+    aRetorno : Boolean;
+  begin
+    aRetorno := False;
+    try
+      for I := Low(aEvento) to High(aEvento) do
+        if aEvento[I] = ID then
+        begin
+          aRetorno := True;
+          Break;
+        end;
+    finally
+      Result := aRetorno;
+    end;
+  end;
+var
+  I : Integer;
+begin
+  try
+    I := 0;
+    with dmConexaoTargetDB, qryEvento do
+    begin
+      Close;
+      ParamByName('codigo').AsString := Codigo;
+      Open;
+
+      if (High(aIdentificador_OLD) > -1) and (RecordCount > 1) then
+        while ( (I < 15) or ((not Eof) and EqualEvent(aIdentificador_OLD, FieldByName('id').AsInteger)) ) do  // Até 15 tentativas
+        begin
+          if not EqualEvent(aIdentificador_OLD, FieldByName('id').AsInteger) then
+            Break;
           Next;
           Inc(I);
         end;

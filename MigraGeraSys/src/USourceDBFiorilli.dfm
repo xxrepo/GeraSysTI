@@ -66,7 +66,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object lblCompetencia: TLabel
       Left = 206
-      Top = 224
+      Top = 201
       Width = 66
       Height = 13
       Caption = '&Compet'#234'ncia:'
@@ -75,7 +75,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object lblInformeFolha: TLabel
       Left = 206
-      Top = 270
+      Top = 247
       Width = 312
       Height = 52
       Caption = 
@@ -132,7 +132,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Top = 27
       Width = 107
       Height = 21
-      ReadOnly = True
       TabOrder = 3
       Text = 'FSCSIP'
     end
@@ -142,7 +141,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Width = 107
       Height = 21
       PasswordChar = '*'
-      ReadOnly = True
       TabOrder = 4
       Text = 'SIP'
     end
@@ -225,8 +223,8 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       TabOrder = 13
     end
     object chkTabelaSetor: TCheckBox
-      Left = 191
-      Top = 64
+      Left = 16
+      Top = 248
       Width = 141
       Height = 17
       Caption = 'Tabela Setor'
@@ -234,7 +232,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTabelaEvento: TCheckBox
       Left = 191
-      Top = 87
+      Top = 64
       Width = 141
       Height = 17
       Caption = 'Tabela Eventos'
@@ -242,7 +240,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTabelaBanco: TCheckBox
       Left = 190
-      Top = 110
+      Top = 87
       Width = 141
       Height = 17
       Caption = 'Tabela Bancos'
@@ -250,7 +248,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTabelaPFServidor: TCheckBox
       Left = 190
-      Top = 133
+      Top = 110
       Width = 178
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
@@ -259,7 +257,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTabelaDependente: TCheckBox
       Left = 190
-      Top = 156
+      Top = 133
       Width = 141
       Height = 17
       Caption = 'Tabela Dependentes'
@@ -268,7 +266,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkLancamentoMesServidor: TCheckBox
       Left = 191
-      Top = 201
+      Top = 178
       Width = 178
       Height = 17
       Caption = 'Folha Mensal do Servidor'
@@ -277,7 +275,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object cmCompetencia: TComboBox
       Left = 206
-      Top = 243
+      Top = 220
       Width = 75
       Height = 21
       Style = csDropDownList
@@ -286,7 +284,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
     end
     object chkTabelaEventoFixo: TCheckBox
       Left = 190
-      Top = 178
+      Top = 155
       Width = 179
       Height = 17
       Caption = 'Tabela Eventos Fixos por Servidor'

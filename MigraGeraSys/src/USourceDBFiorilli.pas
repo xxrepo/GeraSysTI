@@ -287,6 +287,8 @@ procedure TfrmSourceDBFiorilli.GravarIni;
 begin
   gConfiguracao.WriteString('SourceDBFiorili', 'FileName',  edSourceDB.Text);
   gConfiguracao.WriteString('SourceDBFiorili', 'Directory', ExtractFilePath(edSourceDB.Text));
+  gConfiguracao.WriteString('SourceDBFiorili', 'UserName',  edUsuario.Text);
+  gConfiguracao.WriteString('SourceDBFiorili', 'Password',  edSenha.Text);
   gConfiguracao.UpdateFile;
 end;
 
@@ -766,6 +768,7 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
+    qrySourceDB.SQL.BeginUpdate;
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    e.empresa');
@@ -808,6 +811,10 @@ begin
     qrySourceDB.SQL.Add('    f.empresa');
     qrySourceDB.SQL.Add('  , f.nome');
     qrySourceDB.SQL.Add('  , e.evento');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.SQL.SaveToFile(ExtractFilePath(ParamStr(0)) + '_evento_fixo.sql');
+
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -902,6 +909,10 @@ var
 begin
   try
     try
+      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD MIGRA_FOLHA BOOLEAN DEFAULT ''S''', True);
+      fdSourceDB.CommitRetaining;
+      fdSourceDB.ExecSQL('Update EVENTOS Set MIGRA_FOLHA = ''S'' where MIGRA_FOLHA is null', True);
+      fdSourceDB.CommitRetaining;
       fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD INICIALIZA_MES BOOLEAN DEFAULT ''N''', True);
       fdSourceDB.CommitRetaining;
       fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''N'' where INICIALIZA_MES is null', True);
@@ -1042,7 +1053,9 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
     aBaseCalculoMesServidor : TBaseCalculoMesServidor;
     aEventoBaseCalculoMesServidor : TEventoBaseCalculoMesServidor;
     sInforme : String;
-    aEventoID_OLD : Integer;
+    //aEventoID_OLD : Integer;
+    aEventoID_OLD   ,
+    aEventoID_Empty : TEventoIDList;
   begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
@@ -1073,13 +1086,24 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
     qrySourceDB.SQL.Add('  left join UNIDADE u2 on (u2.codigo = m.depsecundario)');
     qrySourceDB.SQL.Add('where f.ano = :ano');
     qrySourceDB.SQL.Add('  and f.mes = :mes');
+    qrySourceDB.SQL.Add('  and e.migra_folha = ' + QuotedStr('S'));
+//    qrySourceDB.SQL.Add('  and m.registro = ' + QuotedStr('013848'));
     qrySourceDB.SQL.Add('order by');
-    qrySourceDB.SQL.Add('    f.codigo');
-    qrySourceDB.SQL.Add('  , t.nome');
+//    qrySourceDB.SQL.Add('    f.codigo');
+//    qrySourceDB.SQL.Add('  , t.nome');
+    qrySourceDB.SQL.Add('    t.nome');
     qrySourceDB.SQL.Add('  , m.empresa');
     qrySourceDB.SQL.Add('  , m.registro');
     qrySourceDB.SQL.Add('  , m.evento');
     qrySourceDB.SQL.EndUpdate;
+
+(*
+[18:53, 18/4/2018] +55 91 9104-0886: registro = '013848'
+[18:54, 18/4/2018] +55 91 9104-0886: ver evento 394
+[18:54, 18/4/2018] +55 91 9104-0886: mês_ano = 12/2017
+1823 - ADEONE MARQUES LOPES
+*)
+    qrySourceDB.SQL.SaveToFile(ExtractFilePath(ParamStr(0)) + '_folha.sql');
 
     qrySourceDB.ParamByName('ano').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 3, 4));
     qrySourceDB.ParamByName('mes').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 1, 2));
@@ -1167,6 +1191,7 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
           if ( AnsiUpperCase(Trim(qrySourceDB.FieldByName('inicializa_mes').AsString)) = 'S') then
           begin
             aEventoID_OLD    := 0;
+            //aEventoID_OLD    := aEventoID_Empty;
             aRegistrInserido := dmConexaoTargetDB.InserirInicializaMesServidor(aInicializaMesServidor);
             if aRegistrInserido then
               if not dmConexaoTargetDB.InserirBaseCalculoMesServidor(aBaseCalculoMesServidor) then
@@ -1190,11 +1215,16 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
               aEventoBaseCalculoMesServidor.Valor      := qrySourceDB.FieldByName('VALORINT').AsCurrency;
               aEventoBaseCalculoMesServidor.Observacao := EmptyStr;
 
+              if (Pos('/', Trim(qrySourceDB.FieldByName('refhollerit').AsString)) > 0) then
+                aEventoBaseCalculoMesServidor.Observacao := Trim(qrySourceDB.FieldByName('refhollerit').AsString);
+
               if not dmConexaoTargetDB.InserirEventoBCMesServidor(aEventoBaseCalculoMesServidor) then
                 gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
                   QuotedStr(aInicializaMesServidor.AnoMes + ' - ' + aInicializaMesServidor.Servidor.Matricula) + '/' + aEvento.Codigo + ' - Evento da Base de cálculo não inserido');
 
-              aEventoID_OLD := aEvento.ID;
+              //aEventoID_OLD := aEvento.ID;
+              SetLength(aEventoID_OLD, High(aEventoID_OLD) + 2);
+              aEventoID_OLD[High(aEventoID_OLD)] := aEvento.ID;
             end;
           end
           else
@@ -1239,9 +1269,13 @@ begin
       begin
         cmCompetencia.Text := cmCompetencia.Items.Strings[x];
         ImportarFolha( TGenerico(cmCompetencia.Items.Objects[x]) );
+        dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[x]) );
       end
     else
+    begin
       ImportarFolha( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+      dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+    end;
   finally
     dmRecursos.ExibriLog;
 

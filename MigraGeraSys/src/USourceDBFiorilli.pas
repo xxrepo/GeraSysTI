@@ -1105,8 +1105,8 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
 *)
     qrySourceDB.SQL.SaveToFile(ExtractFilePath(ParamStr(0)) + '_folha.sql');
 
-    qrySourceDB.ParamByName('ano').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 3, 4));
-    qrySourceDB.ParamByName('mes').AsInteger := StrToInt(Copy(aCompetencia.Codigo, 1, 2));
+    qrySourceDB.ParamByName('ano').AsString := Copy(aCompetencia.Codigo, 3, 4);
+    qrySourceDB.ParamByName('mes').AsString := Copy(aCompetencia.Codigo, 1, 2);
 
     qrySourceDB.Open;
     qrySourceDB.Last;
@@ -1269,12 +1269,12 @@ begin
       begin
         cmCompetencia.Text := cmCompetencia.Items.Strings[x];
         ImportarFolha( TGenerico(cmCompetencia.Items.Objects[x]) );
-        dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[x]) );
+        //dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[x]) );
       end
     else
     begin
       ImportarFolha( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
-      dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
+      //dmConexaoTargetDB.ReplicarLancaEvento( TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]) );
     end;
   finally
     dmRecursos.ExibriLog;

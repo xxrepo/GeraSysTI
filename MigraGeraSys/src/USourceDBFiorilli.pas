@@ -64,6 +64,7 @@ type
     { Private declarations }
     procedure GravarIni;
     procedure GerarUnidadeOrcamentariaPadrao(aUnidadeGestora : TUnidadeGestora);
+    procedure ListarCompetenciasFiorilli;
 
     function ConectarSourceDB : Boolean;
 
@@ -82,6 +83,9 @@ type
     procedure ImportarDependente(Sender: TObject);
     procedure ImportarEventoFixoServidor(Sender: TObject);
     procedure ImportarFolhaMensalServidor(Sender: TObject);
+
+    function GetCargoPeriodo(aEmpresa, aRegistro : String; aDataMovimento : TDateTime;
+      var aCargo : String) : Boolean;
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -119,6 +123,8 @@ begin
   lblCompetencia.Visible  := chkLancamentoMesServidor.Checked;
   cmCompetencia.Visible   := chkLancamentoMesServidor.Checked;
   lblInformeFolha.Visible := chkLancamentoMesServidor.Checked;
+  if cmCompetencia.Visible then
+    ListarCompetenciasFiorilli;
 end;
 
 procedure TfrmSourceDBFiorilli.chkTabelaCargoFuncaoClick(Sender: TObject);
@@ -252,8 +258,10 @@ begin
 
   gLogImportacao.Clear;
 
-  edSourceDB.Text       := gConfiguracao.ReadString('SourceDBFiorili', 'FileName', EmptyStr);
+  edSourceDB.Text       := gConfiguracao.ReadString('SourceDBFiorili', 'FileName',  EmptyStr);
   edSourceDB.InitialDir := gConfiguracao.ReadString('SourceDBFiorili', 'Directory', EmptyStr);
+  edUsuario.Text        := gConfiguracao.ReadString('SourceDBFiorili', 'UserName',  edUsuario.Text);
+  edSenha.Text          := gConfiguracao.ReadString('SourceDBFiorili', 'Password',  edSenha.Text);
   if Trim(edSourceDB.InitialDir) = EmptyStr then
   begin
     edSourceDB.InitialDir := ExtractFilePath(ParamStr(0)) + 'db\';
@@ -280,6 +288,49 @@ begin
         QuotedStr(aUnidadeOrca.Codigo + ' - ' + aUnidadeOrca.Descricao) + ' não importado');
   finally
     aUnidadeOrca.Destroy;
+  end;
+end;
+
+function TfrmSourceDBFiorilli.GetCargoPeriodo(aEmpresa, aRegistro : String;
+  aDataMovimento : TDateTime;
+  var aCargo : String): Boolean;
+var
+  aRetorno : Boolean;
+  aSQL : TFDQuery;
+begin
+  aRetorno := False;
+  aSQL := TFDQuery.Create(nil);
+  try
+    aSQL.Connection  := qrySourceDB.Connection;
+    aSQL.Transaction := qrySourceDB.Transaction;
+    with aSQL, SQL do
+    begin
+      BeginUpdate;
+      Clear;
+      Add('Select first 1');
+      Add('    c.cargo as codigo');
+      Add('  , x.cbo');
+      Add('from HISTTRAB_CARGO c');
+      Add('  inner join CARGOS x on (x.empresa = c.empresa and x.codigo = c.cargo)');
+      Add('where c.empresa  = :empresa');
+      Add('  and c.registro = :registro');
+      Add('  and cast(c.dhtransf as date) >= :data');
+      Add('order by');
+      Add('  c.dhtransf');
+      EndUpdate;
+
+      ParamByName('empresa').AsString  := aEmpresa;
+      ParamByName('registro').AsString := aRegistro;
+      ParamByName('data').AsDateTime   := aDataMovimento;
+
+      OpenOrExecute;
+      aRetorno := (RecordCount > 0);
+      if aRetorno then
+        aCargo := FormatFloat('0000', StrToIntDef(Trim(FieldByName('codigo').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(FieldByName('cbo').AsString), 0));
+    end;
+  finally
+    aSQL.Free;
+    Result := aRetorno;
   end;
 end;
 
@@ -1052,7 +1103,8 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
     aInicializaMesServidor  : TInicializaMesServidor;
     aBaseCalculoMesServidor : TBaseCalculoMesServidor;
     aEventoBaseCalculoMesServidor : TEventoBaseCalculoMesServidor;
-    sInforme : String;
+    aCargoHistorico,
+    sInforme  : String;
     //aEventoID_OLD : Integer;
     aEventoID_OLD   ,
     aEventoID_Empty : TEventoIDList;
@@ -1069,6 +1121,8 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
     qrySourceDB.SQL.Add('  , m.*');
     qrySourceDB.SQL.Add('  , t.nome as nome_servidor');
     qrySourceDB.SQL.Add('  , t.matricula');
+    qrySourceDB.SQL.Add('  , t.cargoatual');
+    qrySourceDB.SQL.Add('  , c.cbo');
     qrySourceDB.SQL.Add('  , e.nome as nome_evento');
     qrySourceDB.SQL.Add('  , e.inicializa_mes');
     qrySourceDB.SQL.Add('  , coalesce(u2.depdespesa,  u1.depdespesa)  as depto');
@@ -1082,6 +1136,7 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
     qrySourceDB.SQL.Add('  inner join MOVIMENTO m on (m.referencia = f.codigo)');
     qrySourceDB.SQL.Add('  inner join TRABALHADOR t on (t.empresa = m.empresa and t.registro = m.registro)');
     qrySourceDB.SQL.Add('  inner join EVENTOS e on (e.empresa = m.empresa and e.codigo = m.evento)');
+    qrySourceDB.SQL.Add('  left join CARGOS c on (c.empresa = t.empresa and c.codigo = t.cargoatual)');
     qrySourceDB.SQL.Add('  left join UNIDADE u1 on (u1.codigo = m.depprincipal)');
     qrySourceDB.SQL.Add('  left join UNIDADE u2 on (u2.codigo = m.depsecundario)');
     qrySourceDB.SQL.Add('where f.ano = :ano');
@@ -1190,8 +1245,24 @@ procedure TfrmSourceDBFiorilli.ImportarFolhaMensalServidor(Sender: TObject);
           // Registrar cabeçalho INICIALIZA_MES_SERVIDOR e BASE_CALCULO_MES_SERVIDOR
           if ( AnsiUpperCase(Trim(qrySourceDB.FieldByName('inicializa_mes').AsString)) = 'S') then
           begin
+            aCargoHistorico := EmptyStr;
+            if GetCargoPeriodo(
+                qrySourceDB.FieldByName('empresa').AsString
+              , qrySourceDB.FieldByName('registro').AsString
+              , qrySourceDB.FieldByName('dtfecha').AsDateTime
+              , aCargoHistorico) then
+            begin
+              aInicializaMesServidor.CargoFuncao.Codigo := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargoatual').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
+              if (aInicializaMesServidor.CargoFuncao.Codigo <> aCargoHistorico) then
+              begin
+                aInicializaMesServidor.CargoFuncao.Codigo := aCargoHistorico;
+                aInicializaMesServidor.CargoFuncao.CarregarDados;
+                if (aInicializaMesServidor.CargoFuncao.ID > 0) then
+                  aInicializaMesServidor.CargoFuncao2 := aInicializaMesServidor.CargoFuncao;
+              end;
+            end;
+
             aEventoID_OLD    := 0;
-            //aEventoID_OLD    := aEventoID_Empty;
             aRegistrInserido := dmConexaoTargetDB.InserirInicializaMesServidor(aInicializaMesServidor);
             if aRegistrInserido then
               if not dmConexaoTargetDB.InserirBaseCalculoMesServidor(aBaseCalculoMesServidor) then
@@ -2017,6 +2088,76 @@ begin
       qrySourceDB.Close;
     if (Sender is TCheckBox) then
       TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBFiorilli.ListarCompetenciasFiorilli;
+var
+  idx ,
+  mes ,
+  ano : Integer;
+  obj : TGenerico;
+begin
+(*
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    f.ano');
+    qrySourceDB.SQL.Add('  , f.mes');
+    qrySourceDB.SQL.Add('  , count(m.codigo) as registros');
+    qrySourceDB.SQL.Add('from REFERENCIA f');
+    qrySourceDB.SQL.Add('  inner join MOVIMENTO m on (m.referencia = f.codigo)');
+    qrySourceDB.SQL.Add('where cast(f.ano as Integer) between 1980 and extract(year from current_date)');
+    qrySourceDB.SQL.Add('group by');
+    qrySourceDB.SQL.Add('    f.ano');
+    qrySourceDB.SQL.Add('  , f.mes');
+    qrySourceDB.SQL.Add('having');
+    qrySourceDB.SQL.Add('    count(m.codigo) > 0');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    cast(f.ano as Integer) desc');
+    qrySourceDB.SQL.Add('  , cast(f.mes as Integer) desc');
+*)
+  obj := TGenerico.Create;
+  obj.ID        := 0;
+  obj.Codigo    := '000000';
+  obj.Descricao := '(Todas)';
+
+  try
+    ConectarSourceDB;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select distinct');
+    qrySourceDB.SQL.Add('    f.ano');
+    qrySourceDB.SQL.Add('  , f.mes');
+    qrySourceDB.SQL.Add('from REFERENCIA f');
+    qrySourceDB.SQL.Add('where cast(f.ano as Integer) between 1980 and extract(year from current_date)');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    cast(f.ano as Integer) desc');
+    qrySourceDB.SQL.Add('  , cast(f.mes as Integer) desc');
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    cmCompetencia.Clear;
+    cmCompetencia.AddItem(obj.Descricao, obj);
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      obj := TGenerico.Create;
+
+      obj.ID        := StrToInt(Trim(qrySourceDB.FieldByName('ano').AsString) + Trim(qrySourceDB.FieldByName('mes').AsString));
+      obj.Codigo    := Trim(qrySourceDB.FieldByName('mes').AsString) + Trim(qrySourceDB.FieldByName('ano').AsString);
+      obj.Descricao := Trim(qrySourceDB.FieldByName('mes').AsString) + '/' + Trim(qrySourceDB.FieldByName('ano').AsString);
+      cmCompetencia.AddItem(obj.Descricao, obj);
+
+      qrySourceDB.Next;
+    end;
+
+    qrySourceDB.Close;
+
+    cmCompetencia.ItemIndex := 1;
+  except
   end;
 end;
 

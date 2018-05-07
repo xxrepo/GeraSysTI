@@ -11,8 +11,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       'Port=3050'
       'CharacterSet=WIN1252'
       
-        'Database=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\db\REMUN_PMSMP' +
-        'A_PROD.FDB'
+        'Database=D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\db\R' +
+        'EMUN_PM_TUCURUI.FDB'
       'DriverID=FB')
     LoginPrompt = False
     Transaction = fdTransDB
@@ -2575,7 +2575,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         '   or ((d.id_pessoa = :pessoa) and (d.nome = :nome) and (d.dt_na' +
         'scimento = :nascimento))'
       '   or (d.id_sys_anter = :codigo)')
-    Left = 704
+    Left = 712
     Top = 488
     ParamData = <
       item
@@ -2672,7 +2672,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  VAL_P_ALIMENT, DESCR_PARENTESCO, CPF_FTDO, ID_SYS_ANTER'
       'FROM PESSOA_FISICA_DEPENDENTE'
       'WHERE ID = :ID')
-    Left = 704
+    Left = 712
     Top = 536
   end
   object updServidorEventoFixo: TFDUpdateSQL
@@ -2755,5 +2755,124 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         DataType = ftInteger
         ParamType = ptInput
       end>
+  end
+  object qryProgramacaoFerias: TFDQuery
+    CachedUpdates = True
+    Connection = fdTargetDB
+    Transaction = fdTransDB
+    UpdateTransaction = fdTransDB
+    UpdateObject = updProgramacaoFerias
+    OnError = qryError
+    SQL.Strings = (
+      'Select'
+      '    p.id'
+      '  , p.ano'
+      '  , p.id_servidor'
+      '  , p.id_sub_unid_orcament'
+      '  , p.ini_periodo_aquisit'
+      '  , p.fim_periodo_aquisit'
+      '  , p.ini_periodo_gozo'
+      '  , p.fim_periodo_gozo'
+      '  , p.observacao'
+      '  , p.id_cargo'
+      '  , p.id_unid_lotacao'
+      '  , p.dt_admissao'
+      '  , p.situacao'
+      '  , p.id_hist_ferias'
+      '  , p.num_portaria'
+      '  , p.dt_portaria'
+      '  , p.ano_mes_pagto'
+      '  , p.id_sys_anter'
+      'from PROGRAMACAO_FERIAS p'
+      'where (p.id = :id) '
+      '   or (p.id_sys_anter = :codigo)')
+    Left = 712
+    Top = 392
+    ParamData = <
+      item
+        Name = 'ID'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end
+      item
+        Name = 'CODIGO'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 15
+        Value = Null
+      end>
+  end
+  object updProgramacaoFerias: TFDUpdateSQL
+    Connection = fdTargetDB
+    InsertSQL.Strings = (
+      'INSERT INTO PROGRAMACAO_FERIAS'
+      '(ID, ANO, ID_SERVIDOR, ID_SUB_UNID_ORCAMENT, '
+      '  INI_PERIODO_AQUISIT, FIM_PERIODO_AQUISIT, INI_PERIODO_GOZO, '
+      '  FIM_PERIODO_GOZO, OBSERVACAO, ID_CARGO, ID_UNID_LOTACAO, '
+      '  DT_ADMISSAO, SITUACAO, ID_HIST_FERIAS, NUM_PORTARIA, '
+      '  DT_PORTARIA, ANO_MES_PAGTO, ID_SYS_ANTER)'
+      
+        'VALUES (:NEW_ID, :NEW_ANO, :NEW_ID_SERVIDOR, :NEW_ID_SUB_UNID_OR' +
+        'CAMENT, '
+      
+        '  :NEW_INI_PERIODO_AQUISIT, :NEW_FIM_PERIODO_AQUISIT, :NEW_INI_P' +
+        'ERIODO_GOZO, '
+      
+        '  :NEW_FIM_PERIODO_GOZO, :NEW_OBSERVACAO, :NEW_ID_CARGO, :NEW_ID' +
+        '_UNID_LOTACAO, '
+      
+        '  :NEW_DT_ADMISSAO, :NEW_SITUACAO, :NEW_ID_HIST_FERIAS, :NEW_NUM' +
+        '_PORTARIA, '
+      '  :NEW_DT_PORTARIA, :NEW_ANO_MES_PAGTO, :NEW_ID_SYS_ANTER)')
+    ModifySQL.Strings = (
+      'UPDATE PROGRAMACAO_FERIAS'
+      
+        'SET ID = :NEW_ID, ANO = :NEW_ANO, ID_SERVIDOR = :NEW_ID_SERVIDOR' +
+        ', '
+      
+        '  ID_SUB_UNID_ORCAMENT = :NEW_ID_SUB_UNID_ORCAMENT, INI_PERIODO_' +
+        'AQUISIT = :NEW_INI_PERIODO_AQUISIT, '
+      
+        '  FIM_PERIODO_AQUISIT = :NEW_FIM_PERIODO_AQUISIT, INI_PERIODO_GO' +
+        'ZO = :NEW_INI_PERIODO_GOZO, '
+      
+        '  FIM_PERIODO_GOZO = :NEW_FIM_PERIODO_GOZO, OBSERVACAO = :NEW_OB' +
+        'SERVACAO, '
+      
+        '  ID_CARGO = :NEW_ID_CARGO, ID_UNID_LOTACAO = :NEW_ID_UNID_LOTAC' +
+        'AO, '
+      '  DT_ADMISSAO = :NEW_DT_ADMISSAO, SITUACAO = :NEW_SITUACAO, '
+      
+        '  ID_HIST_FERIAS = :NEW_ID_HIST_FERIAS, NUM_PORTARIA = :NEW_NUM_' +
+        'PORTARIA, '
+      
+        '  DT_PORTARIA = :NEW_DT_PORTARIA, ANO_MES_PAGTO = :NEW_ANO_MES_P' +
+        'AGTO, '
+      '  ID_SYS_ANTER = :NEW_ID_SYS_ANTER'
+      'WHERE ID = :OLD_ID')
+    DeleteSQL.Strings = (
+      'DELETE FROM PROGRAMACAO_FERIAS'
+      'WHERE ID = :OLD_ID')
+    FetchRowSQL.Strings = (
+      
+        'SELECT ID, ANO, ID_SERVIDOR, ID_SUB_UNID_ORCAMENT, INI_PERIODO_A' +
+        'QUISIT, '
+      '  FIM_PERIODO_AQUISIT, INI_PERIODO_GOZO, FIM_PERIODO_GOZO, '
+      
+        '  OBSERVACAO, NOME_SERVIDOR, ID_CARGO, ID_UNID_LOTACAO, DT_ADMIS' +
+        'SAO, '
+      
+        '  QTD_DIAS, SITUACAO, DESCR_SITUACAO, ID_HIST_FERIAS, DESCR_SUB_' +
+        'UNID_ORCAMENT, '
+      
+        '  DESCR_CARGO, DESCR_UNID_LOTACAO, PERIODO_AQUISIT, PERIODO_GOZO' +
+        ', '
+      '  ID_UNID_ORCAMENT, NUM_PORTARIA, DT_PORTARIA, ANO_MES_PAGTO, '
+      '  MES_ANO_PAG_FTDO, ID_SYS_ANTER'
+      'FROM PROGRAMACAO_FERIAS'
+      'WHERE ID = :ID')
+    Left = 712
+    Top = 440
   end
 end

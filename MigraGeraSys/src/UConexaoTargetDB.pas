@@ -3,13 +3,17 @@ unit UConexaoTargetDB;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.StrUtils, System.Math,
+  System.SysUtils, System.Classes, System.StrUtils, System.Math, System.DateUtils,
+
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FBDef,
   FireDAC.VCLUI.Wait, FireDAC.Comp.UI, FireDAC.Phys.IBBase, FireDAC.Phys.FB,
   FireDAC.Comp.Client, Data.DB, FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.VCLUI.Error;
+
+const
+  EMPTY_DATE = '30/12/1899';
 
 Type
   TTipoSalario         = (tipoSalarioUm = 1, tipoSalarioDois = 2);
@@ -24,6 +28,7 @@ Type
   TTipoConta   = (tipoContaCorrente = 1, tipoContaSalario = 2, tipoContaPoupanca = 3);
   TParentesco  = (parentescoFilho = 1, parentescoConjuge = 2, parentescoFilhoAdotivo = 3, parentescoPais = 4, parentescoOutros = 5);
   TTipoMovimento = (tipoMovimentoNulo = 0, tipoMovimentoUm = 1, tipoMovimentoDois, tipoMovimentoTres);
+  TSituacaoProgramacaoFerias = (situacaoFeriasAGozar = 1, situacaoFeriasGozada = 2, situacaoFeriasVencida = 3);
 
   TSexoCollection = Set of TSexo;
   TSexoLista      = Array[Low(sexoMasculino)..High(sexoMasculino)] of String;
@@ -33,6 +38,19 @@ Type
 //    Numero      : String;
 //    DataEmissao : TDateTime;
 //  end;
+
+  TPeriodo = class(TObject)
+    private
+      FDataInicial,
+      FDataFinal  : TDateTime;
+    public
+      procedure CarregarDados; virtual;
+
+      property DataInicial : TDateTime read FDataInicial write FDataInicial;
+      property DataFinal   : TDateTime read FDataFinal write FDataFinal;
+
+      constructor Create;
+  end;
 
   TGenerico = class(TObject)
     private
@@ -901,6 +919,42 @@ type
       destructor Destroy;
   end;
 
+Type
+  TProgramacaoFerias = class(TGenerico)
+    private
+      FServidor   : TServidor;
+      FAquisicao  ,
+      FGozo       : TPeriodo;
+      FObservacao : String;
+      FSituacao   : TSituacaoProgramacaoFerias;
+      FNumeroPortaria : String;
+      FDataPortaria   : TDateTime;
+      FAnoMesPagto    : String;
+      function GetSubUnidadeOrcamentaria : TSubUnidadeOrcamentaria;
+      function GetCargo : TCargoFuncao;
+      function GetUnidadeLotacao : TUnidadeLotacao;
+      function GetDataAdmissao : TDateTime;
+      function GetHistoricoFerias : Integer;
+    public
+      property Ano : String read GetCodigo write SetCodigo;
+      property Servidor : TServidor read FServidor write FServidor;
+      property SubUnidadeOrcamentaria : TSubUnidadeOrcamentaria read GetSubUnidadeOrcamentaria;
+      property Aquisicao  : TPeriodo read FAquisicao write FAquisicao;
+      property Gozo       : TPeriodo read FGozo write FGozo;
+      property Observacao : String read FObservacao write FObservacao;
+      property Cargo : TCargoFuncao read GetCargo;
+      property UnidadeLotacao  : TUnidadeLotacao read GetUnidadeLotacao;
+      property DataAdmissao    : TDateTime read GetDataAdmissao;
+      property Situacao        : TSituacaoProgramacaoFerias read FSituacao write FSituacao;
+      property HistoricoFerias : Integer read GetHistoricoFerias;
+      property NumeroPortaria  : String read FNumeroPortaria write FNumeroPortaria;
+      property DataPortaria    : TDateTime read FDataPortaria write FDataPortaria;
+      property AnoMesPagto     : String read FAnoMesPagto write FAnoMesPagto;
+
+      constructor Create;
+      destructor Destroy;
+  end;
+
 type
   TdmConexaoTargetDB = class(TDataModule)
     fdTargetDB: TFDConnection;
@@ -965,6 +1019,8 @@ type
     updPessoaDependente: TFDUpdateSQL;
     updServidorEventoFixo: TFDUpdateSQL;
     qryServidorEventoFixo: TFDQuery;
+    qryProgramacaoFerias: TFDQuery;
+    updProgramacaoFerias: TFDUpdateSQL;
     procedure qryError(ASender: TObject;
       const AInitiator: IFDStanObject; var AException: Exception);  private
     { Private declarations }
@@ -1014,6 +1070,7 @@ type
     function InserirInicializaMesServidor(const pInicializaMesServidor : TInicializaMesServidor) : Boolean;
     function InserirBaseCalculoMesServidor(const pBaseCalculoMesServidor : TBaseCalculoMesServidor) : Boolean;
     function InserirEventoBCMesServidor(const pEventoBCMesServidor : TEventoBaseCalculoMesServidor) : Boolean;
+    function InserirProgramacaoFerias(var pProgramacaoFeriais : TProgramacaoFerias) : Boolean;
   end;
 
 var
@@ -1788,7 +1845,7 @@ begin
           else
             FieldByName('id_cargo2').AsInteger := pInicializaMesServidor.CargoFuncao2.ID;
 
-          if (pInicializaMesServidor.Servidor.DataAdmissao = StrToDateTime('30/12/1899')) then
+          if (pInicializaMesServidor.Servidor.DataAdmissao = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_admissao').Clear
           else
             FieldByName('dt_admissao').AsDateTime := pInicializaMesServidor.Servidor.DataAdmissao;
@@ -1839,7 +1896,7 @@ begin
           else
             FieldByName('ocorrencia_sefip').AsString := pInicializaMesServidor.Servidor.OcorrenciaSEFIP;
 
-          if (pInicializaMesServidor.DataPrimeiraAdmissao = StrToDateTime('30/12/1899')) then
+          if (pInicializaMesServidor.DataPrimeiraAdmissao = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_prim_admissao').Clear
           else
             FieldByName('dt_prim_admissao').AsDateTime := pInicializaMesServidor.DataPrimeiraAdmissao;
@@ -1899,7 +1956,7 @@ begin
           FieldByName('tot_desconto').AsCurrency      := pBaseCalculoMesServidor.TotalDesconto;
           FieldByName('sal_liquido').AsCurrency       := pBaseCalculoMesServidor.SalarioLiquido;
 
-          if (pBaseCalculoMesServidor.DataPagamento = StrToDateTime('30/12/1899')) then
+          if (pBaseCalculoMesServidor.DataPagamento = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_pagto').Clear
           else
             FieldByName('dt_pagto').AsDateTime := pBaseCalculoMesServidor.DataPagamento;
@@ -2381,7 +2438,7 @@ begin
           else
             FieldByName('cnh_categ').AsString := pPessoaFisica.CNH.Categoria;
           FieldByName('cnh_num').AsString          := pPessoaFisica.CNH.Numero;
-          if ( pPessoaFisica.CNH.DataVencimento = StrToDateTime('30/12/1899') ) then
+          if ( pPessoaFisica.CNH.DataVencimento = StrToDateTime(EMPTY_DATE) ) then
             FieldByName('cnh_dt_vencto').Clear
           else
             FieldByName('cnh_dt_vencto').AsDateTime := pPessoaFisica.CNH.DataVencimento;
@@ -2444,6 +2501,84 @@ begin
   end;
 end;
 
+function TdmConexaoTargetDB.InserirProgramacaoFerias(
+  var pProgramacaoFeriais: TProgramacaoFerias): Boolean;
+var
+  aRetorno : Boolean;
+begin
+  aRetorno := False;
+  try
+    try
+      with qryProgramacaoFerias do
+      begin
+        CriarCampoTabela('PROGRAMACAO_FERIAS', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
+        Close;
+        ParamByName('id').AsInteger    := pProgramacaoFeriais.ID;
+        ParamByName('codigo').AsString := pProgramacaoFeriais.Codigo;
+        Open;
+
+        if IsEmpty then
+        begin
+          pProgramacaoFeriais.ID := NewID('PROGRAMACAO_FERIAS', 'ID');
+
+          Append;
+          FieldByName('id').AsInteger := pProgramacaoFeriais.ID;
+          FieldByName('ano').AsString                   := pProgramacaoFeriais.Ano;
+          FieldByName('id_servidor').AsInteger          := pProgramacaoFeriais.Servidor.ID;
+          FieldByName('id_sub_unid_orcament').AsInteger := pProgramacaoFeriais.SubUnidadeOrcamentaria.ID;
+          FieldByName('ini_periodo_aquisit').AsDateTime := pProgramacaoFeriais.Aquisicao.DataInicial;
+          FieldByName('fim_periodo_aquisit').AsDateTime := pProgramacaoFeriais.Aquisicao.DataFinal;
+          FieldByName('ini_periodo_gozo').AsDateTime    := pProgramacaoFeriais.Gozo.DataFinal;
+          FieldByName('fim_periodo_gozo').AsDateTime    := pProgramacaoFeriais.Gozo.DataFinal;
+          FieldByName('observacao').AsString            := pProgramacaoFeriais.Observacao;
+          FieldByName('id_cargo').AsInteger             := pProgramacaoFeriais.Cargo.ID;
+          FieldByName('id_unid_lotacao').AsInteger      := pProgramacaoFeriais.UnidadeLotacao.ID;
+          FieldByName('dt_admissao').AsDateTime         := pProgramacaoFeriais.DataAdmissao;
+          FieldByName('situacao').AsString              := IntToStr(Ord(pProgramacaoFeriais.Situacao));
+          FieldByName('id_hist_ferias').AsInteger       := pProgramacaoFeriais.HistoricoFerias;
+          FieldByName('num_portaria').AsString          := pProgramacaoFeriais.NumeroPortaria;
+          FieldByName('dt_portaria').AsDateTime         := pProgramacaoFeriais.DataPortaria;
+          FieldByName('ano_mes_pagto').AsString         := Trim(pProgramacaoFeriais.AnoMesPagto);
+          FieldByName(ID_SYS_ANTER).AsString := pProgramacaoFeriais.Codigo;
+
+          if (FieldByName('dt_admissao').AsDateTime = StrToDate(EMPTY_DATE)) then
+            FieldByName('dt_admissao').Clear;
+
+          if (FieldByName('ini_periodo_gozo').AsDateTime = StrToDate(EMPTY_DATE)) then
+            FieldByName('ini_periodo_gozo').Clear;
+
+          if (FieldByName('fim_periodo_gozo').AsDateTime = StrToDate(EMPTY_DATE)) then
+            FieldByName('fim_periodo_gozo').Clear;
+
+          if (FieldByName('id_hist_ferias').AsInteger = 0) then
+            FieldByName('id_hist_ferias').Clear;
+
+          if (FieldByName('num_portaria').AsString = EmptyStr) then
+            FieldByName('num_portaria').Clear;
+
+          if (FieldByName('dt_portaria').AsDateTime = StrToDate(EMPTY_DATE)) then
+            FieldByName('dt_portaria').Clear;
+
+          if (FieldByName('ano_mes_pagto').AsString = EmptyStr) then
+            FieldByName('ano_mes_pagto').Clear;
+
+          Post;
+          ApplyUpdates(0);
+          CommitUpdates;
+        end;
+      end;
+
+      aRetorno := True;
+    except
+      On E : Exception do
+        MensagemErro('Erro', 'Erro ao tentar inserir a Programação de Férias.' + #13#13 + E.Message);
+    end;
+  finally
+    Result := aRetorno;
+  end;
+end;
+
 function TdmConexaoTargetDB.InserirServidor(
   const pServidor: TServidor): Boolean;
 var
@@ -2475,17 +2610,17 @@ begin
           FieldByName('matricula').AsInteger        := StrToInt(pServidor.Matricula);
           FieldByName('efetivo').AsString           := IfThen(pServidor.Efetivo, 'S', 'N');
 
-          if (pServidor.DataConcurso = StrToDateTime('30/12/1899')) then
+          if (pServidor.DataConcurso = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_concurso').Clear
           else
             FieldByName('dt_concurso').AsDateTime := pServidor.DataConcurso;
 
-          if (pServidor.DataAdmissao = StrToDateTime('30/12/1899')) then
+          if (pServidor.DataAdmissao = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_admissao').AsDateTime := StrToDateTime('01/01/1901')
           else
             FieldByName('dt_admissao').AsDateTime := pServidor.DataAdmissao;
 
-          if (pServidor.DataReadmissao = StrToDateTime('30/12/1899')) then
+          if (pServidor.DataReadmissao = StrToDateTime(EMPTY_DATE)) then
             FieldByName('dt_readmissao').Clear
           else
             FieldByName('dt_readmissao').AsDateTime := pServidor.DataReadmissao;
@@ -3797,7 +3932,7 @@ constructor TPessoa.Create;
 begin
   inherited Create;
   FApelido        := EmptyStr;
-  FDataNascimento := StrToDateTime('30/12/1899');
+  FDataNascimento := StrToDateTime(EMPTY_DATE);
   FCPF_CNPJ       := TDocumentoGenerico.Create;
   FEndereco       := TEndereco.Create;
   FEmail          := EmptyStr;
@@ -3971,17 +4106,17 @@ begin
         Nome       := Trim(FieldByName('nome_servidor').AsString);
 
         if FieldByName('dt_concurso').IsNull then
-          DataConcurso := StrToDateTime('30/12/1899')
+          DataConcurso := StrToDateTime(EMPTY_DATE)
         else
           DataConcurso := FieldByName('dt_concurso').AsDateTime;
 
         if FieldByName('dt_admissao').IsNull then
-          DataAdmissao := StrToDateTime('30/12/1899')
+          DataAdmissao := StrToDateTime(EMPTY_DATE)
         else
           DataAdmissao := FieldByName('dt_admissao').AsDateTime;
 
         if FieldByName('dt_readmissao').IsNull then
-          DataReadmissao := StrToDateTime('30/12/1899')
+          DataReadmissao := StrToDateTime(EMPTY_DATE)
         else
           DataReadmissao := FieldByName('dt_readmissao').AsDateTime;
 
@@ -4032,7 +4167,7 @@ begin
         ReferenciaSalarioInicial := FieldByName('ref_sal_inicial').AsInteger;
 
         if FieldByName('dt_base_calc_ats').IsNull then
-          DataBaseCalculoATS := StrToDateTime('30/12/1899')
+          DataBaseCalculoATS := StrToDateTime(EMPTY_DATE)
         else
           DataBaseCalculoATS := FieldByName('dt_base_calc_ats').AsDateTime;
 
@@ -4053,9 +4188,9 @@ begin
   FIDServidor := 0;
   FMatricula  := EmptyStr;
   FEfetivo    := False;
-  FDataConcurso       := StrToDateTime('30/12/1899');
-  FDataAdmissao       := StrToDateTime('30/12/1899');
-  FDataReadmissao     := StrToDateTime('30/12/1899');
+  FDataConcurso       := StrToDateTime(EMPTY_DATE);
+  FDataAdmissao       := StrToDateTime(EMPTY_DATE);
+  FDataReadmissao     := StrToDateTime(EMPTY_DATE);
   FDocumentoAdmissao  := EmptyStr;
   FAnoPrimeiroEmprego := EmptyStr;
   FSituacaoTCM            := TGenerico.Create;
@@ -4080,7 +4215,7 @@ begin
   FNaoCalculaATS             := False;
   FCalculaSalarioCargoOrigem := False;
   FReferenciaSalarioInicial  := 0;
-  FDataBaseCalculoATS        := StrToDateTime('30/12/1899');
+  FDataBaseCalculoATS        := StrToDateTime(EMPTY_DATE);
   FDesvioFuncao    := False;
   FCategoriaSEFIP  := EmptyStr;
   FOcorrenciaSEFIP := EmptyStr;
@@ -4433,16 +4568,16 @@ begin
   FRubrica   := EmptyStr;
   FCargoFuncao2      := TCargoFuncao.Create;
   FDiasTrabalhados   := 0;
-  FDataMovimento1    := StrToDateTime('30/12/1899');
+  FDataMovimento1    := StrToDateTime(EMPTY_DATE);
   FTipoMovimento1    := tipoMovimentoNulo;
-  FDataMovimento2    := StrToDateTime('30/12/1899');
+  FDataMovimento2    := StrToDateTime(EMPTY_DATE);
   FTipoMovimento2    := tipoMovimentoNulo;
   FTempoServico      := EmptyStr;
   FProgressoSalarial := TProgressoSalarial.Create;
   FQuantidadeDependenteSalFamilia   := 0;
   FQuantidadeDependentePAlimentacao := 0;
   FTempoServicoATS      := EmptyStr;
-  FDataPrimeiraAdmissao := StrToDateTime('30/12/1899');
+  FDataPrimeiraAdmissao := StrToDateTime(EMPTY_DATE);
 end;
 
 destructor TInicializaMesServidor.Destroy;
@@ -4494,7 +4629,7 @@ begin
   FTotalVencimento := 0.0;
   FTotalDesconto   := 0.0;
   FSalarioLiquido  := 0.0;
-  FDataPagamento   := StrToDateTime('30/12/1899');
+  FDataPagamento   := StrToDateTime(EMPTY_DATE);
 end;
 
 destructor TBaseCalculoMesServidor.Destroy;
@@ -4553,6 +4688,86 @@ begin
   if Assigned(FEvento) then
     FEvento.Destroy;
   inherited Destroy;
+end;
+
+{ TProgramacaoFerias }
+
+constructor TProgramacaoFerias.Create;
+begin
+  inherited Create;
+  FServidor   := TServidor.Create;
+  FAquisicao  := TPeriodo.Create;
+  FGozo       := TPeriodo.Create;
+  FObservacao := EmptyStr;
+  FSituacao   := situacaoFeriasAGozar;
+  FNumeroPortaria := EmptyStr;
+  FDataPortaria   := StrToDate(EMPTY_DATE);
+  FAnoMesPagto    := EmptyStr;
+
+  FGozo.DataInicial := StrToDate(EMPTY_DATE);
+  FGozo.DataFinal   := StrToDate(EMPTY_DATE);
+end;
+
+destructor TProgramacaoFerias.Destroy;
+begin
+  if Assigned(FServidor) then
+    FServidor.Destroy;
+  if Assigned(FAquisicao) then
+    FAquisicao.Destroy;
+  if Assigned(FGozo) then
+    FGozo.Destroy;
+  inherited Destroy;
+end;
+
+function TProgramacaoFerias.GetCargo: TCargoFuncao;
+begin
+  if Assigned(FServidor) then
+    Result := FServidor.CargoAtual
+  else
+    Result := nil;
+end;
+
+function TProgramacaoFerias.GetDataAdmissao: TDateTime;
+begin
+  if Assigned(FServidor) then
+    Result := FServidor.DataAdmissao
+  else
+    Result := StrToDateTime(EMPTY_DATE);
+end;
+
+function TProgramacaoFerias.GetHistoricoFerias: Integer;
+begin
+  Result := 0;
+end;
+
+function TProgramacaoFerias.GetSubUnidadeOrcamentaria: TSubUnidadeOrcamentaria;
+begin
+  if Assigned(FServidor) then
+    Result := FServidor.SubUnidadeOrcamentaria
+  else
+    Result := nil;
+end;
+
+function TProgramacaoFerias.GetUnidadeLotacao: TUnidadeLotacao;
+begin
+  if Assigned(FServidor) then
+    Result := FServidor.UnidadeLotacao
+  else
+    Result := nil;
+end;
+
+{ TPeriodo }
+
+procedure TPeriodo.CarregarDados;
+begin
+  FDataInicial := StrToDate('01/' + FormatDateTime('mm/yyyy', Date));
+  FDataFinal   := StrToDate(FormatFloat('00', DaysInMonth(Date)) + '/' + FormatDateTime('mm/yyyy', Date));
+end;
+
+constructor TPeriodo.Create;
+begin
+  inherited Create;
+  Self.CarregarDados;
 end;
 
 end.

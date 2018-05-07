@@ -231,24 +231,24 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       TabOrder = 14
     end
     object chkTabelaEvento: TCheckBox
-      Left = 191
-      Top = 64
+      Left = 16
+      Top = 271
       Width = 141
       Height = 17
       Caption = 'Tabela Eventos'
       TabOrder = 15
     end
     object chkTabelaBanco: TCheckBox
-      Left = 190
-      Top = 87
+      Left = 191
+      Top = 64
       Width = 141
       Height = 17
       Caption = 'Tabela Bancos'
       TabOrder = 16
     end
     object chkTabelaPFServidor: TCheckBox
-      Left = 190
-      Top = 110
+      Left = 191
+      Top = 87
       Width = 178
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
@@ -256,8 +256,8 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       OnClick = chkTabelaPFServidorClick
     end
     object chkTabelaDependente: TCheckBox
-      Left = 190
-      Top = 133
+      Left = 191
+      Top = 110
       Width = 141
       Height = 17
       Caption = 'Tabela Dependentes'
@@ -270,7 +270,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Width = 178
       Height = 17
       Caption = 'Folha Mensal do Servidor'
-      TabOrder = 20
+      TabOrder = 21
       OnClick = chkLancamentoMesServidorClick
     end
     object cmCompetencia: TComboBox
@@ -279,17 +279,26 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Width = 75
       Height = 21
       Style = csDropDownList
-      TabOrder = 21
+      TabOrder = 22
       Visible = False
     end
     object chkTabelaEventoFixo: TCheckBox
-      Left = 190
-      Top = 155
+      Left = 191
+      Top = 132
       Width = 179
       Height = 17
       Caption = 'Tabela Eventos Fixos por Servidor'
       TabOrder = 19
       OnClick = chkTabelaEventoFixoClick
+    end
+    object chkTabelaProgramacaoFerias: TCheckBox
+      Left = 191
+      Top = 155
+      Width = 179
+      Height = 17
+      Caption = 'Tabela Programa'#231#227'o de F'#233'rias'
+      TabOrder = 20
+      OnClick = chkTabelaProgramacaoFeriasClick
     end
   end
   inherited chkRotina: TCheckBox

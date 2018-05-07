@@ -51,6 +51,7 @@ type
     cmCompetencia: TComboBox;
     lblInformeFolha: TLabel;
     chkTabelaEventoFixo: TCheckBox;
+    chkTabelaProgramacaoFerias: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTodosClick(Sender: TObject);
@@ -60,6 +61,7 @@ type
     procedure chkTabelaDependenteClick(Sender: TObject);
     procedure chkLancamentoMesServidorClick(Sender: TObject);
     procedure chkTabelaEventoFixoClick(Sender: TObject);
+    procedure chkTabelaProgramacaoFeriasClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarIni;
@@ -82,6 +84,7 @@ type
     procedure ImportarPessoaFisica(Sender: TObject);
     procedure ImportarDependente(Sender: TObject);
     procedure ImportarEventoFixoServidor(Sender: TObject);
+    procedure ImportarProgramacaoFeriais(Sender: TObject);
     procedure ImportarFolhaMensalServidor(Sender: TObject);
 
     function GetCargoPeriodo(aEmpresa, aRegistro : String; aDataMovimento : TDateTime;
@@ -160,6 +163,12 @@ begin
     chkTabelaBanco.Checked := True;
 end;
 
+procedure TfrmSourceDBFiorilli.chkTabelaProgramacaoFeriasClick(Sender: TObject);
+begin
+  if chkTabelaProgramacaoFerias.Checked then
+    chkTabelaPFServidor.Checked := True;
+end;
+
 procedure TfrmSourceDBFiorilli.chkTodosClick(Sender: TObject);
 begin
   if chkTodos.Checked then
@@ -230,7 +239,8 @@ begin
         if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
         if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
         if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
-        if chkLancamentoMesServidor.Checked then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
+        if chkTabelaProgramacaoFerias.Checked then ImportarProgramacaoFeriais(chkTabelaProgramacaoFerias);
+        if chkLancamentoMesServidor.Checked   then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
 
         aRetorno := True;
       end;
@@ -934,7 +944,7 @@ begin
 
         if not dmConexaoTargetDB.InserirServidorEventoFixo(aEventoFixo) then
           gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Servidor : ' +
-            QuotedStr(aEventoFixo.Servidor.Codigo + ' - Evento Fixo : ' + aEventoFixo.Evento.Codigo) + ' não importado');
+            QuotedStr(aEventoFixo.Servidor.Codigo) + ' - Evento Fixo : ' + QuotedStr(aEventoFixo.Evento.Codigo) + ' não importado');
       end;
 
       lblAndamento.Caption  := 'Evento(s) Fixo(s) para : ' + Trim(qrySourceDB.FieldByName('nome').AsString);
@@ -1705,6 +1715,110 @@ begin
     aNacionalidade.Free;
     aEstadoCivil.Free;
     aSubUnidadeOrca.Free;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBFiorilli.ImportarProgramacaoFeriais(Sender: TObject);
+var
+  aProgramacaoFerias : TProgramacaoFerias;
+begin
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    f.codigo');
+    qrySourceDB.SQL.Add('  , coalesce(g.pagtoano, cast(extract(year from current_date) as char(4))) as ano');
+    qrySourceDB.SQL.Add('  , f.empresa');
+    qrySourceDB.SQL.Add('  , f.registro');
+    qrySourceDB.SQL.Add('  , t.nome');
+    qrySourceDB.SQL.Add('  , f.item');
+    qrySourceDB.SQL.Add('  , f.aquisini');
+    qrySourceDB.SQL.Add('  , f.aquisfim');
+    qrySourceDB.SQL.Add('  , g.gozoini');
+    qrySourceDB.SQL.Add('  , g.gozofim');
+    qrySourceDB.SQL.Add('  , g.dtretorno');
+    qrySourceDB.SQL.Add('  , f.vencido');
+    qrySourceDB.SQL.Add('  , f.obs');
+    qrySourceDB.SQL.Add('  , g.pagtoano || g.pagtomes as ano_mes');
+    qrySourceDB.SQL.Add('from FERIAS f');
+    qrySourceDB.SQL.Add('  inner join TRABALHADOR t on (t.empresa = f.empresa and t.registro = f.registro)');
+    qrySourceDB.SQL.Add('  left join MOVTOFERIAS g on (g.codigo_ferias = f.codigo)');
+    qrySourceDB.SQL.Add('where ((f.cancelado is null) or (f.cancelado <> ''S''))');
+    qrySourceDB.SQL.Add('  and (extract(year from f.aquisfim) between 2000 and extract(year from current_date))');
+    qrySourceDB.SQL.Add('  and (t.situacao in (''1'', ''3''))');   //  (1) Normal,               (3) Afastado
+    qrySourceDB.SQL.Add('  and (t.vinculo  in (''30'', ''35''))'); // (30) Estatutario/Efetivo, (35) Comissionado
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    t.nome');
+    qrySourceDB.SQL.Add('  , f.empresa');
+    qrySourceDB.SQL.Add('  , f.registro');
+    qrySourceDB.SQL.Add('  , f.item');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.SQL.SaveToFile(ExtractFilePath(ParamStr(0)) + '_programacao_feriais.sql');
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if (Trim(qrySourceDB.FieldByName('nome').AsString) <> EmptyStr) then
+      begin
+        if not Assigned(aProgramacaoFerias) then
+          aProgramacaoFerias := TProgramacaoFerias.Create;
+
+        aProgramacaoFerias.ID     := 0;
+        aProgramacaoFerias.Ano    := Trim(qrySourceDB.FieldByName('ano').AsString);
+        aProgramacaoFerias.Codigo := FormatFloat('0000000', qrySourceDB.FieldByName('codigo').AsInteger);
+        aProgramacaoFerias.Aquisicao.DataInicial := qrySourceDB.FieldByName('aquisini').AsDateTime;
+        aProgramacaoFerias.Aquisicao.DataFinal   := qrySourceDB.FieldByName('aquisfim').AsDateTime;
+        aProgramacaoFerias.Gozo.DataInicial      := qrySourceDB.FieldByName('gozoini').AsDateTime;
+        aProgramacaoFerias.Gozo.DataFinal        := qrySourceDB.FieldByName('gozofim').AsDateTime;
+        aProgramacaoFerias.Observacao            := Trim(qrySourceDB.FieldByName('obs').AsString);
+        aProgramacaoFerias.AnoMesPagto           := Trim(qrySourceDB.FieldByName('ano_mes').AsString);
+
+        aProgramacaoFerias.Servidor.ID         := 0;
+        aProgramacaoFerias.Servidor.IDServidor := 0;
+        aProgramacaoFerias.Servidor.Codigo     := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
+        aProgramacaoFerias.Servidor.CarregarDados;
+        if (aProgramacaoFerias.Servidor.IDServidor > 0) then
+        begin
+          if not qrySourceDB.FieldByName('gozoini').IsNull then
+            aProgramacaoFerias.Situacao := situacaoFeriasGozada
+          else
+          if (Trim(qrySourceDB.FieldByName('vencido').AsString) = 'S') then
+            aProgramacaoFerias.Situacao := situacaoFeriasVencida
+          else
+            aProgramacaoFerias.Situacao := situacaoFeriasAGozar;
+
+          if not dmConexaoTargetDB.InserirProgramacaoFerias(aProgramacaoFerias) then
+            gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Servidor : ' +
+              QuotedStr(aProgramacaoFerias.Servidor.Codigo) + ' - Programação : ' + QuotedStr(aProgramacaoFerias.Codigo + '/' + aProgramacaoFerias.Ano) + ' não importado');
+        end;
+      end;
+
+      lblAndamento.Caption  := 'Programação de férias ' + Trim(qrySourceDB.FieldByName('ano').AsString) + ' para ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PROGRAMACAO_FERIAS', 'PROGRAMACAO_FERIAS', 'ID');
+  finally
+    aProgramacaoFerias.Free;
+    dmRecursos.ExibriLog;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

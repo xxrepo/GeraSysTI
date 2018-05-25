@@ -1441,6 +1441,7 @@ begin
     qrySourceDB.SQL.Add('  , ss.nome as situacao_nome');
     qrySourceDB.SQL.Add('  , sf.nome as situacao_nome_nome');
     qrySourceDB.SQL.Add('  , sl.valor as vencimento_base');
+    qrySourceDB.SQL.Add('  , coalesce(''000000'', nullif(trim(t.divisao), '''')) as divisao_tmp');
     qrySourceDB.SQL.Add('from TRABALHADOR t');
     qrySourceDB.SQL.Add('  left join NACIONALIDADE n on (n.codigo = t.nacionalidade)');
     qrySourceDB.SQL.Add('  left join ESTADOCIVIL e on (e.codigo = t.estadocivil)');
@@ -1541,7 +1542,7 @@ begin
         aServidor.DataAdmissao := qrySourceDB.FieldByName('dtadmissao').AsDateTime;
         aServidor.SubUnidadeOrcamentaria := aSubUnidadeOrca;
 
-        aServidor.SubUnidadeOrcamentaria.Codigo  := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('divisao').AsString);
+        aServidor.SubUnidadeOrcamentaria.Codigo  := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('divisao_tmp').AsString);
         aServidor.SubUnidadeOrcamentaria.ID      := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
         if (aServidor.SubUnidadeOrcamentaria.ID = 0) then
         begin
@@ -1735,7 +1736,7 @@ begin
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    f.codigo');
-    qrySourceDB.SQL.Add('  , coalesce(g.pagtoano, cast(extract(year from current_date) as char(4))) as ano');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(g.pagtoano), ''''), cast(extract(year from f.aquisini) as char(4)), cast(extract(year from current_date) as char(4))) as ano');
     qrySourceDB.SQL.Add('  , f.empresa');
     qrySourceDB.SQL.Add('  , f.registro');
     qrySourceDB.SQL.Add('  , t.nome');
@@ -1752,7 +1753,7 @@ begin
     qrySourceDB.SQL.Add('  inner join TRABALHADOR t on (t.empresa = f.empresa and t.registro = f.registro)');
     qrySourceDB.SQL.Add('  left join MOVTOFERIAS g on (g.codigo_ferias = f.codigo)');
     qrySourceDB.SQL.Add('where ((f.cancelado is null) or (f.cancelado <> ''S''))');
-    qrySourceDB.SQL.Add('  and (extract(year from f.aquisfim) between 2000 and extract(year from current_date))');
+    qrySourceDB.SQL.Add('  and (coalesce(cast(nullif(trim(g.pagtoano), '''') as integer), extract(year from f.aquisfim)) between 2000 and extract(year from current_date))');
     qrySourceDB.SQL.Add('  and (t.situacao in (''1'', ''3''))');   //  (1) Normal,               (3) Afastado
     qrySourceDB.SQL.Add('  and (t.vinculo  in (''30'', ''35''))'); // (30) Estatutario/Efetivo, (35) Comissionado
     qrySourceDB.SQL.Add('order by');
@@ -1773,7 +1774,7 @@ begin
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
-      if (Trim(qrySourceDB.FieldByName('nome').AsString) <> EmptyStr) then
+      if (Trim(qrySourceDB.FieldByName('nome').AsString) <> EmptyStr) and (StrToIntDef(Trim(qrySourceDB.FieldByName('ano').AsString), 0) >= 2000) then
       begin
         if not Assigned(aProgramacaoFerias) then
           aProgramacaoFerias := TProgramacaoFerias.Create;
@@ -1808,7 +1809,9 @@ begin
         end;
       end;
 
-      lblAndamento.Caption  := 'Programação de férias ' + Trim(qrySourceDB.FieldByName('ano').AsString) + ' para ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+      if (aProgramacaoFerias.Servidor.IDServidor > 0) then
+        lblAndamento.Caption  := 'Programação de férias ' + Trim(qrySourceDB.FieldByName('ano').AsString) + ' para ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+
       prbAndamento.Position := prbAndamento.Position + 1;
 
       Application.ProcessMessages;
@@ -2112,9 +2115,11 @@ var
   aUnidadeGest : TUnidadeGestora;
   aUnidadeOrca : TUnidadeOrcamentaria;
   aSubUnidadeOrca : TSubUnidadeOrcamentaria;
+  aPadraoGravado  : Boolean;
 begin
   try
     UpdateGenerators;
+    aPadraoGravado := False;
 
     // Unidade Orçamentária
     if qrySourceDB.Active then
@@ -2165,23 +2170,39 @@ begin
     prbAndamento.Position := 0;
     prbAndamento.Max      := qrySourceDB.RecordCount;
 
+    aUnidadeGest    := TUnidadeGestora.Create;
+    aUnidadeOrca    := TUnidadeOrcamentaria.Create;
+    aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
-      aUnidadeGest := TUnidadeGestora.Create;
+      aUnidadeGest.ID     := 0;
       aUnidadeGest.Codigo := Trim(qrySourceDB.FieldByName('empresa').AsString);
       dmConexaoTargetDB.GetID('UNID_GESTORA', 'ID', 'COD_ORGAO_TCM = ' + aUnidadeGest.Codigo, TGenerico(aUnidadeGest));
 
-      aUnidadeOrca        := TUnidadeOrcamentaria.Create;
+      aUnidadeOrca.ID     := 0;
       aUnidadeOrca.Codigo := Trim(qrySourceDB.FieldByName('empresa').AsString) + '0000';
       dmConexaoTargetDB.GetID('UNID_ORCAMENT', 'ID', 'COD_ORGAO_TCM = ' + aUnidadeOrca.Codigo, TGenerico(aUnidadeOrca));
 
-      aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+      // Gravar sub-unidade padrão para migração.
+      if not aPadraoGravado then
+      begin
+        aSubUnidadeOrca.ID        := 0;
+        aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
+        aSubUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('empresa').AsString) + '000000';
+        aSubUnidadeOrca.Setor.ID  := 1;
+        aSubUnidadeOrca.UnidadeOrcamentaria.ID := aUnidadeOrca.ID;
 
+        dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
+        aPadraoGravado := True;
+      end;
+
+      aSubUnidadeOrca.ID        := 0;
       aSubUnidadeOrca.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
       aSubUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('codigo').AsString);
-      aSubUnidadeOrca.UnidadeOrcamentaria.ID := aUnidadeOrca.ID;
       aSubUnidadeOrca.Setor.ID  := 1;
+      aSubUnidadeOrca.UnidadeOrcamentaria.ID := aUnidadeOrca.ID;
 
       if not dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca) then
         gLogImportacao.Add(TCheckBox(Sender).Caption + ' - (SUB) ' +

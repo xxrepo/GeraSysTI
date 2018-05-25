@@ -925,6 +925,7 @@ Type
       FServidor   : TServidor;
       FAquisicao  ,
       FGozo       : TPeriodo;
+      FAno        ,
       FObservacao : String;
       FSituacao   : TSituacaoProgramacaoFerias;
       FNumeroPortaria : String;
@@ -936,7 +937,7 @@ Type
       function GetDataAdmissao : TDateTime;
       function GetHistoricoFerias : Integer;
     public
-      property Ano : String read GetCodigo write SetCodigo;
+      property Ano : String read FAno write FAno;
       property Servidor : TServidor read FServidor write FServidor;
       property SubUnidadeOrcamentaria : TSubUnidadeOrcamentaria read GetSubUnidadeOrcamentaria;
       property Aquisicao  : TPeriodo read FAquisicao write FAquisicao;
@@ -4695,6 +4696,7 @@ end;
 constructor TProgramacaoFerias.Create;
 begin
   inherited Create;
+  FAno        := EmptyStr;
   FServidor   := TServidor.Create;
   FAquisicao  := TPeriodo.Create;
   FGozo       := TPeriodo.Create;

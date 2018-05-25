@@ -962,6 +962,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , p.e_mail'
       '  , p.id_nacionalidade'
       '  , p.ano_chegada_brasil'
+      '  , p.id_sys_anter'
       'from PESSOA_FISICA p'
       'where p.cpf = :cpf')
     Left = 576
@@ -988,7 +989,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  ENDER_LOGRAD, ENDER_NUM, ENDER_BAIRRO, ENDER_CIDADE, '
       '  ENDER_CEP, ENDER_UF, TELEFONE, E_MAIL, '
       '  ENDER_COMPLEM, ANO_CHEGADA_BRASIL, ID_NACIONALIDADE, '
-      '  CNH_CATEG)'
+      '  CNH_CATEG, ID_SYS_ANTER)'
       
         'VALUES (:NEW_ID, :NEW_NOME, :NEW_APELIDO, :NEW_SEXO, :NEW_ID_RAC' +
         'A_COR, '
@@ -1009,7 +1010,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  :NEW_ENDER_COMPLEM, :NEW_ANO_CHEGADA_BRASIL, :NEW_ID_NACIONALI' +
         'DADE, '
-      '  :NEW_CNH_CATEG)')
+      '  :NEW_CNH_CATEG, :NEW_ID_SYS_ANTER)')
     ModifySQL.Strings = (
       'UPDATE PESSOA_FISICA'
       
@@ -1054,7 +1055,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  ANO_CHEGADA_BRASIL = :NEW_ANO_CHEGADA_BRASIL, ID_NACIONALIDADE' +
         ' = :NEW_ID_NACIONALIDADE, '
-      '  CNH_CATEG = :NEW_CNH_CATEG'
+      '  CNH_CATEG = :NEW_CNH_CATEG, ID_SYS_ANTER = :NEW_ID_SYS_ANTER'
       'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM PESSOA_FISICA'
@@ -1078,7 +1079,10 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  ENDER_COMPLEM, ANO_CHEGADA_BRASIL, ID_NACIONALIDADE, DESCR_NAC' +
         'IONALIDADE, '
-      '  CNH_CATEG'
+      
+        '  CNH_CATEG, ID_ESCOLARIDADE, DESCR_ESCOLARIDADE, ANO_PRIM_EMPRE' +
+        'GO, '
+      '  ID_SYS_ANTER'
       'FROM PESSOA_FISICA'
       'WHERE ID = :ID')
     Left = 576

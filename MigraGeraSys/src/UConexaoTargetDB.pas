@@ -2706,10 +2706,11 @@ begin
         else
           Edit;
 
-        FieldByName('status').AsString            := IntToStr(Ord(pServidor.Status));
-        FieldByName('id_situacao_tcm').AsInteger  := pServidor.SituacaoTCM.ID;
-        FieldByName('id_est_funcional').AsInteger := pServidor.EstadoFuncional.ID;
-        FieldByName(ID_SYS_ANTER).AsString        := pServidor.Codigo;
+        FieldByName('id_sub_unid_orcament').AsInteger := pServidor.SubUnidadeOrcamentaria.ID;
+        FieldByName('status').AsString                := IntToStr(Ord(pServidor.Status));
+        FieldByName('id_situacao_tcm').AsInteger      := pServidor.SituacaoTCM.ID;
+        FieldByName('id_est_funcional').AsInteger     := pServidor.EstadoFuncional.ID;
+        FieldByName(ID_SYS_ANTER).AsString            := pServidor.Codigo;
 
         if GetExistemCamposNulos(qryServidor, aCampoVazio) then
           raise Exception.Create('Campo(s) vazio(s) : ' + aCampoVazio.Text);

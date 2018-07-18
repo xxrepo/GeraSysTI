@@ -20,7 +20,7 @@ type
   public
     { Public declarations }
     procedure ExibriLog;
-    procedure ListarCompetencia(cmb : TComboBox);
+    procedure ListarCompetencia(cmb : TComboBox; aQtdeAnoAnterior : Integer);
 
     function SelecionarArquivoFDB(const AOnwer : HWND; var aFileName : TFileName) : Boolean;
   end;
@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-procedure TdmRecursos.ListarCompetencia(cmb: TComboBox);
+procedure TdmRecursos.ListarCompetencia(cmb: TComboBox; aQtdeAnoAnterior : Integer);
 var
   idx ,
   mes ,
@@ -143,23 +143,26 @@ begin
     obj.Codigo    := '000000';
     obj.Descricao := '(Todas)';
 
+    idx := 0;
+
     cmb.Clear;
     cmb.AddItem(obj.Descricao, obj);
 
-    // Ano passado
-    idx := 0;
-    mes := 1;
-    ano := YearOf(Date) - 1;
-    while ((mes >= 1) and (mes <= 12)) do
+    // Anos anteriores
+    for ano := (YearOf(Date) - aQtdeAnoAnterior) to (YearOf(Date) - 1) do
     begin
-      obj := TGenerico.Create;
+      mes := 1;
+      while ((mes >= 1) and (mes <= 12)) do
+      begin
+        obj := TGenerico.Create;
 
-      obj.ID        := StrToInt(FormatFloat('0000', ano) + FormatFloat('00', mes));
-      obj.Codigo    := FormatFloat('00', mes) + FormatFloat('0000', ano);
-      obj.Descricao := FormatFloat('00', mes) + '/' + FormatFloat('0000', ano);
-      cmb.AddItem(obj.Descricao, obj);
+        obj.ID        := StrToInt(FormatFloat('0000', ano) + FormatFloat('00', mes));
+        obj.Codigo    := FormatFloat('00', mes) + FormatFloat('0000', ano);
+        obj.Descricao := FormatFloat('00', mes) + '/' + FormatFloat('0000', ano);
+        cmb.AddItem(obj.Descricao, obj);
 
-      Inc(mes);
+        Inc(mes);
+      end;
     end;
 
     // Ano atual

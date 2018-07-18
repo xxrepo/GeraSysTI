@@ -524,7 +524,7 @@ end;
 
 procedure TfrmLimparDadosTargetDB.FormCreate(Sender: TObject);
 begin
-  dmRecursos.ListarCompetencia(cmCompetencia);
+  dmRecursos.ListarCompetencia(cmCompetencia, 10);
 end;
 
 initialization

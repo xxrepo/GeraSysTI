@@ -279,7 +279,7 @@ begin
       ForceDirectories(edSourceDB.InitialDir);
   end;
 
-  dmRecursos.ListarCompetencia(cmCompetencia);
+  dmRecursos.ListarCompetencia(cmCompetencia, 1);
 end;
 
 procedure TfrmSourceDBFiorilli.GerarUnidadeOrcamentariaPadrao(aUnidadeGestora : TUnidadeGestora);

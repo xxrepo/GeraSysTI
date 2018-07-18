@@ -180,7 +180,7 @@ begin
       ForceDirectories(edSourceDB.InitialDir);
   end;
 
-  dmRecursos.ListarCompetencia(cmCompetencia);
+  dmRecursos.ListarCompetencia(cmCompetencia, 10);
 end;
 
 procedure TfrmSourceDBInfoPublic.ImportarCargoFuncao(Sender: TObject);

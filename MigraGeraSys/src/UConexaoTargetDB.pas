@@ -55,6 +55,7 @@ Type
   TGenerico = class(TObject)
     private
       FID       : Integer;
+      FResumo   ,
       FDescricao,
       FCodigo   : String;
       FAtivo    : Boolean;
@@ -62,15 +63,19 @@ Type
       procedure SetID(Value : Integer);
       procedure SetCodigo(Value : String);
       procedure SetDescricao(Value : String);
+      procedure SetResumo(Value : String);
 
       function GetID        : Integer;
       function GetCodigo    : String;
       function GetDescricao : String;
+      function GetResumo : String;
     public
       procedure CarregarDados; virtual;
 
       property ID        : Integer read GetID write SetID;
       property Descricao : String read GetDescricao write SetDescricao;
+      property Resumo    : String read GetResumo write SetResumo;
+      property Prefixo   : String read GetResumo;
       property Codigo    : String read FCodigo write SetCodigo;
       property Ativo     : Boolean read FAtivo write FAtivo;
 
@@ -1023,7 +1028,8 @@ type
     qryProgramacaoFerias: TFDQuery;
     updProgramacaoFerias: TFDUpdateSQL;
     procedure qryError(ASender: TObject;
-      const AInitiator: IFDStanObject; var AException: Exception);  private
+      const AInitiator: IFDStanObject; var AException: Exception);
+    procedure qryErrorExecute(ASender, AInitiator: TObject; var AException: Exception);
     { Private declarations }
   private
     function GetExistemCamposNulos(const aDataSet : TDataSet; var aCampos : TStringList) : Boolean;
@@ -3323,6 +3329,17 @@ begin
     AException.Message);
 end;
 
+procedure TdmConexaoTargetDB.qryErrorExecute(ASender, AInitiator: TObject; var AException: Exception);
+begin
+  gLogImportacao.Add('Error: ' + #13 +
+    QuotedStr(TFDQuery(ASender).Name) + ' - ' +
+    AException.Message);
+
+  MensagemErro('Erro',
+    'Erro ao tentar executar script do objeto ' + QuotedStr(TFDQuery(ASender).Name) + '.' + #13#13 +
+    AException.Message);
+end;
+
 procedure TdmConexaoTargetDB.UpdateGenerator(const pGeneretorName, pTableName,
   pKeyField: String);
 var
@@ -3398,6 +3415,11 @@ begin
   Result := FID;
 end;
 
+function TGenerico.GetResumo: String;
+begin
+  Result := FResumo;
+end;
+
 procedure TGenerico.SetCodigo(Value: String);
 begin
   FCodigo := Trim(Value);
@@ -3411,6 +3433,11 @@ end;
 procedure TGenerico.SetID(Value: Integer);
 begin
   FID := Value;
+end;
+
+procedure TGenerico.SetResumo(Value: String);
+begin
+  FResumo := Trim(Value);
 end;
 
 { TCBO }

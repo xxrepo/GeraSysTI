@@ -8,13 +8,15 @@ uses
   Winapi.Windows,
   Vcl.Forms, ShellApi,
   System.SysUtils, System.Classes, Vcl.ImgList, Vcl.StdCtrls, Vcl.Controls,
-  Vcl.Dialogs, cxGraphics, IniFiles, DateUtils;
+  Vcl.Dialogs, cxGraphics, IniFiles, DateUtils, dxSkinsCore, dxSkinOffice2007Green, dxSkinOffice2010Blue,
+  dxSkinOffice2016Colorful, dxSkinOffice2016Dark, cxClasses, cxLookAndFeels, dxSkinsForm, System.ImageList;
 
 type
   TdmRecursos = class(TDataModule)
     img32x32: TcxImageList;
     img16x16: TcxImageList;
     opdSelecionar: TOpenDialog;
+    SkinController: TdxSkinController;
   private
     { Private declarations }
   public

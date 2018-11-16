@@ -3,7 +3,7 @@ unit FuncoesFormulario;
 interface
 
 uses
-  Classes, Forms, Controls, QRCtrls, QuickRpt,
+  Classes, Forms, Controls,
   MyObserverInterface;
 
 type
@@ -15,10 +15,12 @@ type
     class function ShowModalForm(const AOnwer : TComponent; NomeForm: String): Boolean;
     class function ShowModalFormObserver(const AOnwer : TComponent; NomeForm: String; Observador : IObserver): Boolean;
     class procedure ShowForm(const AOnwer : TComponent; NomeForm: String);
+    (*
     class procedure ShowFormReport(const AOnwer : TComponent; NomeForm: String); overload;
     class procedure ShowFormReport(const AOnwer : TComponent; NomeForm, NomeQuickRep: String); overload;
     class procedure ShowFormReportParams(const AOnwer : TComponent; NomeForm, NomeQuickRep,
       NomePropriedade: String; ValorPropriedade : Variant);
+    *)
     class procedure RegisterForm(const aFormName: string; aFormClass: TComponentClass);
     class procedure FecharTodosForm;
 end;
@@ -72,6 +74,7 @@ begin
   FForm.Show;
 end;
 
+(*
 class procedure TFormularios.ShowFormReport(const AOnwer : TComponent; NomeForm: String);
 var
   I : Integer;
@@ -134,7 +137,7 @@ begin
     FForm.Free;
   end;
 end;
-
+*)
 class function TFormularios.ShowModalForm(const AOnwer: TComponent;
   NomeForm: String): Boolean;
 begin
@@ -159,7 +162,7 @@ begin
     if TFormularios.EstaAberto(NomeForm) then
       FForm := _FormFactory.CreateForm(AOnwer, NomeForm);
 
-    // Adicionando o "Observador" no formulário "Observado"  
+    // Adicionando o "Observador" no formulário "Observado"
     IObservable(FForm as IObservable).addObserver(Observador);
 
     Result := (FForm.ShowModal = mrOk);

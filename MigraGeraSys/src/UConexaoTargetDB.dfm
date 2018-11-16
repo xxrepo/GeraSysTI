@@ -40,7 +40,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updCBO
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select *'
       'from CBO c'
@@ -91,7 +91,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEscolaridade
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select *'
       'from ESCOLARIDADE e'
@@ -140,7 +140,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updCargoFuncao
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    c.id'
@@ -281,7 +281,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updUnidadeGestora
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    u.id'
@@ -386,7 +386,6 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updUnidadeLotacao
-    OnError = qryError
     SQL.Strings = (
       'Select'
       '    l.id'
@@ -448,7 +447,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updUnidadeOrcamentaria
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    o.id'
@@ -517,7 +516,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEstadoFuncional
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -606,7 +605,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updSetor
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    s.id'
@@ -652,7 +651,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updSituacaoTCM
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    s.id'
@@ -705,7 +704,6 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEvento
-    OnError = qryError
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -877,7 +875,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updCategoriaEvento
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    c.id'
@@ -922,7 +920,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updPessoaFisica
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    p.id'
@@ -1094,7 +1092,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updNacionalidade
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    n.id'
@@ -1146,7 +1144,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEstadoCivil
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -1198,7 +1196,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updCategoriaFuncional
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -1250,7 +1248,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updTipoCargoTCM
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -1298,7 +1296,6 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updFatorProgramaSalario
-    OnError = qryError
     SQL.Strings = (
       'Select'
       '    f.id'
@@ -1372,7 +1369,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEntidadeFinanceira
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    e.id'
@@ -1474,7 +1471,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updServidor
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    s.id'
@@ -1696,7 +1693,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updDepartamento
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    d.id'
@@ -1758,7 +1755,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updSubUnidadeGest
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    so.id'
@@ -1928,7 +1925,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updServidorConta
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    c.id'
@@ -1999,7 +1996,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updServidorDependente
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    d.id'
@@ -2273,7 +2270,6 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updInicializaMesServidor
-    OnError = qryError
     SQL.Strings = (
       'Select'
       '    ms.ano_mes'
@@ -2403,7 +2399,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updBaseCalculoMesServidor
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    bc.ano_mes'
@@ -2500,7 +2496,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updEventoBCMesServidor
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    ev.ano_mes'
@@ -2548,7 +2544,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updPessoaDependente
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    d.id'
@@ -2729,7 +2725,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updServidorEventoFixo
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    ef.id_servidor'
@@ -2766,7 +2762,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Transaction = fdTransDB
     UpdateTransaction = fdTransDB
     UpdateObject = updProgramacaoFerias
-    OnError = qryError
+    OnError = qryErrorExecute
     SQL.Strings = (
       'Select'
       '    p.id'

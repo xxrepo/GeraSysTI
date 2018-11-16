@@ -16,6 +16,7 @@
   WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object imgBanner: TImage
@@ -17267,6 +17268,7 @@
     Width = 224
     Height = 13
     Caption = 'Arquivo FDB de destino dos dados importados:'
+    Transparent = True
   end
   object stbInforme: TStatusBar
     Left = 0
@@ -17300,7 +17302,7 @@
     Caption = 'lblTargetDB'
     ParentFont = False
     Style.Font.Charset = DEFAULT_CHARSET
-    Style.Font.Color = clNavy
+    Style.Font.Color = clWhite
     Style.Font.Height = -11
     Style.Font.Name = 'Tahoma'
     Style.Font.Style = [fsBold]
@@ -17336,6 +17338,7 @@
       True)
     ImageOptions.Images = dmRecursos.img16x16
     ImageOptions.LargeImages = dmRecursos.img32x32
+    LookAndFeel.NativeStyle = True
     PopupMenuLinks = <>
     UseSystemFont = True
     Left = 256
@@ -17404,6 +17407,10 @@
         item
           Visible = True
           ItemName = 'BrBtnImportarFiorilli'
+        end
+        item
+          Visible = True
+          ItemName = 'BrBtnImportarLayoutFB'
         end>
     end
     object BrBtnConfiguracao: TdxBarButton
@@ -17441,6 +17448,15 @@
       ImageIndex = 62
       LargeImageIndex = 62
       OnClick = BrBtnImportarFiorilliClick
+    end
+    object BrBtnImportarLayoutFB: TdxBarButton
+      Caption = 'Fornecedor Layout (FB)'
+      Category = 2
+      Hint = 'Fornecedor Layout (FB)'
+      Visible = ivAlways
+      ImageIndex = 63
+      LargeImageIndex = 63
+      OnClick = BrBtnImportarLayoutFBClick
     end
   end
 end

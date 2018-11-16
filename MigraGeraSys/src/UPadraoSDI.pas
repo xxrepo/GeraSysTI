@@ -19,8 +19,11 @@ type
     procedure btnCancelarClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnConfirmarClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
+    procedure UpdateLabel(const aTransparente : Boolean);
   public
     { Public declarations }
     procedure MarcarTodos;
@@ -91,9 +94,28 @@ begin
   Action := caFree;
 end;
 
+procedure TfrmPadraoSDI.FormCreate(Sender: TObject);
+begin
+  UpdateLabel(False);
+end;
+
+procedure TfrmPadraoSDI.FormShow(Sender: TObject);
+begin
+  UpdateLabel(True);
+end;
+
 procedure TfrmPadraoSDI.MarcarTodos;
 begin
 
+end;
+
+procedure TfrmPadraoSDI.UpdateLabel(const aTransparente : Boolean);
+var
+  I : Integer;
+begin
+  for I := 0 to Self.ComponentCount - 1 do
+    if Components[I] is TLabel then
+      TLabel(Components[I]).Transparent := aTransparente;
 end;
 
 end.

@@ -12,7 +12,7 @@ uses
   dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinOffice2010Black,
   dxSkinOffice2010Blue, dxSkinOffice2010Silver, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, cxLabel,
-  Vcl.StdCtrls, dxGDIPlusClasses;
+  Vcl.StdCtrls, dxGDIPlusClasses, dxSkinOffice2016Colorful, dxSkinOffice2016Dark;
 
 type
   TfrmMain = class(TForm)
@@ -28,12 +28,15 @@ type
     lblTargetDB: TcxLabel;
     lblTarget: TLabel;
     BrBtnLimparImportação: TdxBarButton;
+    BrBtnImportarLayoutFB: TdxBarButton;
     procedure BrBtnConfiguracaoClick(Sender: TObject);
     procedure BrBtnImportarInfoPublicClick(Sender: TObject);
     procedure BrBtnImportarFiorilliClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure BrBtnLimparImportaçãoClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure BrBtnImportarLayoutFBClick(Sender: TObject);
   private
     { Private declarations }
     procedure UpdateLabelTargetDB;
@@ -96,6 +99,11 @@ begin
   gFormularios.ShowModalForm(Self, 'frmSourceDBInfoPublic');
 end;
 
+procedure TfrmMain.BrBtnImportarLayoutFBClick(Sender: TObject);
+begin
+  gFormularios.ShowModalForm(Self, 'frmSourceDBLayoutFB');
+end;
+
 procedure TfrmMain.BrBtnLimparImportaçãoClick(Sender: TObject);
 begin
   gFormularios.ShowModalForm(Self, 'frmLimparDadosTargetDB')
@@ -118,8 +126,19 @@ begin
   lblTargetDB.Top  := lblTarget.Top + lblTarget.Height;
   lblTargetDB.Left := lblTarget.Left;
 
+  lblTarget.Transparent   := False;
+  lblTargetDB.Transparent := False;
+
   stbInforme.Panels[0].Text := 'Versão ' + gVersao.FileVersion;
   UpdateLabelTargetDB;
+end;
+
+procedure TfrmMain.FormShow(Sender: TObject);
+begin
+  lblTarget.Transparent   := True;
+  lblTargetDB.Transparent := True;
+  lblTarget.Update;
+  lblTargetDB.Update;
 end;
 
 procedure TfrmMain.UpdateLabelTargetDB;

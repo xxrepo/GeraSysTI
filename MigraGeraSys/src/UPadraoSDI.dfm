@@ -14,6 +14,8 @@ object frmPadraoSDI: TfrmPadraoSDI
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   DesignSize = (
     552
     291)

@@ -127,6 +127,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 97
       Height = 17
       Caption = 'Tabela CBO'
+      Enabled = False
       TabOrder = 7
     end
     object chkTodos: TCheckBox
@@ -161,6 +162,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 121
       Height = 17
       Caption = 'Tabela Escolaridade'
+      Enabled = False
       TabOrder = 8
     end
     object chkTabelaCargoFuncao: TCheckBox
@@ -170,6 +172,15 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Height = 17
       Caption = 'Tabela Cargos/Fun'#231#245'es'
       TabOrder = 9
+      OnClick = chkTabelaCargoFuncaoClick
+    end
+    object chkTabelaUnidadeGestora: TCheckBox
+      Left = 16
+      Top = 133
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Unidade Gestora'
+      TabOrder = 10
     end
   end
   inherited chkRotina: TCheckBox

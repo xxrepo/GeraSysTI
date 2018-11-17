@@ -4,6 +4,7 @@ interface
 
 uses
   UConexaoTargetDB,
+  System.StrUtils,
 
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, UPadraoSDI, Vcl.StdCtrls, Vcl.ExtCtrls, FireDAC.Stan.Intf,
@@ -35,12 +36,14 @@ type
     prbAndamento: TProgressBar;
     chkTabelaEscolaridade: TCheckBox;
     chkTabelaCargoFuncao: TCheckBox;
+    chkTabelaUnidadeGestora: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure fdSourceDBAfterConnect(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
+    procedure chkTabelaCargoFuncaoClick(Sender: TObject);
   private
     { Private declarations }
     procedure GravarIni;
@@ -48,7 +51,10 @@ type
 
     function ConectarSourceDB : Boolean;
 
-    procedure ImportarCBO(Sender: TObject);
+    procedure ImportarCBO(Sender: TObject); virtual; abstract;
+    procedure ImportarEscolaridade(Sender: TObject); virtual; abstract;
+    procedure ImportarCargoFuncao(Sender: TObject);
+    procedure ImportarUnidadeGestora(Sender: TObject); virtual; abstract;
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -76,6 +82,15 @@ end;
 procedure TfrmSourceDBLayoutFB.btnVisualizarClick(Sender: TObject);
 begin
   ShowMessage('Em desenvolvimento....');
+end;
+
+procedure TfrmSourceDBLayoutFB.chkTabelaCargoFuncaoClick(Sender: TObject);
+begin
+//  if chkTabelaCargoFuncao.Checked then
+//  begin
+//    chkTabelaCBO.Checked          := True;
+//    chkTabelaEscolaridade.Checked := True;
+//  end;
 end;
 
 procedure TfrmSourceDBLayoutFB.chkTodosClick(Sender: TObject);
@@ -135,9 +150,9 @@ begin
       if dmConexaoTargetDB.ConectarTargetDB and ConectarSourceDB then
       begin
         if chkTabelaCBO.Checked             then ImportarCBO(chkTabelaCBO);
-//        if chkTabelaEscolaridade.Checked    then ImportarEscolaridade(chkTabelaEscolaridade);
-//        if chkTabelaCargoFuncao.Checked     then ImportarCargoFuncao(chkTabelaCargoFuncao);
-//        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
+        if chkTabelaEscolaridade.Checked    then ImportarEscolaridade(chkTabelaEscolaridade);
+        if chkTabelaCargoFuncao.Checked     then ImportarCargoFuncao(chkTabelaCargoFuncao);
+        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
 //        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
 //        if chkTabelaUnidadeLotacao.Checked  then ImportarUnidadeLotacao(chkTabelaUnidadeLotacao);
 //        if chkTabelaEstadoFuncional.Checked then ImportarEstadoFuncional(chkTabelaEstadoFuncional);
@@ -211,9 +226,134 @@ begin
   gConfiguracao.UpdateFile;
 end;
 
-procedure TfrmSourceDBLayoutFB.ImportarCBO(Sender: TObject);
+
+procedure TfrmSourceDBLayoutFB.ImportarCargoFuncao(Sender: TObject);
+  procedure UpdateGenerators;
+  begin
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_CATEG_FUNCIONAL', 'CATEG_FUNCIONAL', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_FATOR_PROG_SAL',  'FATOR_PROG_SAL',  'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_CARGO_FUNCAO',    'CARGO_FUNCAO',    'ID');
+  end;
+var
+  aCargoFuncao : TCargoFuncao;
+  aCBO    ,
+  aTipoTCM,
+  aEscola ,
+  aCompetencia : TGenerico;
 begin
-  ;
+  try
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
+    UpdateGenerators;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select ');
+    qrySourceDB.SQL.Add('    c.*');
+    qrySourceDB.SQL.Add('from SFP005' + aCompetencia.Prefixo + ' c');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    c.codigo');
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aCargoFuncao := TCargoFuncao.Create;
+      aCBO     := TGenerico.Create;
+      aTipoTCM := TGenerico.Create;
+      aEscola  := TGenerico.Create;
+
+      aCargoFuncao.ID         := 0;
+      // Codigo = Código + CBO
+      aCargoFuncao.Codigo     := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
+      aCargoFuncao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cargo').AsString));
+      aCargoFuncao.CBO.Codigo := FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
+      aCargoFuncao.NumeroAtoCriacao    := Trim(qrySourceDB.FieldByName('leicria').AsString);
+      aCargoFuncao.DataAtoCriacao      := qrySourceDB.FieldByName('datcria').AsDateTime;
+      aCargoFuncao.QuantidadeVaga      := qrySourceDB.FieldByName('numvagas').AsInteger;
+      aCargoFuncao.CargaHorariaMensal  := StrToIntDef(Trim(qrySourceDB.FieldByName('horabase').AsString), 0);
+      aCargoFuncao.BaseCalculoHoraAula := aCargoFuncao.CargaHorariaMensal;
+
+      if (Trim(qrySourceDB.FieldByName('nivelesc').AsString) <> EmptyStr) then
+        aCargoFuncao.Escolaridade.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('nivelesc').AsString)));
+
+      if (Trim(qrySourceDB.FieldByName('codtcm').AsString) = EmptyStr) then
+      begin
+        aCargoFuncao.TipoTCM.Codigo    := '20';
+        aCargoFuncao.TipoTCM.Descricao := 'EFETIVO CONCURSADO';
+      end
+      else
+        aCargoFuncao.TipoTCM.Codigo    := Trim(qrySourceDB.FieldByName('codtcm').AsString);
+
+//      Case qrySourceDB.FieldByName('vinculo').AsInteger of
+//        40, 50, 55 :
+//          begin
+//            aCargoFuncao.TipoTCM.Codigo    := '40';
+//            aCargoFuncao.TipoTCM.Descricao := 'TEMPORARIO';
+//          end;
+//        else
+//          begin
+//            aCargoFuncao.TipoTCM.Codigo    := '20';
+//            aCargoFuncao.TipoTCM.Descricao := 'EFETIVO CONCURSADO';
+//          end;
+//      end;
+
+      aCargoFuncao.Categoria.ID        := 1;
+      aCargoFuncao.Categoria.Descricao := 'GERAL';
+      aCargoFuncao.Categoria.Codigo    := 'G - 010';
+
+      aCargoFuncao.FatorProgramaSalario.ID        := 1;
+      aCargoFuncao.FatorProgramaSalario.Descricao := '0 REF. - 0 ANOS - 0.00%';
+      aCargoFuncao.FatorProgramaSalario.Codigo    := '';
+      aCargoFuncao.FatorProgramaSalario.QuantidadeReferencia := 1;
+      aCargoFuncao.FatorProgramaSalario.ReferenciaInicial    := 1;
+      aCargoFuncao.FatorProgramaSalario.QuantidadeAno        := 1;
+      aCargoFuncao.FatorProgramaSalario.Percentual           := 0.0;
+      aCargoFuncao.FatorProgramaSalario.Automatico           := True;
+      aCargoFuncao.FatorProgramaSalario.IncorporaVenctoBase  := False;
+
+      dmConexaoTargetDB.InserirCategoriaFuncional(aCargoFuncao.Categoria);
+      dmConexaoTargetDB.InserirCargoTCM(aCargoFuncao.TipoTCM);
+      dmConexaoTargetDB.InserirFatorProgramaSalario(aCargoFuncao.FatorProgramaSalario);
+
+      dmConexaoTargetDB.GetID('CBO',            'ID', 'CODIGO = '   + QuotedStr(aCargoFuncao.CBO.Codigo), aCBO);
+      dmConexaoTargetDB.GetID('TIPO_CARGO_TCM', 'ID', 'ID = '       + IfThen(Trim(aCargoFuncao.TipoTCM.Codigo) = EmptyStr, '0', Trim(aCargoFuncao.TipoTCM.Codigo)), aTipoTCM);
+      dmConexaoTargetDB.GetID('ESCOLARIDADE',   'ID', 'COD_RAIS = ' + QuotedStr(aCargoFuncao.Escolaridade.Codigo), aEscola);
+
+      aCargoFuncao.CBO.ID          := aCBO.ID;
+      aCargoFuncao.TipoTCM.ID      := aTipoTCM.ID;
+      aCargoFuncao.Escolaridade.ID := aEscola.ID;
+
+      aCargoFuncao.VencimentoBase := qrySourceDB.FieldByName('salario').AsCurrency;
+      aCargoFuncao.Observacao     := Trim(qrySourceDB.FieldByName('obs').AsString) + #13#13 + Trim(qrySourceDB.FieldByName('obsreserva').AsString);
+
+      if not dmConexaoTargetDB.InserirCargoFuncao(aCargoFuncao) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+            QuotedStr(aCargoFuncao.Codigo + ' - ' + aCargoFuncao.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('cargo').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    UpdateGenerators;
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
 end;
 
 procedure TfrmSourceDBLayoutFB.ListarCompetenciasLayoutFB;
@@ -270,6 +410,15 @@ begin
       if qrySourceDB.Active then
         qrySourceDB.Close;
 
+(*
+Select distinct
+    b.exercicio   as ano
+  , b.competencia as mes
+from BASES b
+order by
+    b.exercicio
+  , b.competencia
+*)
       qrySourceDB.SQL.Clear;
       qrySourceDB.SQL.Add('Select distinct     ');
       qrySourceDB.SQL.Add('  b.exercicio as ano');

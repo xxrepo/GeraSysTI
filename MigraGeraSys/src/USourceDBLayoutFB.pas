@@ -37,6 +37,11 @@ type
     chkTabelaEscolaridade: TCheckBox;
     chkTabelaCargoFuncao: TCheckBox;
     chkTabelaUnidadeGestora: TCheckBox;
+    chkTabelaUnidadeOrcament: TCheckBox;
+    chkTabelaUnidadeLotacao: TCheckBox;
+    chkTabelaEstadoFuncional: TCheckBox;
+    chkTabelaSituacao: TCheckBox;
+    chkTabelaSetor: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -54,7 +59,12 @@ type
     procedure ImportarCBO(Sender: TObject); virtual; abstract;
     procedure ImportarEscolaridade(Sender: TObject); virtual; abstract;
     procedure ImportarCargoFuncao(Sender: TObject);
-    procedure ImportarUnidadeGestora(Sender: TObject); virtual; abstract;
+    procedure ImportarUnidadeGestora(Sender: TObject);
+    procedure ImportarUnidadeOrcamentaria(Sender: TObject); virtual; abstract;
+    procedure ImportarUnidadeLotacao(Sender: TObject);
+    procedure ImportarEstadoFuncional(Sender: TObject);
+    procedure ImportarSituacao(Sender: TObject); virtual; abstract;
+    procedure ImportarSetor(Sender: TObject); virtual; abstract;
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -68,7 +78,8 @@ implementation
 {$R *.dfm}
 
 uses
-  URecursos;
+  URecursos,
+  USourceDBLayoutFBTabelas;
 
 { TfrmSourceDBLayoutFB }
 
@@ -81,7 +92,12 @@ end;
 
 procedure TfrmSourceDBLayoutFB.btnVisualizarClick(Sender: TObject);
 begin
-  ShowMessage('Em desenvolvimento....');
+  GravarIni;
+
+  if not fdSourceDB.Connected then
+    ConectarSourceDB;
+
+  ShowTabelasFireBird(Self);
 end;
 
 procedure TfrmSourceDBLayoutFB.chkTabelaCargoFuncaoClick(Sender: TObject);
@@ -153,11 +169,11 @@ begin
         if chkTabelaEscolaridade.Checked    then ImportarEscolaridade(chkTabelaEscolaridade);
         if chkTabelaCargoFuncao.Checked     then ImportarCargoFuncao(chkTabelaCargoFuncao);
         if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
-//        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
-//        if chkTabelaUnidadeLotacao.Checked  then ImportarUnidadeLotacao(chkTabelaUnidadeLotacao);
-//        if chkTabelaEstadoFuncional.Checked then ImportarEstadoFuncional(chkTabelaEstadoFuncional);
-//        if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
-//        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
+        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
+        if chkTabelaUnidadeLotacao.Checked  then ImportarUnidadeLotacao(chkTabelaUnidadeLotacao);
+        if chkTabelaEstadoFuncional.Checked then ImportarEstadoFuncional(chkTabelaEstadoFuncional);
+        if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
+        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
 //        if chkTabelaEvento.Checked          then ImportarEventos(chkTabelaEvento);
 //        if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
 //        if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
@@ -253,8 +269,73 @@ begin
     qrySourceDB.SQL.Add('Select ');
     qrySourceDB.SQL.Add('    c.*');
     qrySourceDB.SQL.Add('from SFP005' + aCompetencia.Prefixo + ' c');
+    qrySourceDB.SQL.Add(' ');
+    qrySourceDB.SQL.Add('union');
+    qrySourceDB.SQL.Add(' ');
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    ''999'' || x.codigo as codigo');
+    qrySourceDB.SQL.Add('  , x.cargo2 as cargo');
+    qrySourceDB.SQL.Add('  , null as cbo');
+    qrySourceDB.SQL.Add('  , x.salario as salario');
+    qrySourceDB.SQL.Add('  , null as horatrab');
+    qrySourceDB.SQL.Add('  , null as horabase');
+    qrySourceDB.SQL.Add('  , null as diaria');
+    qrySourceDB.SQL.Add('  , x.obs');
+    qrySourceDB.SQL.Add('  , null as valaula');
+    qrySourceDB.SQL.Add('  , null as alterado');
+    qrySourceDB.SQL.Add('  , null as status');
+    qrySourceDB.SQL.Add('  , null as tipocargo');
+    qrySourceDB.SQL.Add('  , null as numvagas');
+    qrySourceDB.SQL.Add('  , null as nivelesc');
+    qrySourceDB.SQL.Add('  , null as tipcria');
+    qrySourceDB.SQL.Add('  , null as leicria');
+    qrySourceDB.SQL.Add('  , null as datcria');
+    qrySourceDB.SQL.Add('  , null as tipregjur');
+    qrySourceDB.SQL.Add('  , null as leiregjur');
+    qrySourceDB.SQL.Add('  , null as datregjur');
+    qrySourceDB.SQL.Add('  , null as tipregprev');
+    qrySourceDB.SQL.Add('  , null as leiregprev');
+    qrySourceDB.SQL.Add('  , null as datregprev');
+    qrySourceDB.SQL.Add('  , null as referencia');
+    qrySourceDB.SQL.Add('  , null as codtcm');
+    qrySourceDB.SQL.Add('  , null as codev1');
+    qrySourceDB.SQL.Add('  , null as percev1');
+    qrySourceDB.SQL.Add('  , null as valev1');
+    qrySourceDB.SQL.Add('  , null as codev2');
+    qrySourceDB.SQL.Add('  , null as percev2');
+    qrySourceDB.SQL.Add('  , null as valev2');
+    qrySourceDB.SQL.Add('  , null as codev3');
+    qrySourceDB.SQL.Add('  , null as percev3');
+    qrySourceDB.SQL.Add('  , null as valev3');
+    qrySourceDB.SQL.Add('  , null as tcmdados');
+    qrySourceDB.SQL.Add('  , null as obsreserva');
+    qrySourceDB.SQL.Add('  , null as marcarel');
+    qrySourceDB.SQL.Add('  , null as tmp_anu_masc');
+    qrySourceDB.SQL.Add('  , null as tmp_anu_fem');
+    qrySourceDB.SQL.Add('  , null as tmp_tri_masc');
+    qrySourceDB.SQL.Add('  , null as tmp_tri_fem');
+    qrySourceDB.SQL.Add('  , null as tmp_qui_masc');
+    qrySourceDB.SQL.Add('  , null as tmp_qui_fem');
+    qrySourceDB.SQL.Add('  , null as cbo_sim');
+    qrySourceDB.SQL.Add('  , null as progauto');
+    qrySourceDB.SQL.Add('  , null as cbogfip');
+    qrySourceDB.SQL.Add('  , null as natureza_cargo');
+    qrySourceDB.SQL.Add('  , null as dedicacao_exclussiva');
+    qrySourceDB.SQL.Add('  , null as refhoras');
+    qrySourceDB.SQL.Add('  , null as infodesc');
+    qrySourceDB.SQL.Add('  , null as infodescricao');
+    qrySourceDB.SQL.Add('  , null as horasref');
+    qrySourceDB.SQL.Add('  , null as teto_max');
+    qrySourceDB.SQL.Add('  , null as especialidade');
+    qrySourceDB.SQL.Add('  , null as numvagasdef');
+    qrySourceDB.SQL.Add('  , null as cotavagasdef');
+    qrySourceDB.SQL.Add('  , null as tipo_normativo');
+    qrySourceDB.SQL.Add('  , null as anolei');
+    qrySourceDB.SQL.Add('  , null as data_pub_lei');
+    qrySourceDB.SQL.Add('  , null as meio_pub_lei');
+    qrySourceDB.SQL.Add('from SFPDXX25' + aCompetencia.Prefixo + ' x');
     qrySourceDB.SQL.Add('order by');
-    qrySourceDB.SQL.Add('    c.codigo');
+    qrySourceDB.SQL.Add('    2 ');
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -270,8 +351,9 @@ begin
       aEscola  := TGenerico.Create;
 
       aCargoFuncao.ID         := 0;
-      // Codigo = Código + CBO
-      aCargoFuncao.Codigo     := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
+//      // Codigo = Código + CBO
+//      aCargoFuncao.Codigo     := FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
+      aCargoFuncao.Codigo     := FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999));
       aCargoFuncao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cargo').AsString));
       aCargoFuncao.CBO.Codigo := FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
       aCargoFuncao.NumeroAtoCriacao    := Trim(qrySourceDB.FieldByName('leicria').AsString);
@@ -351,6 +433,230 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarEstadoFuncional(Sender: TObject);
+var
+  aEstadoFunc : TEstadoFuncional;
+begin
+  try
+    // Inserir Estado Funcional Padrão
+    aEstadoFunc := TEstadoFuncional.Create;
+    aEstadoFunc.ID        := 1;
+    aEstadoFunc.Codigo    := EmptyStr;
+    aEstadoFunc.Descricao := 'ATIVO';
+    dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc);
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from AFASTFOLHA';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aEstadoFunc.ID        := 0;
+      aEstadoFunc.Codigo    := FormatFloat('000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
+      aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+
+      if not dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aEstadoFunc.Codigo + ' - ' + aEstadoFunc.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_ESTADO_FUNCIONAL', 'ESTADO_FUNCIONAL', 'ID');
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarUnidadeGestora(Sender: TObject);
+  procedure UpdateGenerators;
+  begin
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_GESTORA',  'UNID_GESTORA',  'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT', 'UNID_ORCAMENT', 'ID');
+  end;
+var
+  aUnidade : TUnidadeGestora;
+  sCnpj          ,
+  sCnpjPrincipal : String;
+begin
+  try
+    UpdateGenerators;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from SFP003';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+    sCnpjPrincipal        := EmptyStr;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      sCnpj := Trim(qrySourceDB.FieldByName('cgc').AsString);
+      sCnpj := StringReplace(StringReplace(StringReplace(sCnpj, '.', '', [rfReplaceAll]), '/', '', [rfReplaceAll]), '-', '', [rfReplaceAll]);
+
+      aUnidade := TUnidadeGestora.Create;
+      aUnidade.ID          := StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString));
+      aUnidade.Descricao   := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aUnidade.RazaoSocial := aUnidade.Descricao;
+      aUnidade.Codigo      := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aUnidade.CodigoTCM   := qrySourceDB.FieldByName('codtcm').AsInteger;
+      aUnidade.CNPJ           := sCnpj;
+      aUnidade.CNPJPrincipal  := aUnidade.CNPJ;
+      aUnidade.TipoUnidade.ID := 1; // Prefeitura
+      sCnpjPrincipal          := aUnidade.CNPJ;
+
+      if not dmConexaoTargetDB.InserirUnidadeGestora(aUnidade) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+            QuotedStr(aUnidade.Codigo + ' - ' + aUnidade.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    UpdateGenerators;
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarUnidadeLotacao(Sender: TObject);
+  procedure UpdateGenerators;
+  begin
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_LOTACAO', 'UNID_LOTACAO', 'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_DEPTO'       , 'DEPTO',        'ID');
+  end;
+var
+  aLotacao : TUnidadeLotacao;
+  aCompetencia  ,
+  aDepartamento : TGenerico;
+begin
+  try
+    UpdateGenerators;
+
+    // Importar UNIDADES DE LOTAÇÃO
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from SFPD9924';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if not Assigned(aLotacao) then
+        aLotacao := TUnidadeLotacao.Create;
+
+      aLotacao.ID        := 0;
+      aLotacao.Codigo    := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aLotacao.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('escola').AsString));
+
+     if (Pos('SMS', aLotacao.Descricao) > 0) then
+       aLotacao.Tipo.ID := 3    // HOSPITAL / POSTO DE SAÚDE
+     else
+     if (Pos('EMEF', aLotacao.Descricao) > 0) then
+       aLotacao.Tipo.ID := 4    // ESCOLA
+     else
+       aLotacao.Tipo.ID := 99;  // OUTROS
+
+      if not dmConexaoTargetDB.InserirUnidadeLotacao(aLotacao) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aLotacao.Codigo + ' - ' + aLotacao.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('escola').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
+    // Importar DEPTOS
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    d.cdsecreta || d.cdsetor as codigo ');
+    qrySourceDB.SQL.Add('  , d.*');
+    qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Prefixo + ' d');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if not Assigned(aDepartamento) then
+        aDepartamento := TGenerico.Create;
+
+      aDepartamento.ID        := 0;
+      aDepartamento.Codigo    := FormatFloat('###000000', qrySourceDB.FieldByName('codigo').AsInteger);
+      aDepartamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aDepartamento.Ativo     := (Trim(qrySourceDB.FieldByName('status').AsString) = '1');
+
+      if not dmConexaoTargetDB.InserirDepartamento(aDepartamento) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Depto: ' +
+          QuotedStr(aDepartamento.Codigo + ' - ' + aDepartamento.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := 'Depto: ' + Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    UpdateGenerators;
+  finally
+    dmRecursos.ExibriLog;
+    aLotacao.Free;
+    aDepartamento.Free;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
     if (Sender is TCheckBox) then
       TCheckBox(Sender).Checked := False;
   end;

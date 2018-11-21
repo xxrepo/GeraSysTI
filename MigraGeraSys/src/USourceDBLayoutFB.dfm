@@ -182,6 +182,49 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Caption = 'Tabela Unidade Gestora'
       TabOrder = 10
     end
+    object chkTabelaUnidadeOrcament: TCheckBox
+      Left = 16
+      Top = 156
+      Width = 169
+      Height = 17
+      Caption = 'Tabela Unidade Or'#231'ament'#225'ria'
+      Enabled = False
+      TabOrder = 11
+    end
+    object chkTabelaUnidadeLotacao: TCheckBox
+      Left = 16
+      Top = 179
+      Width = 225
+      Height = 17
+      Caption = 'Tabela Unidade Lota'#231#227'o/Departamento'
+      TabOrder = 12
+    end
+    object chkTabelaEstadoFuncional: TCheckBox
+      Left = 16
+      Top = 202
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Estado Funcional'
+      TabOrder = 13
+    end
+    object chkTabelaSituacao: TCheckBox
+      Left = 16
+      Top = 225
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Situa'#231#227'o'
+      Enabled = False
+      TabOrder = 14
+    end
+    object chkTabelaSetor: TCheckBox
+      Left = 16
+      Top = 248
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Setor'
+      Enabled = False
+      TabOrder = 15
+    end
   end
   inherited chkRotina: TCheckBox
     Left = 376

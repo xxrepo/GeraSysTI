@@ -571,7 +571,7 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
-    qrySourceDB.SQL.Text := 'Select * from SFPD9924';
+    qrySourceDB.SQL.Text := 'Select * from SFPD9924 order by escola';
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -584,14 +584,15 @@ begin
       if not Assigned(aLotacao) then
         aLotacao := TUnidadeLotacao.Create;
 
-      aLotacao.ID        := 0;
-      aLotacao.Codigo    := Trim(qrySourceDB.FieldByName('codigo').AsString);
-      aLotacao.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('escola').AsString));
+      aLotacao.ID         := 0;
+      aLotacao.Codigo     := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aLotacao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('escola').AsString));
+      aLotacao.CodigoINEP := IfThen(Trim(qrySourceDB.FieldByName('codinep').AsString) = '99999999', EmptyStr, Trim(qrySourceDB.FieldByName('codinep').AsString));
 
      if (Pos('SMS', aLotacao.Descricao) > 0) then
        aLotacao.Tipo.ID := 3    // HOSPITAL / POSTO DE SAÚDE
      else
-     if (Pos('EMEF', aLotacao.Descricao) > 0) then
+     if (Pos('EMEF', aLotacao.Descricao) > 0) or (Pos('EMEI', aLotacao.Descricao) > 0) or (aLotacao.CodigoINEP <> EmptyStr) then
        aLotacao.Tipo.ID := 4    // ESCOLA
      else
        aLotacao.Tipo.ID := 99;  // OUTROS
@@ -619,6 +620,8 @@ begin
     qrySourceDB.SQL.Add('    d.cdsecreta || d.cdsetor as codigo ');
     qrySourceDB.SQL.Add('  , d.*');
     qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Prefixo + ' d');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    d.descricao');
     qrySourceDB.SQL.EndUpdate;
 
     qrySourceDB.Open;

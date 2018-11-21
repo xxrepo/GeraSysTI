@@ -40,7 +40,7 @@ type
     procedure ExcluirCargoFuncao(Sender: TObject);
 //    procedure ImportarUnidadeGestora(Sender: TObject);
 //    procedure ImportarUnidadeOrcamentaria(Sender: TObject);
-//    procedure ImportarUnidadeLotacao(Sender: TObject);
+    procedure ExcluirUnidadeLotacao(Sender: TObject);
     procedure ExcluirEstadoFuncional(Sender: TObject);
 //    procedure ImportarSituacao(Sender: TObject);
 //    procedure ImportarSetor(Sender: TObject);
@@ -135,7 +135,7 @@ begin
       begin
 //        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
 //        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
-//        if chkTabelaUnidadeLotacao.Checked  then ImportarUnidadeLotacao(chkTabelaUnidadeLotacao);
+        if chkTabelaUnidadeLotacao.Checked  then ExcluirUnidadeLotacao(chkTabelaUnidadeLotacao);
 //        if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
 //        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
         if chkLancamentoMesServidor.Checked then ExcluirFolhaMensalServidor(chkLancamentoMesServidor);
@@ -512,6 +512,47 @@ begin
     except
       On E : Exception do
         gLogImportacao.Add(TCheckBox(Sender).Caption + ' (SERVIDOR_CONTA_BANC, SERVIDOR, PESSOA_FISICA) não esvaziada - ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    dmRecursos.ExibriLog;
+
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmLimparDadosTargetDB.ExcluirUnidadeLotacao(Sender: TObject);
+begin
+  Screen.Cursor := crSQLWait;
+  try
+    try
+      with dmConexaoTargetDB, fdTargetDB do
+      begin
+        if dmConexaoTargetDB.ExisteCampoTabela('UNID_LOTACAO', ID_SYS_ANTER) then
+          ExecSQL(
+            'Delete from UNID_LOTACAO '+
+            'where (ID not in (' +
+            '    Select distinct ID_UNID_LOTACAO from SERVIDOR' +
+            '  )) and (' + ID_SYS_ANTER + ' is not null)', True);
+
+        if dmConexaoTargetDB.ExisteCampoTabela('DEPTO', ID_SYS_ANTER) then
+          ExecSQL(
+            'Delete from DEPTO '+
+            'where (ID not in (' +
+            '    Select distinct ID_DEPTO from SERVIDOR' +
+            '  )) and (' + ID_SYS_ANTER + ' is not null)', True);
+
+        CommitRetaining;
+
+        ExcluirCampoTabela('UNID_LOTACAO', ID_SYS_ANTER);
+        ExcluirCampoTabela('DEPTO', ID_SYS_ANTER);
+      end;
+
+      dmConexaoTargetDB.UpdateGenerator('GEN_ID_EVENTO', 'EVENTO', 'ID');
+    except
+      On E : Exception do
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' (EVENTO) não esvaziada - ' + E.Message);
     end;
   finally
     Screen.Cursor := crDefault;

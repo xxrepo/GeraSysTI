@@ -337,12 +337,15 @@ Type
       FTipo   : TGenerico;
       FLocalidade : TLocalidade;
       FRegiao : TGenerico;
+      FCodigoINEP : String;
+      function GetCodigoINEP : String;
     public
       procedure CarregarDados; override;
 
       property Tipo : TGenerico read FTipo write FTipo;
       property Localidade : TLocalidade read FLocalidade write FLocalidade;
       property Regiao : TGenerico read FRegiao write FRegiao;
+      property CodigoINEP : String read FCodigoINEP write FCodigoINEP;
 
       constructor Create;
       destructor Destroy;
@@ -3027,6 +3030,7 @@ begin
           FieldByName('id_tipo_unid_lotacao').AsInteger := pUnidadeLotacao.Tipo.ID;
           FieldByName('localidade').AsString   := IntToStr(Ord(pUnidadeLotacao.Localidade));
           FieldByName('id_regiao').AsInteger   := pUnidadeLotacao.Regiao.ID;
+          FieldByName('cod_inep').AsString     := pUnidadeLotacao.CodigoINEP;
           FieldByName('ativo').AsString        := IfThen(pUnidadeLotacao.Ativo, 'S', 'N');
           FieldByName(ID_SYS_ANTER).AsString   := pUnidadeLotacao.Codigo;
           Post;
@@ -3623,6 +3627,7 @@ begin
   FAtivo  := True;
   FLocalidade := localZonaUrbana;
   FRegiao     := TGenerico.Create;
+  FCodigoINEP := EmptyStr;
 
   FTipo.ID        := 1;
   FTipo.Descricao := 'SEDE DO ÓRGÃO';
@@ -3638,6 +3643,11 @@ begin
   if Assigned(FRegiao) then
     FRegiao.Destroy;
   inherited Destroy;
+end;
+
+function TUnidadeLotacao.GetCodigoINEP: String;
+begin
+  Result := Trim(FCodigoINEP);
 end;
 
 { TUnidadeOrcamentaria }

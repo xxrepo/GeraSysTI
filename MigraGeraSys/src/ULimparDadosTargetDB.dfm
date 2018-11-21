@@ -1,8 +1,6 @@
 inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
   Caption = 'Limpar Base de Dados (Dados de Importa'#231#227'o)'
   ClientHeight = 298
-  OnCreate = FormCreate
-  ExplicitWidth = 558
   ExplicitHeight = 327
   PixelsPerInch = 96
   TextHeight = 13
@@ -21,7 +19,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
     Height = 221
     ExplicitHeight = 221
     object lblCompetencia: TLabel
-      Left = 207
+      Left = 247
       Top = 163
       Width = 66
       Height = 13
@@ -77,10 +75,9 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
     object chkTabelaUnidadeLotacao: TCheckBox
       Left = 16
       Top = 123
-      Width = 141
+      Width = 208
       Height = 17
-      Caption = 'Tabela Unidade Lota'#231#227'o'
-      Enabled = False
+      Caption = 'Tabela Unidade Lota'#231#227'o/Departamento'
       TabOrder = 5
     end
     object chkTabelaEstadoFuncional: TCheckBox
@@ -93,7 +90,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkTabelaEstadoFuncionalClick
     end
     object chkLancamentoMesServidor: TCheckBox
-      Left = 191
+      Left = 231
       Top = 146
       Width = 178
       Height = 17
@@ -102,7 +99,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkLancamentoMesServidorClick
     end
     object chkTabelaDependente: TCheckBox
-      Left = 190
+      Left = 230
       Top = 100
       Width = 141
       Height = 17
@@ -110,7 +107,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       TabOrder = 8
     end
     object chkTabelaPFServidor: TCheckBox
-      Left = 190
+      Left = 230
       Top = 77
       Width = 178
       Height = 17
@@ -119,7 +116,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkTabelaPFServidorClick
     end
     object chkTabelaBanco: TCheckBox
-      Left = 190
+      Left = 230
       Top = 54
       Width = 141
       Height = 17
@@ -127,7 +124,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       TabOrder = 10
     end
     object chkTabelaEvento: TCheckBox
-      Left = 191
+      Left = 231
       Top = 31
       Width = 141
       Height = 17
@@ -136,7 +133,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       OnClick = chkTabelaEventoClick
     end
     object chkTabelaSetor: TCheckBox
-      Left = 191
+      Left = 231
       Top = 8
       Width = 141
       Height = 17
@@ -154,7 +151,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       TabOrder = 14
     end
     object cmCompetencia: TComboBox
-      Left = 207
+      Left = 247
       Top = 182
       Width = 75
       Height = 21
@@ -163,7 +160,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Visible = False
     end
     object chkTabelaEventoFixo: TCheckBox
-      Left = 191
+      Left = 231
       Top = 123
       Width = 179
       Height = 17

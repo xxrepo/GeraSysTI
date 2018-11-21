@@ -394,6 +394,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , l.localidade'
       '  , l.id_regiao'
       '  , l.ativo'
+      '  , l.cod_inep'
       '  , l.id_sys_anter'
       'from UNID_LOTACAO l'
       'where l.id_sys_anter = :codigo')
@@ -412,19 +413,21 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     InsertSQL.Strings = (
       'INSERT INTO UNID_LOTACAO'
       '(ID, DESCRICAO, ID_TIPO_UNID_LOTACAO, ATIVO, '
-      '  ID_SYS_ANTER, LOCALIDADE, ID_REGIAO)'
+      '  ID_SYS_ANTER, cod_inep, LOCALIDADE, ID_REGIAO)'
       
         'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_ID_TIPO_UNID_LOTACAO, :NEW' +
         '_ATIVO, '
-      '  :NEW_ID_SYS_ANTER, :NEW_LOCALIDADE, :NEW_ID_REGIAO)')
+      
+        '  :NEW_ID_SYS_ANTER, :new_cod_inep, :NEW_LOCALIDADE, :NEW_ID_REG' +
+        'IAO)')
     ModifySQL.Strings = (
       'UPDATE UNID_LOTACAO'
       
         'SET ID = :NEW_ID, DESCRICAO = :NEW_DESCRICAO, ID_TIPO_UNID_LOTAC' +
         'AO = :NEW_ID_TIPO_UNID_LOTACAO, '
       
-        '  ATIVO = :NEW_ATIVO, ID_SYS_ANTER = :NEW_ID_SYS_ANTER, LOCALIDA' +
-        'DE = :NEW_LOCALIDADE, '
+        '  ATIVO = :NEW_ATIVO, ID_SYS_ANTER = :NEW_ID_SYS_ANTER, cod_inep' +
+        ' = :new_cod_inep, LOCALIDADE = :NEW_LOCALIDADE, '
       '  ID_REGIAO = :NEW_ID_REGIAO'
       'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
@@ -434,7 +437,9 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         'SELECT ID, DESCRICAO, ID_TIPO_UNID_LOTACAO, DESCR_TIPO_UNID_LOTA' +
         'CAO, '
-      '  ATIVO, ID_SYS_ANTER, LOCALIDADE, DESCR_LOCALIDADE, ID_REGIAO, '
+      
+        '  ATIVO, ID_SYS_ANTER, cod_inep, LOCALIDADE, DESCR_LOCALIDADE, I' +
+        'D_REGIAO, '
       '  DESCR_REGIAO'
       'FROM UNID_LOTACAO'
       'WHERE ID = :ID')

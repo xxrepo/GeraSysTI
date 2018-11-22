@@ -42,6 +42,7 @@ type
     chkTabelaEstadoFuncional: TCheckBox;
     chkTabelaSituacao: TCheckBox;
     chkTabelaSetor: TCheckBox;
+    chkTabelaEvento: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -51,10 +52,14 @@ type
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
   private
     { Private declarations }
+    FBaseID : String;
+
+    procedure CriarTabelaDB;
     procedure GravarIni;
     procedure ListarCompetenciasLayoutFB;
 
     function ConectarSourceDB : Boolean;
+    function RegistrarTabelaDB(aFileNameDB : String) : String;
 
     procedure ImportarCBO(Sender: TObject); virtual; abstract;
     procedure ImportarEscolaridade(Sender: TObject); virtual; abstract;
@@ -63,8 +68,9 @@ type
     procedure ImportarUnidadeOrcamentaria(Sender: TObject); virtual; abstract;
     procedure ImportarUnidadeLotacao(Sender: TObject);
     procedure ImportarEstadoFuncional(Sender: TObject);
-    procedure ImportarSituacao(Sender: TObject); virtual; abstract;
+    procedure ImportarSituacao(Sender: TObject);
     procedure ImportarSetor(Sender: TObject); virtual; abstract;
+    procedure ImportarEventos(Sender: TObject); virtual; abstract;
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -174,7 +180,7 @@ begin
         if chkTabelaEstadoFuncional.Checked then ImportarEstadoFuncional(chkTabelaEstadoFuncional);
         if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
         if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
-//        if chkTabelaEvento.Checked          then ImportarEventos(chkTabelaEvento);
+        if chkTabelaEvento.Checked          then ImportarEventos(chkTabelaEvento);
 //        if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
 //        if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
 //        if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
@@ -200,14 +206,41 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.CriarTabelaDB;
+var
+  aSQL : TStringList;
+begin
+  aSQL := TStringList.Create;
+  try
+    if not dmConexaoTargetDB.fdTargetDB.Connected then
+      dmConexaoTargetDB.ConectarTargetDB;
+
+    aSQL.BeginUpdate;
+    aSQL.Clear;
+    aSQL.Add('CREATE TABLE ' + TBL_LAYOUT_IMPORT + ' (');
+    aSQL.Add('    LAYOUT_ID "CHAR(2)"      NOT NULL');
+    aSQL.Add('  , LAYOUT_DB "VARCHAR(240)" NOT NULL');
+    aSQL.Add(')');
+    aSQL.EndUpdate;
+
+    dmConexaoTargetDB.CriarTabela('TMP_LAYOUT_IMPORT', 'LAYOUT_ID', aSQL);
+  finally
+    aSQL.Free;
+  end;
+end;
+
 procedure TfrmSourceDBLayoutFB.fdSourceDBAfterConnect(Sender: TObject);
 begin
   ListarCompetenciasLayoutFB;
+  CriarTabelaDB;
+  FBaseID := Trim(RegistrarTabelaDB(edSourceDB.Text));
 end;
 
 procedure TfrmSourceDBLayoutFB.FormCreate(Sender: TObject);
 begin
   inherited;
+  FBaseID := EmptyStr;
+
   if not Assigned(gLogImportacao) then
     gLogImportacao := TStringList.Create;
 
@@ -268,7 +301,7 @@ begin
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select ');
     qrySourceDB.SQL.Add('    c.*');
-    qrySourceDB.SQL.Add('from SFP005' + aCompetencia.Prefixo + ' c');
+    qrySourceDB.SQL.Add('from SFP005' + aCompetencia.Sufixo + ' c');
     qrySourceDB.SQL.Add(' ');
     qrySourceDB.SQL.Add('union');
     qrySourceDB.SQL.Add(' ');
@@ -333,7 +366,7 @@ begin
     qrySourceDB.SQL.Add('  , null as anolei');
     qrySourceDB.SQL.Add('  , null as data_pub_lei');
     qrySourceDB.SQL.Add('  , null as meio_pub_lei');
-    qrySourceDB.SQL.Add('from SFPDXX25' + aCompetencia.Prefixo + ' x');
+    qrySourceDB.SQL.Add('from SFPDXX25' + aCompetencia.Sufixo + ' x');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    2 ');
     qrySourceDB.Open;
@@ -463,6 +496,7 @@ begin
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
+      // Os estados funcionais possuem os mesmos códigos em bases diferentes
       aEstadoFunc.ID        := 0;
       aEstadoFunc.Codigo    := FormatFloat('000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
       aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
@@ -479,6 +513,65 @@ begin
     end;
 
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_ESTADO_FUNCIONAL', 'ESTADO_FUNCIONAL', 'ID');
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarSituacao(Sender: TObject);
+var
+  aSituacaoTCM : TGenerico;
+  aCompetencia : TGenerico;
+begin
+  try
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from CFG_VINC' + aCompetencia.Sufixo;
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aSituacaoTCM := TGenerico.Create;
+
+      // Os vínculos possuem códigos diferentes em bases diferentes
+      aSituacaoTCM.ID        := 0;
+      aSituacaoTCM.Codigo    := FBaseID + Trim(qrySourceDB.FieldByName('id_vinculo').AsString);
+      aSituacaoTCM.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nm_vinculo').AsString));
+
+//      BLOCO DE REGRA ABAIXO NAO SE APLICA AO LAYOUT
+//      Case StrToIntDef(aSituacaoTCM.Codigo, 0) of
+//        1 : aSituacaoTCM.ID := 20; // EFETIVO/CONCURSADO
+//        2 : aSituacaoTCM.ID := 21; // EFETIVO ART. 19 (ADCT) ESTÁVEIS
+//        4 : aSituacaoTCM.ID := 10; // COMISSIONADO
+//        6 : aSituacaoTCM.ID := 51; // PENSIONISTA DE MAIOR IDADE
+//        9 : aSituacaoTCM.ID := 61; // TEMP S/ VINC NO PLANO DE CARGOS E SALARIO
+//        else
+//          aSituacaoTCM.ID := 0;
+//      end;
+//
+      if not dmConexaoTargetDB.InserirSituacaoTCM(aSituacaoTCM) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aSituacaoTCM.Codigo + ' - ' + aSituacaoTCM.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nm_vinculo').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
   finally
     dmRecursos.ExibriLog;
 
@@ -619,7 +712,7 @@ begin
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    d.cdsecreta || d.cdsetor as codigo ');
     qrySourceDB.SQL.Add('  , d.*');
-    qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Prefixo + ' d');
+    qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Sufixo + ' d');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    d.descricao');
     qrySourceDB.SQL.EndUpdate;
@@ -770,6 +863,64 @@ order by
   finally
     aTabelas.Free;
     aListaMeses.Free;
+  end;
+end;
+
+function TfrmSourceDBLayoutFB.RegistrarTabelaDB(aFileNameDB: String): String;
+var
+  vFileName,
+  aReturno : String;
+begin
+  aReturno  := EmptyStr;
+  vFileName := AnsiUpperCase(ExtractFileName(aFileNameDB));
+  try
+    with dmConexaoTargetDB, qryBusca do
+    begin
+      if not fdTargetDB.Connected then
+        ConectarTargetDB;
+
+      // Buscar registros
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT ');
+      SQL.Add('   x.LAYOUT_ID');
+      SQL.Add('from ' + TBL_LAYOUT_IMPORT + ' x  ');
+      SQL.Add('where upper(x.LAYOUT_DB) = upper(' + QuotedStr(vFileName) + ')' );
+      OpenOrExecute;
+
+      aReturno := Trim(FieldByName('LAYOUT_ID').AsString);
+
+      // Inserir registro, caso ele não exista
+      if (aReturno = EmptyStr) then
+      begin
+        try
+          Close;
+          SQL.Clear;
+          SQL.Add('SELECT ');
+          SQL.Add('   max(x.LAYOUT_ID) as ID');
+          SQL.Add('from ' + TBL_LAYOUT_IMPORT + ' x ');
+          OpenOrExecute;
+
+          aReturno := FormatFloat('00', StrToIntDef(Trim(FieldByName('ID').AsString), 0) + 1);
+
+          fdTargetDB.ExecSQL(
+            'Insert Into ' + TBL_LAYOUT_IMPORT + ' (' +
+            '    LAYOUT_ID ' +
+            '  , LAYOUT_DB ' +
+            ') values (' +
+            '    ' + QuotedStr(aReturno) + ' ' +
+            '  , ' + QuotedStr(vFileName) + ' ' +
+            ')');
+
+          fdTargetDB.CommitRetaining;
+        except
+        end;
+      end;
+      Close;
+    end;
+  finally
+    dmConexaoTargetDB.qryBusca.Close;
+    Result := aReturno;
   end;
 end;
 

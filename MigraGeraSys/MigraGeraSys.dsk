@@ -1,53 +1,41 @@
 ﻿[Closed Files]
-File_0=TSourceModule,'c:\delphi\tokyo\studio\19.0\source\data\firedac\FireDAC.Stan.Error.pas',0,1,162,1,189,0,0,,
-File_1=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\Principal.pas',0,1,5594,80,5621,0,0,,
-File_2=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\udmTabDiversas.pas',0,1,106,5,140,0,0,,
-File_3=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFBTabelas.pas',0,1,10,3,40,0,0,,
-File_4=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilliTabelas.pas',0,1,1,3,44,0,0,,
-File_5=TSourceModule,'c:\delphi\tokyo\studio\19.0\SOURCE\RTL\SYS\System.SysUtils.pas',0,1,5549,78,5552,0,0,,
-File_6=TSourceModule,'c:\delphi\tokyo\studio\19.0\source\data\Data.DB.pas',0,1,3267,93,3271,0,0,,
-File_7=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\dmTabAliquotas.pas',0,1,1,1,1,0,0,,
-File_8=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayout.pas',0,1,1,1,1,0,0,,
-File_9=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\FuncoesFormulario.pas',0,1,114,3,140,0,0,,
-File_10=TSourceModule,'D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas',0,1,253,48,282,0,0,,{1
-File_11=TSourceModule,'D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas',0,1,497,49,527,0,0,,
-File_12=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\VCL\Vcl.Controls.pas',0,1,9741,1,9756,0,0,,
-File_13=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Phys.pas',0,1,6542,78,6543,0,0,,
-File_14=TSourceModule,'D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas',0,1,51,15,51,0,0,,{1
+File_0=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UPadraoSDI.pas',0,1,1,102,2,0,0,,
+File_1=TSourceModule,'c:\delphi\tokyo\studio\19.0\source\data\firedac\FireDAC.Stan.Error.pas',0,1,162,1,189,0,0,,
+File_2=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\Principal.pas',0,1,5594,80,5621,0,0,,
+File_3=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\udmTabDiversas.pas',0,1,106,5,140,0,0,,
+File_4=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFBTabelas.pas',0,1,10,3,40,0,0,,
+File_5=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilliTabelas.pas',0,1,1,3,44,0,0,,
+File_6=TSourceModule,'c:\delphi\tokyo\studio\19.0\SOURCE\RTL\SYS\System.SysUtils.pas',0,1,5549,78,5552,0,0,,
+File_7=TSourceModule,'c:\delphi\tokyo\studio\19.0\source\data\Data.DB.pas',0,1,3267,93,3271,0,0,,
+File_8=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\FonteMigraLayout\src\dmTabAliquotas.pas',0,1,1,1,1,0,0,,
+File_9=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayout.pas',0,1,1,1,1,0,0,,
+File_10=TSourceModule,'C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\FuncoesFormulario.pas',0,1,114,3,140,0,0,,
+File_11=TSourceModule,'D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\USourceDBFiorilli.pas',0,1,253,48,282,0,0,,{1
+File_12=TSourceModule,'D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas',0,1,497,49,527,0,0,,
+File_13=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\SOURCE\VCL\Vcl.Controls.pas',0,1,9741,1,9756,0,0,,
+File_14=TSourceModule,'c:\program files (x86)\embarcadero\studio\15.0\source\data\firedac\FireDAC.Phys.pas',0,1,6542,78,6543,0,0,,
 
 [Modules]
-Module0=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas
-Module1=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas
-Module2=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UMain.pas
-Module3=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
-Module4=default.htm
-Module5=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\MigraGeraSys.dproj
-Module6=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\URecursos.pas
-Module7=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
-Module8=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
-Module9=documentation.htm
+Module0=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas
+Module1=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
+Module2=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas
+Module3=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
+Module4=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
+Module5=default.htm
+Module6=documentation.htm
+Module7=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\MigraGeraSys.dproj
+Module8=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\URecursos.pas
+Module9=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UMain.pas
 Count=10
 EditWindowCount=1
 
-[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas]
-ModuleType=TSourceModule
-
 [C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas]
-ModuleType=TSourceModule
-
-[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UMain.pas]
 ModuleType=TSourceModule
 
 [C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UConexaoTargetDB.pas]
 ModuleType=TSourceModule
 
-[default.htm]
-ModuleType=TURLModule
-
-[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\MigraGeraSys.dproj]
-ModuleType=TBaseProject
-
-[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\URecursos.pas]
+[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas]
 ModuleType=TSourceModule
 
 [C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilli.pas]
@@ -56,12 +44,24 @@ ModuleType=TSourceModule
 [C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas]
 ModuleType=TSourceModule
 
+[default.htm]
+ModuleType=TURLModule
+
 [documentation.htm]
 ModuleType=TURLModule
 
+[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\MigraGeraSys.dproj]
+ModuleType=TBaseProject
+
+[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\URecursos.pas]
+ModuleType=TSourceModule
+
+[C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UMain.pas]
+ModuleType=TSourceModule
+
 [EditWindow0]
 ViewCount=10
-CurrentEditView=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas
+CurrentEditView=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas
 View0=0
 View1=1
 View2=2
@@ -134,13 +134,13 @@ EditViewName=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGe
 [View4]
 CustomEditViewType=TEditView
 Module=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
-CursorX=1
-CursorY=1090
-TopLine=1065
+CursorX=3
+CursorY=1201
+TopLine=1174
 LeftCol=1
 Elisions=
 Bookmarks=
-EditViewName=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\UConexaoTargetDB.pas
+EditViewName=Borland.FormDesignerView
 
 [View5]
 CustomEditViewType=TEditView
@@ -156,9 +156,9 @@ EditViewName=Borland.FormDesignerView
 [View6]
 CustomEditViewType=TEditView
 Module=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\ULimparDadosTargetDB.pas
-CursorX=1
-CursorY=88
-TopLine=84
+CursorX=29
+CursorY=132
+TopLine=130
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -167,8 +167,8 @@ EditViewName=Borland.FormDesignerView
 [View7]
 CustomEditViewType=TEditView
 Module=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBInfoPublic.pas
-CursorX=40
-CursorY=12
+CursorX=33
+CursorY=52
 TopLine=1
 LeftCol=1
 Elisions=
@@ -179,8 +179,8 @@ EditViewName=Borland.FormDesignerView
 CustomEditViewType=TEditView
 Module=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBFiorilli.pas
 CursorX=1
-CursorY=1991
-TopLine=1931
+CursorY=82
+TopLine=80
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -189,12 +189,12 @@ EditViewName=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGe
 [View9]
 CustomEditViewType=TEditView
 Module=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.pas
-CursorX=54
-CursorY=456
-TopLine=222
+CursorX=15
+CursorY=72
+TopLine=66
 LeftCol=1
 Elisions=
-Bookmarks=
+Bookmarks={1,236,55}
 EditViewName=Borland.FormDesignerView
 
 [UndockedDesigner]
@@ -226,7 +226,7 @@ StayOnTop=0
 
 [Breakpoints]
 Count=1
-Breakpoint0='D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas',3777,'',0,1,'',1,0,0,'',1,'','','',0,''
+Breakpoint0='D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\src\UConexaoTargetDB.pas',3816,'',0,1,'',1,0,0,'',1,'','','',0,''
 
 [EmbarcaderoWin32Debugger_AddressBreakpoints]
 Count=0

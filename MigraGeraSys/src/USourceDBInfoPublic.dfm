@@ -1,8 +1,6 @@
 inherited frmSourceDBInfoPublic: TfrmSourceDBInfoPublic
   Caption = 'SourceDB Info Public'
   ClientHeight = 349
-  OnCreate = FormCreate
-  ExplicitWidth = 558
   ExplicitHeight = 378
   PixelsPerInch = 96
   TextHeight = 13
@@ -53,7 +51,6 @@ inherited frmSourceDBInfoPublic: TfrmSourceDBInfoPublic
       Top = 27
       Width = 432
       Height = 21
-      DialogKind = dkWin32
       Images = dmRecursos.img16x16
       ReadOnly = True
       TabOrder = 0
@@ -137,7 +134,7 @@ inherited frmSourceDBInfoPublic: TfrmSourceDBInfoPublic
       Top = 64
       Width = 141
       Height = 17
-      Caption = 'Tabela Situa'#231#227'o'
+      Caption = 'Tabela Situa'#231#227'o TCM'
       TabOrder = 10
     end
     object chkTabelaEvento: TCheckBox

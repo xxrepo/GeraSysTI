@@ -25,6 +25,7 @@ type
     lblCompetencia: TLabel;
     cmCompetencia: TComboBox;
     chkTabelaEventoFixo: TCheckBox;
+    chkApenasImportados: TCheckBox;
     procedure chkLancamentoMesServidorClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure chkTabelaCBOClick(Sender: TObject);
@@ -33,6 +34,8 @@ type
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
     procedure chkTabelaEstadoFuncionalClick(Sender: TObject);
     procedure chkTabelaEventoClick(Sender: TObject);
+    procedure chkTabelaSituacaoClick(Sender: TObject);
+    procedure chkTabelaUnidadeLotacaoClick(Sender: TObject);
   private
     { Private declarations }
     procedure ExcluirCBO(Sender: TObject);
@@ -42,7 +45,7 @@ type
 //    procedure ImportarUnidadeOrcamentaria(Sender: TObject);
     procedure ExcluirUnidadeLotacao(Sender: TObject);
     procedure ExcluirEstadoFuncional(Sender: TObject);
-//    procedure ImportarSituacao(Sender: TObject);
+    procedure ExcluirSituacao(Sender: TObject);
 //    procedure ImportarSetor(Sender: TObject);
     procedure ExcluirEventos(Sender: TObject);
     procedure ExcluirEntidadeFinanceira(Sender: TObject);
@@ -118,6 +121,18 @@ begin
   end;
 end;
 
+procedure TfrmLimparDadosTargetDB.chkTabelaSituacaoClick(Sender: TObject);
+begin
+  if chkTabelaSituacao.Checked then
+    chkTabelaPFServidor.Checked := True;
+end;
+
+procedure TfrmLimparDadosTargetDB.chkTabelaUnidadeLotacaoClick(Sender: TObject);
+begin
+  if chkTabelaUnidadeLotacao.Checked then
+    chkTabelaPFServidor.Checked := True;
+end;
+
 function TfrmLimparDadosTargetDB.ConfirmarProcesso: Boolean;
 var
   aRetorno : Boolean;
@@ -135,8 +150,6 @@ begin
       begin
 //        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
 //        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
-        if chkTabelaUnidadeLotacao.Checked  then ExcluirUnidadeLotacao(chkTabelaUnidadeLotacao);
-//        if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
 //        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
         if chkLancamentoMesServidor.Checked then ExcluirFolhaMensalServidor(chkLancamentoMesServidor);
         if chkTabelaEventoFixo.Checked      then ExcluirEventoFixoServidor(chkTabelaDependente);
@@ -148,6 +161,8 @@ begin
         if chkTabelaCargoFuncao.Checked     then ExcluirCargoFuncao(chkTabelaCargoFuncao);
         if chkTabelaCBO.Checked             then ExcluirCBO(chkTabelaCBO);
         if chkTabelaEscolaridade.Checked    then ExcluirEscolaridade(chkTabelaEscolaridade);
+        if chkTabelaUnidadeLotacao.Checked  then ExcluirUnidadeLotacao(chkTabelaUnidadeLotacao);
+        if chkTabelaSituacao.Checked        then ExcluirSituacao(chkTabelaSituacao);
 
         aRetorno := True;
       end;
@@ -166,14 +181,21 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirCargoFuncao(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('CARGO_FUNCAO', ID_SYS_ANTER) then
-          ExecSQL('Delete from CARGO_FUNCAO where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('CARGO_FUNCAO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from CARGO_FUNCAO ' + vWhere, True);
 
         CommitRetaining;
 
@@ -195,14 +217,21 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirCBO(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('CBO', ID_SYS_ANTER) then
-          ExecSQL('Delete from CBO where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('CBO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from CBO ' + vWhere, True);
 
         CommitRetaining;
 
@@ -224,17 +253,24 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirDependente(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('PESSOA_FISICA_DEPENDENTE', ID_SYS_ANTER) then
-          ExecSQL('Delete from PESSOA_FISICA_DEPENDENTE where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('PESSOA_FISICA_DEPENDENTE', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from PESSOA_FISICA_DEPENDENTE ' + vWhere, True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_DEPENDENTE', ID_SYS_ANTER) then
-          ExecSQL('Delete from SERVIDOR_DEPENDENTE where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_DEPENDENTE', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from SERVIDOR_DEPENDENTE ' + vWhere, True);
 
         CommitRetaining;
 
@@ -258,17 +294,24 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirEntidadeFinanceira(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_CONTA_BANC', ID_SYS_ANTER) then
-          ExecSQL('Delete from SERVIDOR_CONTA_BANC where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_CONTA_BANC', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from SERVIDOR_CONTA_BANC ' + vWhere, True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('ENTID_FINANC', ID_SYS_ANTER) then
-          ExecSQL('Delete from ENTID_FINANC where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('ENTID_FINANC', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from ENTID_FINANC ' + vWhere, True);
 
         CommitRetaining;
 
@@ -292,13 +335,20 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirEscolaridade(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('ESCOLARIDADE', 'COD_RAIS') then
+        if dmConexaoTargetDB.ExisteCampoTabela('ESCOLARIDADE', 'COD_RAIS') or (not chkApenasImportados.Checked) then
           ExecSQL('Delete from ESCOLARIDADE where COD_RAIS is not null', True);
 
         CommitRetaining;
@@ -317,19 +367,25 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirEstadoFuncional(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := ' and (' + ID_SYS_ANTER + ' is not null)'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('ESTADO_FUNCIONAL', ID_SYS_ANTER) then
+        if dmConexaoTargetDB.ExisteCampoTabela('ESTADO_FUNCIONAL', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
           ExecSQL(
             'Delete from ESTADO_FUNCIONAL '+
-            'where ' + ID_SYS_ANTER + ' is not null' +
-            '  and (ID not in (' +
+            'where (ID not in (' +
             '    Select distinct ID_EST_FUNCIONAL from SERVIDOR ' +
-            '  ))', True);
+            '  )) ' + vWhere, True);
 
         CommitRetaining;
 
@@ -351,17 +407,24 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirEventoFixoServidor(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) then
+        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
           ExecSQL(
             'Delete from SERVIDOR_EVENTO_FIXO '+
             'where (ID_EVENTO in (' +
-            '    Select ID from EVENTO where ' + ID_SYS_ANTER + ' is not null' +
+            '    Select ID from EVENTO ' + vWhere +
             '  ))', True);
 
         CommitRetaining;
@@ -380,21 +443,28 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirEventos(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) then
+        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
           ExecSQL(
             'Delete from SERVIDOR_EVENTO_FIXO '+
             'where (ID_EVENTO in (' +
-            '    Select ID from EVENTO where ' + ID_SYS_ANTER + ' is not null' +
+            '    Select ID from EVENTO ' + vWhere +
             '  ))', True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) then
-          ExecSQL('Delete from EVENTO where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('EVENTO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from EVENTO ' + vWhere, True);
 
         CommitRetaining;
 
@@ -417,31 +487,38 @@ end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirFolhaMensalServidor(Sender: TObject);
   procedure ExcluirFolha(const aCompetencia : TGenerico);
+  var
+    vWhere : String;
   begin
+    if chkApenasImportados.Checked then
+      vWhere := '  and ' + ID_SYS_ANTER + ' is not null'
+    else
+      vWhere := EmptyStr;
+
     Screen.Cursor := crSQLWait;
     try
       try
         with dmConexaoTargetDB, fdTargetDB do
         begin
-          if dmConexaoTargetDB.ExisteCampoTabela('LANCTO_EVENTO_CALC', ID_SYS_ANTER) then
+          if dmConexaoTargetDB.ExisteCampoTabela('LANCTO_EVENTO_CALC', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
             ExecSQL(
               'Delete from LANCTO_EVENTO_CALC ' +
               'where ANO_MES = ' + QuotedStr(IntToStr(aCompetencia.ID)) +
               '  and PARCELA = ' + QuotedStr('0') +
-              '  and ' + ID_SYS_ANTER + ' is not null ', True);
+              vWhere, True);
 
-          if dmConexaoTargetDB.ExisteCampoTabela('BASE_CALC_MES_SERVIDOR', ID_SYS_ANTER) then
+          if dmConexaoTargetDB.ExisteCampoTabela('BASE_CALC_MES_SERVIDOR', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
             ExecSQL(
               'Delete from BASE_CALC_MES_SERVIDOR ' +
               'where ANO_MES = ' + QuotedStr(IntToStr(aCompetencia.ID)) +
               '  and PARCELA = ' + QuotedStr('0') +
-              '  and ' + ID_SYS_ANTER + ' is not null ', True);
+              vWhere, True);
 
-          if dmConexaoTargetDB.ExisteCampoTabela('INICIALIZA_MES_SERVIDOR', ID_SYS_ANTER) then
+          if dmConexaoTargetDB.ExisteCampoTabela('INICIALIZA_MES_SERVIDOR', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
             ExecSQL(
               'Delete from INICIALIZA_MES_SERVIDOR ' +
               'where ANO_MES = ' + QuotedStr(IntToStr(aCompetencia.ID)) +
-              '  and ' + ID_SYS_ANTER + ' is not null ', True);
+              vWhere, True);
 
           CommitRetaining;
 
@@ -484,20 +561,27 @@ begin
 end;
 
 procedure TfrmLimparDadosTargetDB.ExcluirPessoaFisica(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := 'where ' + ID_SYS_ANTER + ' is not null'
+  else
+    vWhere := EmptyStr;
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_CONTA_BANC', ID_SYS_ANTER) then
-          ExecSQL('Delete from SERVIDOR_CONTA_BANC where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR_CONTA_BANC', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from SERVIDOR_CONTA_BANC ' + vWhere, True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR', ID_SYS_ANTER) then
-          ExecSQL('Delete from SERVIDOR where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('SERVIDOR', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from SERVIDOR ' + vWhere, True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('PESSOA_FISICA', ID_SYS_ANTER) then
-          ExecSQL('Delete from PESSOA_FISICA where ' + ID_SYS_ANTER + ' is not null', True);
+        if dmConexaoTargetDB.ExisteCampoTabela('PESSOA_FISICA', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL('Delete from PESSOA_FISICA ' + vWhere, True);
 
         CommitRetaining;
 
@@ -522,26 +606,75 @@ begin
   end;
 end;
 
-procedure TfrmLimparDadosTargetDB.ExcluirUnidadeLotacao(Sender: TObject);
+procedure TfrmLimparDadosTargetDB.ExcluirSituacao(Sender: TObject);
+var
+  vWhere : String;
 begin
+  if chkApenasImportados.Checked then
+    vWhere := ' and (' + ID_SYS_ANTER + ' is not null)'
+  else
+    vWhere := EmptyStr;
+
+
   Screen.Cursor := crSQLWait;
   try
     try
       with dmConexaoTargetDB, fdTargetDB do
       begin
-        if dmConexaoTargetDB.ExisteCampoTabela('UNID_LOTACAO', ID_SYS_ANTER) then
+        if dmConexaoTargetDB.ExisteCampoTabela('SITUACAO_TCM', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL(
+            'Delete from SITUACAO_TCM '+
+            'where (ID > 74)   ' +
+            '  and (ID not in (' +
+            '    Select distinct ID_SITUACAO_TCM from INICIALIZA_MES_SERVIDOR' +
+            '    union' +
+            '    Select distinct ID_SITUACAO_TCM from SERVIDOR' +
+            '  )) ' + vWhere, True);
+
+        CommitRetaining;
+
+        ExcluirCampoTabela('SITUACAO_TCM', ID_SYS_ANTER);
+      end;
+    except
+      On E : Exception do
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' (SITUACAO_TCM) não esvaziada - ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    dmRecursos.ExibriLog;
+
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmLimparDadosTargetDB.ExcluirUnidadeLotacao(Sender: TObject);
+var
+  vWhere : String;
+begin
+  if chkApenasImportados.Checked then
+    vWhere := ' and (' + ID_SYS_ANTER + ' is not null)'
+  else
+    vWhere := EmptyStr;
+
+  Screen.Cursor := crSQLWait;
+  try
+    try
+      with dmConexaoTargetDB, fdTargetDB do
+      begin
+        if dmConexaoTargetDB.ExisteCampoTabela('UNID_LOTACAO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
           ExecSQL(
             'Delete from UNID_LOTACAO '+
             'where (ID not in (' +
             '    Select distinct ID_UNID_LOTACAO from SERVIDOR' +
-            '  )) and (' + ID_SYS_ANTER + ' is not null)', True);
+            '  )) ' + vWhere, True);
 
-        if dmConexaoTargetDB.ExisteCampoTabela('DEPTO', ID_SYS_ANTER) then
+        if dmConexaoTargetDB.ExisteCampoTabela('DEPTO', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
           ExecSQL(
             'Delete from DEPTO '+
             'where (ID not in (' +
             '    Select distinct ID_DEPTO from SERVIDOR' +
-            '  )) and (' + ID_SYS_ANTER + ' is not null)', True);
+            '  )) ' + vWhere, True);
 
         CommitRetaining;
 

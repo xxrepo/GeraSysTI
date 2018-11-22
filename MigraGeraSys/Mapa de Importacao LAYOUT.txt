@@ -1,0 +1,26 @@
+SFP001 - Servidor
+SFP003 - Dados UG
+SFP005 - Cargos e CBO
+SFPDXX25 - Cargo 2
+SFP006 - Departamentos
+SFP010 - Eventos
+SFP017 - Afastamentos
+SFP019 - Totais da Folha
+SFPD9911 - Entidades Financeiras
+SFPD9924 - Unidade de Lotação
+SFPDXX02 - Calculo Mensal
+SFPDXX16 - Férias
+SFPW9927 - Diárias
+SFPD9912 - Dependentes
+CFG_VINCSET - Vinculos para Subunidades
+
+
+Pm01-prefeituta
+Pm02-municipalizados
+Pm06-autonomos
+Pm50-saude
+Pm52-saae
+
+
+
+

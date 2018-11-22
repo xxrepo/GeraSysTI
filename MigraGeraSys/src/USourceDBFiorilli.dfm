@@ -2,7 +2,6 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
   Caption = 'SourceDB Fiorilli'
   ClientHeight = 436
   ClientWidth = 670
-  OnCreate = FormCreate
   ExplicitWidth = 676
   ExplicitHeight = 465
   PixelsPerInch = 96
@@ -219,7 +218,7 @@ inherited frmSourceDBFiorilli: TfrmSourceDBFiorilli
       Top = 225
       Width = 141
       Height = 17
-      Caption = 'Tabela Situa'#231#227'o'
+      Caption = 'Tabela Situa'#231#227'o TCM'
       TabOrder = 13
     end
     object chkTabelaSetor: TCheckBox

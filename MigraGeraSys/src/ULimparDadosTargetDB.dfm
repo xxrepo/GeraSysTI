@@ -6,10 +6,12 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
   TextHeight = 13
   inherited btnConfirmar: TButton
     Top = 258
+    TabOrder = 4
     ExplicitTop = 258
   end
   inherited btnCancelar: TButton
     Top = 258
+    TabOrder = 5
     ExplicitTop = 258
   end
   inherited pnlTitulo: TPanel
@@ -79,6 +81,7 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Height = 17
       Caption = 'Tabela Unidade Lota'#231#227'o/Departamento'
       TabOrder = 5
+      OnClick = chkTabelaUnidadeLotacaoClick
     end
     object chkTabelaEstadoFuncional: TCheckBox
       Left = 16
@@ -146,9 +149,9 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Top = 169
       Width = 141
       Height = 17
-      Caption = 'Tabela Situa'#231#227'o'
-      Enabled = False
+      Caption = 'Tabela Situa'#231#227'o TCM'
       TabOrder = 14
+      OnClick = chkTabelaSituacaoClick
     end
     object cmCompetencia: TComboBox
       Left = 247
@@ -170,6 +173,24 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
   end
   inherited chkRotina: TCheckBox
     Top = 267
+    TabOrder = 3
     ExplicitTop = 267
+  end
+  object chkApenasImportados: TCheckBox
+    Left = 8
+    Top = 267
+    Width = 244
+    Height = 17
+    Anchors = [akLeft, akBottom]
+    Caption = 'Excluir apenas registros importandos'
+    Checked = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    State = cbChecked
+    TabOrder = 2
   end
 end

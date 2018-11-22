@@ -212,8 +212,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Top = 225
       Width = 141
       Height = 17
-      Caption = 'Tabela Situa'#231#227'o'
-      Enabled = False
+      Caption = 'Tabela Situa'#231#227'o TCM'
       TabOrder = 14
     end
     object chkTabelaSetor: TCheckBox
@@ -224,6 +223,15 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Caption = 'Tabela Setor'
       Enabled = False
       TabOrder = 15
+    end
+    object chkTabelaEvento: TCheckBox
+      Left = 16
+      Top = 271
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Eventos'
+      Enabled = False
+      TabOrder = 16
     end
   end
   inherited chkRotina: TCheckBox

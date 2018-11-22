@@ -75,7 +75,7 @@ Type
       property ID        : Integer read GetID write SetID;
       property Descricao : String read GetDescricao write SetDescricao;
       property Resumo    : String read GetResumo write SetResumo;
-      property Prefixo   : String read GetResumo;
+      property Sufixo    : String read GetResumo;
       property Codigo    : String read FCodigo write SetCodigo;
       property Ativo     : Boolean read FAtivo write FAtivo;
 
@@ -1038,6 +1038,7 @@ type
     function GetExistemCamposNulos(const aDataSet : TDataSet; var aCampos : TStringList) : Boolean;
   public
     { Public declarations }
+    procedure CriarTabela(const pTabela, pCampoChave : String; const pScriptSQL : TStringList);
     procedure CriarCampoTabela(const pTabela, pCampo, pTipo : String);
     procedure ExcluirCampoTabela(const pTabela, pCampo : String);
     procedure GetID(const pTabela, pCampo, pWhere : String; var aRetorno : TGenerico);
@@ -1087,6 +1088,7 @@ var
   dmConexaoTargetDB: TdmConexaoTargetDB;
 
 const
+  TBL_LAYOUT_IMPORT = 'TMP_LAYOUT_IMPORT';
   ID_SYS_ANTER      = 'ID_SYS_ANTER';
   ID_SYS_ANTER_TYPE = 'VARCHAR(15)';
 
@@ -1190,6 +1192,43 @@ where c.ano_mes = '201712'
 //  finally
 //    aSQL.Free;
 //  end;
+end;
+
+procedure TdmConexaoTargetDB.CriarTabela(const pTabela, pCampoChave : String; const pScriptSQL : TStringList);
+var
+  sIndice : String;
+begin
+  with qryBusca do
+  begin
+    // Verificar se tabela existe
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT ');
+    SQL.Add('    f.rdb$relation_name as TABELA');
+    SQL.Add('  , f.rdb$field_name    as CAMPO ');
+    SQL.Add('from RDB$RELATION_FIELDS f       ');
+    SQL.Add('where f.rdb$system_flag   = 0');
+    SQL.Add('  and f.rdb$relation_name = ' + QuotedStr(AnsiUpperCase(Trim(pTabela))) );
+    OpenOrExecute;
+
+    // Criar tabela e índice, caso ele não exista
+    if (FieldByName('TABELA').AsString = EmptyStr) then
+    begin
+      try
+        fdTargetDB.ExecSQL(pScriptSQL.Text);
+        fdTargetDB.CommitRetaining;
+
+        sIndice := Trim(Copy('PK_' + Trim(pTabela), 1, 30));
+
+        fdTargetDB.ExecSQL('ALTER TABLE ' + Trim(pTabela) +
+          ' ADD CONSTRAINT ' + sIndice +
+          ' PRIMARY KEY (' + Trim(pCampoChave) + ')');
+        fdTargetDB.CommitRetaining;
+      except
+      end;
+    end;
+    Close;
+  end;
 end;
 
 procedure TdmConexaoTargetDB.CriarCampoTabela(const pTabela, pCampo,

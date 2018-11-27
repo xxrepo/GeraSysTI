@@ -230,7 +230,6 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 141
       Height = 17
       Caption = 'Tabela Eventos'
-      Enabled = False
       TabOrder = 16
     end
   end

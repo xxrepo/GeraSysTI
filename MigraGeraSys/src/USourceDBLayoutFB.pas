@@ -70,7 +70,7 @@ type
     procedure ImportarEstadoFuncional(Sender: TObject);
     procedure ImportarSituacao(Sender: TObject);
     procedure ImportarSetor(Sender: TObject); virtual; abstract;
-    procedure ImportarEventos(Sender: TObject); virtual; abstract;
+    procedure ImportarEventos(Sender: TObject);
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -513,6 +513,148 @@ begin
     end;
 
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_ESTADO_FUNCIONAL', 'ESTADO_FUNCIONAL', 'ID');
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarEventos(Sender: TObject);
+var
+  aEvento : TEvento;
+  aCompetencia : TGenerico;
+begin
+  try
+//    try
+//      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD MIGRA_FOLHA BOOLEAN DEFAULT ''S''', True);
+//      fdSourceDB.CommitRetaining;
+//      fdSourceDB.ExecSQL('Update EVENTOS Set MIGRA_FOLHA = ''S'' where MIGRA_FOLHA is null', True);
+//      fdSourceDB.CommitRetaining;
+//      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD INICIALIZA_MES BOOLEAN DEFAULT ''N''', True);
+//      fdSourceDB.CommitRetaining;
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''N'' where INICIALIZA_MES is null', True);
+//      fdSourceDB.CommitRetaining;
+//    except
+//    end;
+//
+//    try
+//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''001''', True); // -- Salário Base
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''008''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''152''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''159''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''940''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''954''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''955''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''956''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''570''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''958''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''957''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''977''', True); // -- Licença Prêmio
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''978''', True); // -- Licença Maternidade (1)
+////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''979''', True); // -- Licença Maternidade (2)
+//      fdSourceDB.CommitRetaining;
+//    except
+//    end;
+//
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from SFP010' + aCompetencia.Sufixo;
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aEvento := TEvento.Create;
+
+      aEvento.ID        := 0;
+      aEvento.Codigo    := FBaseID + Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aEvento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aEvento.CodigoRubrica := Trim(qrySourceDB.FieldByName('codigo').AsString);
+
+//      Case StrToIntDef(Trim(dbfSourceDB.FieldByName('tipo').AsString), 0) of
+//        1 : aEvento.Tipo := 'V';
+//        2 : aEvento.Tipo := 'D';
+//      end;
+      if (Trim(qrySourceDB.FieldByName('natureza').AsString) = 'P') then
+        aEvento.Tipo := 'V'
+      else
+      if (Trim(qrySourceDB.FieldByName('natureza').AsString) = 'D') then
+        aEvento.Tipo := 'D'
+      else
+      if (Trim(qrySourceDB.FieldByName('natureza').AsString) = 'V') then
+        aEvento.Tipo := 'D';
+
+      aEvento.Categoria.ID          := 16;
+      aEvento.Categoria.Descricao   := 'OUTRA';
+      aEvento.CategoriaTCM.ID       := 0;
+      aEvento.PercentualHoraExtra   := 0.0;
+      aEvento.HRSobreHoraNormal     := EmptyStr;
+      aEvento.TipoBaseCalculo       := baseCalculoUm;
+      aEvento.IndiceSalarioFamilia  := False; // (Trim(qrySourceDB.FieldByName('salariofamilia').AsString) = 'S');
+      aEvento.IndiceATS             := False; // (StrToIntDef(Trim(dbfSourceDB.FieldByName('INCATS').AsString), 0)    = 1);
+      aEvento.IndiceFerias          := (Trim(qrySourceDB.FieldByName('incidefer').AsString) = 'S');
+      aEvento.IndiceDecimoTerceiro  := (Trim(qrySourceDB.FieldByName('incide13').AsString) = 'S');
+      aEvento.IndiceFalta           := True;
+      aEvento.IndicePrevidencia     := (Trim(qrySourceDB.FieldByName('incideinss').AsString) = 'S');
+      aEvento.IndiceIRRF            := (Trim(qrySourceDB.FieldByName('incideirrf').AsString) = 'S');
+      aEvento.IndiceOutraBC1        := False;
+      aEvento.IndiceOutraBC2        := False;
+      aEvento.IndiceOutraBC3        := False;
+      aEvento.GeraRAIS              := False; // (Trim(qrySourceDB.FieldByName('rais').AsString) = 'S');
+      aEvento.CopiaMesAnterior      := False;
+      aEvento.PermiteUsuarioAlterar := True;
+      aEvento.SemUso                := False;
+      aEvento.SubElementoDespesa := EmptyStr;
+      aEvento.ContaCorrente      := EmptyStr;
+      aEvento.BCMargemConsignada := True;;
+      aEvento.ValorBCFixa        := 0.0;
+      aEvento.Natureza           := naturezaEventoDois;
+      aEvento.Remuneracao        := EmptyStr;
+
+      (*
+      0 - Null
+      1 - (%) Acréstimo na Hora x Quantidade
+      2 - (%) da Hora x Quantidade
+      3 - (%) do Valor x Quantidade
+      4 - Quantidade x Valor
+      5 - (%) x Valor
+      *)
+      if (Trim(qrySourceDB.FieldByName('tipo').AsString) = 'P') then
+        aEvento.FormaCalculo := formaCalculoPorPercentual
+      else
+      if (Trim(qrySourceDB.FieldByName('tipo').AsString) = 'V') then
+        aEvento.FormaCalculo := formaCalculoAutomatico;
+
+      aEvento.ValorFixo  := qrySourceDB.FieldByName('valor').AsCurrency;
+      aEvento.Divisor    := 0.0;
+      aEvento.SubDivisor := 0.0;
+      aEvento.Max_x_vencimentoBase  := 1;
+
+      dmConexaoTargetDB.InserirCategoria(aEvento.Categoria);
+
+      if not dmConexaoTargetDB.InserirEvento(aEvento) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aEvento.Codigo + ' - ' + aEvento.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_EVENTO', 'EVENTO', 'ID');
   finally
     dmRecursos.ExibriLog;
 

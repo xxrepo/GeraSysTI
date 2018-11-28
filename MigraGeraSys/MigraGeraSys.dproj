@@ -161,8 +161,12 @@
             <Form>frmSourceDBLayoutFBTabelas</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="src\USourceDBLayoutFBParametrizar.pas">
-            <Form>frmSourceDBLayoutFBParametrizar</Form>
+        <DCCReference Include="src\USourceDBLayoutFBEvento.pas">
+            <Form>frmSourceDBLayoutFBEvento</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="src\USourceDBLayoutFBEstadoFuncional.pas">
+            <Form>frmSourceDBLayoutFBEstadoFuncional</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

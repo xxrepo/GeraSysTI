@@ -19,7 +19,8 @@ uses
   ULimparDadosTargetDB in 'src\ULimparDadosTargetDB.pas' {frmLimparDadosTargetDB},
   USourceDBLayoutFB in 'src\USourceDBLayoutFB.pas' {frmSourceDBLayoutFB},
   USourceDBLayoutFBTabelas in 'src\USourceDBLayoutFBTabelas.pas' {frmSourceDBLayoutFBTabelas},
-  USourceDBLayoutFBParametrizar in 'src\USourceDBLayoutFBParametrizar.pas' {frmSourceDBLayoutFBParametrizar};
+  USourceDBLayoutFBEvento in 'src\USourceDBLayoutFBEvento.pas' {frmSourceDBLayoutFBEvento},
+  USourceDBLayoutFBEstadoFuncional in 'src\USourceDBLayoutFBEstadoFuncional.pas' {frmSourceDBLayoutFBEstadoFuncional};
 
 {$R *.res}
 

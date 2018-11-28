@@ -2226,6 +2226,7 @@ begin
         CriarCampoTabela('ESTADO_FUNCIONAL', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
+        ParamByName('id').AsInteger       := pEstadoFuncional.ID;
         ParamByName('codigo').AsString    := pEstadoFuncional.Codigo;
         ParamByName('descricao').AsString := Copy(pEstadoFuncional.Descricao, 1, 40);
         Open;

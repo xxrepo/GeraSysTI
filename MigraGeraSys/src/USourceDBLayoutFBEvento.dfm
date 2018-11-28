@@ -1,4 +1,4 @@
-inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
+inherited frmSourceDBLayoutFBEvento: TfrmSourceDBLayoutFBEvento
   Caption = 'SourceDB Layout (FB) - Parametrizar Tabelas'
   ClientHeight = 500
   ClientWidth = 839
@@ -6,23 +6,46 @@ inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
   ExplicitHeight = 529
   PixelsPerInch = 96
   TextHeight = 13
+  object Gauge: TGauge [0]
+    Left = 3
+    Top = 469
+    Width = 639
+    Height = 17
+    Anchors = [akLeft, akRight, akBottom]
+    ForeColor = clGreen
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Progress = 0
+    Visible = False
+  end
   inherited btnConfirmar: TButton
     Left = 648
     Top = 460
+    ExplicitLeft = 648
+    ExplicitTop = 460
   end
   inherited btnCancelar: TButton
     Left = 744
     Top = 460
+    ExplicitLeft = 744
+    ExplicitTop = 460
   end
   inherited pnlTitulo: TPanel
     Width = 833
     Caption = ' Parametrizar Tabela %s - (%s)'
     Font.Style = [fsBold]
     ParentFont = False
+    ExplicitWidth = 833
   end
   inherited pnlControle: TPanel
     Width = 833
     Height = 423
+    ExplicitWidth = 833
+    ExplicitHeight = 423
     object grdTabela: TcxGrid
       Left = 0
       Top = 0
@@ -31,10 +54,6 @@ inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
       Align = alClient
       TabOrder = 0
       LookAndFeel.NativeStyle = False
-      ExplicitLeft = 40
-      ExplicitTop = 48
-      ExplicitWidth = 250
-      ExplicitHeight = 200
       object grdTabelaDB: TcxGridDBTableView
         Navigator.Buttons.CustomButtons = <>
         DataController.DataSource = dtsTabelaDB
@@ -52,7 +71,7 @@ inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
         OptionsView.NoDataToDisplayInfoText = '<Sem dados para visualiza'#231#227'o/parametriza'#231#227'o>'
         OptionsView.ColumnAutoWidth = True
         OptionsView.GroupByBox = False
-        object grdTabelaDBColumn1: TcxGridDBColumn
+        object grdTabelaDBColumnID: TcxGridDBColumn
           Caption = 'C'#243'digo'
           DataBinding.FieldName = 'CODIGO'
           MinWidth = 70
@@ -72,7 +91,7 @@ inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
           Options.Moving = False
           Width = 350
         end
-        object grdTabelaDBColumn3: TcxGridDBColumn
+        object grdTabelaDBColumnReferencia: TcxGridDBColumn
           Caption = 'Parametriza'#231#227'o (Remuneratus)'
           DataBinding.FieldName = 'EVENTO_REMUN_ID'
           PropertiesClassName = 'TcxLookupComboBoxProperties'
@@ -101,6 +120,8 @@ inherited frmSourceDBLayoutFBParametrizar: TfrmSourceDBLayoutFBParametrizar
   inherited chkRotina: TCheckBox
     Left = 545
     Top = 469
+    ExplicitLeft = 545
+    ExplicitTop = 469
   end
   object qryTabelaDB: TFDQuery
     Connection = frmSourceDBLayoutFB.fdSourceDB

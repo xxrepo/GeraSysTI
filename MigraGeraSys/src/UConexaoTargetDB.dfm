@@ -535,11 +535,18 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , e.ativo'
       '  , e.id_sys_anter'
       'from ESTADO_FUNCIONAL e'
-      'where (e.id_sys_anter = :codigo)'
+      'where (e.id = :id)'
+      '   or (e.id_sys_anter = :codigo)'
       '   or (e.descricao = :descricao)')
     Left = 328
     Top = 112
     ParamData = <
+      item
+        Name = 'ID'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end
       item
         Name = 'CODIGO'
         DataType = ftString

@@ -48,7 +48,7 @@ type
     popParametrizacoes: TPopupMenu;
     BtnParametrizar: TcxButton;
     mniEvento: TMenuItem;
-    N1: TMenuItem;
+    mniEstadoFuncional: TMenuItem;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -57,15 +57,18 @@ type
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
     procedure mniEventoClick(Sender: TObject);
+    procedure mniEstadoFuncionalClick(Sender: TObject);
   private
     { Private declarations }
     FBaseID : String;
-    FCampoEventoRemunID : String;
+    FCampoEventoRemunID ,
+    FCampoEstadoFuncionalRemunID : String;
 
     procedure CriarTabelaDB;
     procedure GravarIni;
     procedure ListarCompetenciasLayoutFB;
     procedure CriarCampoEvento_Layout;
+    procedure CriarCampoEstadoFuncional_Layout;
 
     function ConectarSourceDB : Boolean;
     function RegistrarTabelaDB(aFileNameDB : String) : String;
@@ -95,7 +98,8 @@ implementation
 uses
   URecursos,
   USourceDBLayoutFBTabelas,
-  USourceDBLayoutFBParametrizar;
+  USourceDBLayoutFBEvento,
+  USourceDBLayoutFBEstadoFuncional;
 
 { TfrmSourceDBLayoutFB }
 
@@ -216,6 +220,15 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.CriarCampoEstadoFuncional_Layout;
+begin
+  try
+    fdSourceDB.ExecSQL('ALTER TABLE AFASTFOLHA ADD ' + FCampoEstadoFuncionalRemunID + ' INTEGER', True);
+    fdSourceDB.CommitRetaining;
+  except
+  end;
+end;
+
 procedure TfrmSourceDBLayoutFB.CriarCampoEvento_Layout;
 var
   I : Integer;
@@ -263,8 +276,11 @@ end;
 procedure TfrmSourceDBLayoutFB.FormCreate(Sender: TObject);
 begin
   inherited;
+  fdSourceDB.Connected := False;
+
   FBaseID := EmptyStr;
-  FCampoEventoRemunID := 'evento_remun_id';
+  FCampoEventoRemunID          := 'evento_remun_id';
+  FCampoEstadoFuncionalRemunID := 'estado_funcional_remun_id';
 
   if not Assigned(gLogImportacao) then
     gLogImportacao := TStringList.Create;
@@ -501,6 +517,8 @@ var
   aEstadoFunc : TEstadoFuncional;
 begin
   try
+    CriarCampoEstadoFuncional_Layout;
+
     // Inserir Estado Funcional Padrão
     aEstadoFunc := TEstadoFuncional.Create;
     aEstadoFunc.ID        := 1;
@@ -522,7 +540,7 @@ begin
     while not qrySourceDB.Eof do
     begin
       // Os estados funcionais possuem os mesmos códigos em bases diferentes
-      aEstadoFunc.ID        := 0;
+      aEstadoFunc.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
       aEstadoFunc.Codigo    := FormatFloat('000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
       aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
 
@@ -1003,6 +1021,21 @@ order by
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.mniEstadoFuncionalClick(Sender: TObject);
+begin
+  GravarIni;
+
+  if not fdSourceDB.Connected then
+    ConectarSourceDB;
+
+  CriarCampoEstadoFuncional_Layout;
+  ShowParametrizarEstadosFuncionais(Self,
+    TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]),
+    'AFASTFOLHA',
+    FCampoEstadoFuncionalRemunID,
+    'Estados Funcionais');
+end;
+
 procedure TfrmSourceDBLayoutFB.mniEventoClick(Sender: TObject);
 begin
   GravarIni;
@@ -1012,7 +1045,9 @@ begin
 
   CriarCampoEvento_Layout;
   ShowParametrizarEventos(Self,
-    'SFP010' + TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]).Sufixo,
+    TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]),
+    'SFP010',
+    FCampoEventoRemunID,
     'Eventos');
 end;
 

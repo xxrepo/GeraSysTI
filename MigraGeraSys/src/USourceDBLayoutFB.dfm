@@ -314,14 +314,15 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
     Images = dmRecursos.img16x16
     Left = 363
     Top = 247
+    object mniEstadoFuncional: TMenuItem
+      Caption = 'Estado Funcional'
+      ImageIndex = 346
+      OnClick = mniEstadoFuncionalClick
+    end
     object mniEvento: TMenuItem
       Caption = 'Tabela Eventos'
       ImageIndex = 345
       OnClick = mniEventoClick
-    end
-    object N1: TMenuItem
-      Caption = '?'
-      ImageIndex = 346
     end
   end
 end

@@ -102,7 +102,8 @@ implementation
 {$R *.dfm}
 
 uses
-  URecursos, USourceDBFiorilliTabelas;
+  URecursos,
+  USourceDBFiorilliTabelas;
 
 procedure TfrmSourceDBFiorilli.btnConectarClick(Sender: TObject);
 begin

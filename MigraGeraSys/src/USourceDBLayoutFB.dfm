@@ -244,7 +244,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
     AlignWithMargins = True
     Left = 3
     Top = 396
-    Width = 121
+    Width = 135
     Height = 35
     Anchors = [akLeft, akBottom]
     Caption = 'Visualizar Tabelas'
@@ -253,17 +253,31 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
     TabOrder = 2
     OnClick = btnVisualizarClick
   end
+  object BtnParametrizar: TcxButton
+    Left = 144
+    Top = 396
+    Width = 135
+    Height = 35
+    Anchors = [akLeft, akBottom]
+    Caption = 'Parametriza'#231#245'es'
+    DropDownMenu = popParametrizacoes
+    Kind = cxbkOfficeDropDown
+    LookAndFeel.NativeStyle = False
+    OptionsImage.ImageIndex = 129
+    OptionsImage.Images = dmRecursos.img16x16
+    TabOrder = 6
+  end
   object fdSourceDB: TFDConnection
     Params.Strings = (
-      'User_Name=GERASYS.TI'
-      'Password=gsti2010'
+      'User_Name=sysdba'
+      'Password=masterkey'
       'Protocol=TCPIP'
       'Server=localhost'
       'Port=3050'
       'CharacterSet=WIN1252'
       
-        'Database=D:\Projetos\GeraSysTI\MigraGeraSys\db\REMUN_PMSMPA_PROD' +
-        '.FDB'
+        'Database=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\t' +
+        'runk\MigraGeraSys\import\PM01-2018-45400118.FDB'
       'DriverID=FB')
     LoginPrompt = False
     Transaction = fdTransSourceDB
@@ -295,5 +309,19 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
     UpdateTransaction = fdTransSourceDB
     Left = 459
     Top = 103
+  end
+  object popParametrizacoes: TPopupMenu
+    Images = dmRecursos.img16x16
+    Left = 363
+    Top = 247
+    object mniEvento: TMenuItem
+      Caption = 'Tabela Eventos'
+      ImageIndex = 345
+      OnClick = mniEventoClick
+    end
+    object N1: TMenuItem
+      Caption = '?'
+      ImageIndex = 346
+    end
   end
 end

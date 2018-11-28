@@ -10,9 +10,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       'Server=localhost'
       'Port=3050'
       'CharacterSet=WIN1252'
-      
-        'Database=D:\Projetos\GeraSysTI\GeraSysTI\trunk\MigraGeraSys\db\R' +
-        'EMUN_PM_TUCURUI.FDB'
+      'Database=REMUN_PM_STA_IZABEL_PROD'
       'DriverID=FB')
     LoginPrompt = False
     Transaction = fdTransDB
@@ -749,13 +747,19 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , e.remunerac'
       '  , e.legalidade'
       'from EVENTO e'
-      'where e.id_sys_anter = :codigo'
+      'where (e.id = :id) or (e.id_sys_anter = :codigo)'
       'order by'
       '    e.codigo'
       '  , e.descricao')
     Left = 448
     Top = 16
     ParamData = <
+      item
+        Name = 'ID'
+        DataType = ftInteger
+        ParamType = ptInput
+        Value = Null
+      end
       item
         Name = 'CODIGO'
         DataType = ftString

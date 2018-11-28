@@ -11,7 +11,9 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Phys.FBDef,
   FireDAC.VCLUI.Wait, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Comp.UI, Vcl.Mask, JvExMask, JvToolEdit, Vcl.ComCtrls;
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Comp.UI, Vcl.Mask, JvExMask, JvToolEdit, Vcl.ComCtrls,
+  Vcl.Menus, cxGraphics, cxLookAndFeels, cxLookAndFeelPainters, dxSkinsCore, dxSkinOffice2007Green,
+  dxSkinOffice2010Blue, dxSkinOffice2016Colorful, dxSkinOffice2016Dark, cxButtons;
 
 type
   TfrmSourceDBLayoutFB = class(TfrmPadraoSDI)
@@ -43,6 +45,10 @@ type
     chkTabelaSituacao: TCheckBox;
     chkTabelaSetor: TCheckBox;
     chkTabelaEvento: TCheckBox;
+    popParametrizacoes: TPopupMenu;
+    BtnParametrizar: TcxButton;
+    mniEvento: TMenuItem;
+    N1: TMenuItem;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -50,13 +56,16 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnVisualizarClick(Sender: TObject);
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
+    procedure mniEventoClick(Sender: TObject);
   private
     { Private declarations }
     FBaseID : String;
+    FCampoEventoRemunID : String;
 
     procedure CriarTabelaDB;
     procedure GravarIni;
     procedure ListarCompetenciasLayoutFB;
+    procedure CriarCampoEvento_Layout;
 
     function ConectarSourceDB : Boolean;
     function RegistrarTabelaDB(aFileNameDB : String) : String;
@@ -85,7 +94,8 @@ implementation
 
 uses
   URecursos,
-  USourceDBLayoutFBTabelas;
+  USourceDBLayoutFBTabelas,
+  USourceDBLayoutFBParametrizar;
 
 { TfrmSourceDBLayoutFB }
 
@@ -206,6 +216,20 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.CriarCampoEvento_Layout;
+var
+  I : Integer;
+const
+  MESES : Array[0..11] of String = ('JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ');
+begin
+  for I := Low(MESES) to High(MESES) do
+    try
+      fdSourceDB.ExecSQL('ALTER TABLE SFP010' + MESES[I] + ' ADD ' + FCampoEventoRemunID + ' INTEGER', True);
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+end;
+
 procedure TfrmSourceDBLayoutFB.CriarTabelaDB;
 var
   aSQL : TStringList;
@@ -240,6 +264,7 @@ procedure TfrmSourceDBLayoutFB.FormCreate(Sender: TObject);
 begin
   inherited;
   FBaseID := EmptyStr;
+  FCampoEventoRemunID := 'evento_remun_id';
 
   if not Assigned(gLogImportacao) then
     gLogImportacao := TStringList.Create;
@@ -529,37 +554,7 @@ var
   aCompetencia : TGenerico;
 begin
   try
-//    try
-//      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD MIGRA_FOLHA BOOLEAN DEFAULT ''S''', True);
-//      fdSourceDB.CommitRetaining;
-//      fdSourceDB.ExecSQL('Update EVENTOS Set MIGRA_FOLHA = ''S'' where MIGRA_FOLHA is null', True);
-//      fdSourceDB.CommitRetaining;
-//      fdSourceDB.ExecSQL('ALTER TABLE EVENTOS ADD INICIALIZA_MES BOOLEAN DEFAULT ''N''', True);
-//      fdSourceDB.CommitRetaining;
-//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''N'' where INICIALIZA_MES is null', True);
-//      fdSourceDB.CommitRetaining;
-//    except
-//    end;
-//
-//    try
-//      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''001''', True); // -- Salário Base
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''008''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''152''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''159''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''940''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''954''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''955''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''956''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''570''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''958''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''957''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''977''', True); // -- Licença Prêmio
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''978''', True); // -- Licença Maternidade (1)
-////      fdSourceDB.ExecSQL('Update EVENTOS Set INICIALIZA_MES = ''S'' where CODIGO = ''979''', True); // -- Licença Maternidade (2)
-//      fdSourceDB.CommitRetaining;
-//    except
-//    end;
-//
+    CriarCampoEvento_Layout;
     aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
 
     if qrySourceDB.Active then
@@ -577,7 +572,7 @@ begin
     begin
       aEvento := TEvento.Create;
 
-      aEvento.ID        := 0;
+      aEvento.ID        := qrySourceDB.FieldByName(FCampoEventoRemunID).AsInteger;
       aEvento.Codigo    := FBaseID + Trim(qrySourceDB.FieldByName('codigo').AsString);
       aEvento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
       aEvento.CodigoRubrica := Trim(qrySourceDB.FieldByName('codigo').AsString);
@@ -1006,6 +1001,19 @@ order by
     aTabelas.Free;
     aListaMeses.Free;
   end;
+end;
+
+procedure TfrmSourceDBLayoutFB.mniEventoClick(Sender: TObject);
+begin
+  GravarIni;
+
+  if not fdSourceDB.Connected then
+    ConectarSourceDB;
+
+  CriarCampoEvento_Layout;
+  ShowParametrizarEventos(Self,
+    'SFP010' + TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]).Sufixo,
+    'Eventos');
 end;
 
 function TfrmSourceDBLayoutFB.RegistrarTabelaDB(aFileNameDB: String): String;

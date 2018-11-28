@@ -1,20 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>2017/02/18 13:59:16.000.560,D:\Projetos\GeraSysTI\MigraGeraSys\src\UMain.dfm=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 13:59:33.000.178,D:\Projetos\GeraSysTI\MigraGeraSys\MigraGeraSys.dproj=C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
-    <Transaction>2017/02/18 14:10:13.000.484,D:\Projetos\GeraSysTI\MigraGeraSys\src\URecursos.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 14:25:14.000.327,D:\Projetos\GeraSysTI\MigraGeraSys\src\UPadraoSDI.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 14:37:47.000.052,D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 15:05:42.000.547,D:\Projetos\GeraSysTI\MigraGeraSys\src\UConexaoTargetDB.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 15:47:19.000.542,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/18 16:05:27.000.704,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm</Transaction>
-    <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.pas</Transaction>
-    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm</Transaction>
-    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.pas</Transaction>
-    <Transaction>2017/04/03 15:25:53.000.049,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2018/02/07 09:32:13.000.646,D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\ULimparDadosTargetDB.dfm=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\Unit1.dfm</Transaction>
-    <Transaction>2018/11/15 20:01:49.000.690,C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.dfm=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\Unit1.dfm</Transaction>
+    <Transaction>2017/02/18 13:59:16.000.560,C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UMain.dfm</Transaction>
+    <Transaction>2017/02/18 13:59:33.000.178,C:\Users\Isaque\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Projetos\GeraSysTI\MigraGeraSys\MigraGeraSys.dproj</Transaction>
+    <Transaction>2017/02/18 14:10:13.000.484,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\URecursos.dfm</Transaction>
+    <Transaction>2017/02/18 14:25:14.000.327,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UPadraoSDI.dfm</Transaction>
+    <Transaction>2017/02/18 14:37:47.000.052,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConfigurarTargetDB.dfm</Transaction>
+    <Transaction>2017/02/18 15:05:42.000.547,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\UConexaoTargetDB.dfm</Transaction>
+    <Transaction>2017/02/18 15:47:19.000.542,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm</Transaction>
+    <Transaction>2017/02/18 16:05:27.000.704,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm</Transaction>
+    <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.dfm</Transaction>
+    <Transaction>2017/02/19 22:17:30.000.612,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayout.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublic.pas</Transaction>
+    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.dfm</Transaction>
+    <Transaction>2017/02/19 22:19:52.000.236,D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBLayoutTabelas.pas=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBInfoPublicTabelas.pas</Transaction>
+    <Transaction>2017/04/03 15:25:53.000.049,D:\Projetos\GeraSysTI\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\MigraGeraSys\src\USourceDBFiorilli.dfm</Transaction>
+    <Transaction>2018/02/07 09:32:13.000.646,D:\Projetos\GeraSysTI\trunk\MigraGeraSys\Unit1.dfm=D:\Projetos\GeraSysTI\trunk\MigraGeraSys\src\ULimparDadosTargetDB.dfm</Transaction>
+    <Transaction>2018/11/15 20:01:49.000.690,C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\Unit1.dfm=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFB.dfm</Transaction>
+    <Transaction>2018/11/28 00:18:27.371,C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\src\USourceDBLayoutFBParametrizar.dfm=C:\Users\Isaque\Documents\Projetos\GeraSysTI\Diversos\trunk\MigraGeraSys\Unit1.dfm</Transaction>
   </Transactions>
 </BorlandProject>

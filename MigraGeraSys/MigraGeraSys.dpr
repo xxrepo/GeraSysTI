@@ -18,7 +18,8 @@ uses
   USourceDBFiorilliTabelas in 'src\USourceDBFiorilliTabelas.pas' {frmSourceDBFiorilliTabelas},
   ULimparDadosTargetDB in 'src\ULimparDadosTargetDB.pas' {frmLimparDadosTargetDB},
   USourceDBLayoutFB in 'src\USourceDBLayoutFB.pas' {frmSourceDBLayoutFB},
-  USourceDBLayoutFBTabelas in 'src\USourceDBLayoutFBTabelas.pas' {frmSourceDBLayoutFBTabelas};
+  USourceDBLayoutFBTabelas in 'src\USourceDBLayoutFBTabelas.pas' {frmSourceDBLayoutFBTabelas},
+  USourceDBLayoutFBParametrizar in 'src\USourceDBLayoutFBParametrizar.pas' {frmSourceDBLayoutFBParametrizar};
 
 {$R *.res}
 

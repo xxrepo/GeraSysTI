@@ -2279,6 +2279,7 @@ begin
         CriarCampoTabela('EVENTO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
 
         Close;
+        ParamByName('id').AsInteger    := pEvento.ID;
         ParamByName('codigo').AsString := pEvento.Codigo;
         Open;
         if IsEmpty then

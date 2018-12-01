@@ -49,6 +49,7 @@ type
     BtnParametrizar: TcxButton;
     mniEvento: TMenuItem;
     mniEstadoFuncional: TMenuItem;
+    chkTabelaBanco: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -83,6 +84,7 @@ type
     procedure ImportarSituacao(Sender: TObject);
     procedure ImportarSetor(Sender: TObject); virtual; abstract;
     procedure ImportarEventos(Sender: TObject);
+    procedure ImportarEntidadeFinanceira(Sender: TObject);
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -195,7 +197,7 @@ begin
         if chkTabelaSituacao.Checked        then ImportarSituacao(chkTabelaSituacao);
         if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
         if chkTabelaEvento.Checked          then ImportarEventos(chkTabelaEvento);
-//        if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
+        if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
 //        if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
 //        if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
 //        if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
@@ -507,6 +509,53 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarEntidadeFinanceira(Sender: TObject);
+var
+  aEntidadeFinanc : TEntidadeFinanceira;
+begin
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from SFPD9911';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aEntidadeFinanc := TEntidadeFinanceira.Create;
+
+      aEntidadeFinanc.ID        := 0;
+      aEntidadeFinanc.Codigo    := Trim(qrySourceDB.FieldByName('numbanco').AsString);
+      aEntidadeFinanc.Descricao := AnsiUpperCase(Copy(Trim(qrySourceDB.FieldByName('nomebanco').AsString), 1, 40));
+      aEntidadeFinanc.EBanco    := True;
+
+      aEntidadeFinanc.Banco.Codigo    := aEntidadeFinanc.Codigo;
+      aEntidadeFinanc.Banco.Descricao := aEntidadeFinanc.Descricao;
+
+      // Inserir ENTIDADE FINANCEIRA
+      if not dmConexaoTargetDB.InserirEntidadeFinanceira(aEntidadeFinanc) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aEntidadeFinanc.Codigo + ' - ' + aEntidadeFinanc.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nomebanco').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+  finally
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
     if (Sender is TCheckBox) then
       TCheckBox(Sender).Checked := False;
   end;

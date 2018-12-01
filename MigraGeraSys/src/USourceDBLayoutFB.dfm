@@ -232,6 +232,14 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Caption = 'Tabela Eventos'
       TabOrder = 16
     end
+    object chkTabelaBanco: TCheckBox
+      Left = 321
+      Top = 64
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Bancos'
+      TabOrder = 17
+    end
   end
   inherited chkRotina: TCheckBox
     Left = 376

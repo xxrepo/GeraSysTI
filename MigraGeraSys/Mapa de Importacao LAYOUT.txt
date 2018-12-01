@@ -1,17 +1,22 @@
-SFP001 - Servidor
-SFP003 - Dados UG
-SFP005 - Cargos e CBO
-SFPDXX25 - Cargo 2
-SFP006 - Departamentos
-SFP010 - Eventos
-SFP017 - Afastamentos
-SFP019 - Totais da Folha
-SFPD9911 - Entidades Financeiras
-SFPD9924 - Unidade de Lotação
-SFPDXX02 - Calculo Mensal
-SFPDXX16 - Férias
-SFPW9927 - Diárias
-SFPD9912 - Dependentes
+SFP001     - Servidor
+SFP018	   - PIS/PASEP de algumas pessoas
+SFPD9912   - Dependentes
+SFP017     - Afastamentos
+AFASTFOLHA - Motivos de Afastamentos (Folha)
+AFASTRAIS  - Motivos de Afastamentos (Código RAIS)
+AFASTGFIP  - Motivos de Afastamentos (Código GFIP)
+SFP003     - Dados UG
+SFP005     - Cargos e CBO
+SFPDXX25   - Cargo 2
+SFP006     - Departamentos
+SFP010     - Eventos
+SFP019     - Totais da Folha
+SFPD9911   - Entidades Financeiras
+SFPW9940   - Convênios
+SFPD9924   - Unidade de Lotação
+SFPDXX02   - Calculo Mensal
+SFPDXX16   - Férias
+SFPW9927   - Diárias
 CFG_VINCSET - Vinculos para Subunidades
 
 
@@ -20,6 +25,20 @@ Pm02-municipalizados
 Pm06-autonomos
 Pm50-saude
 Pm52-saae
+
+
+-- Servidores
+Select
+    s.*
+  , f1.cargo
+  , f2.cargo2
+  , s.cdsecreta || s.cdsetor as departamento
+  , dp.descricao             as departamento_nome
+from SFP001ABR s
+  left join SFP005ABR f1 on (f1.codigo = s.funcao)
+  left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2)
+  left join SFP006ABR dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)
+
 
 
 

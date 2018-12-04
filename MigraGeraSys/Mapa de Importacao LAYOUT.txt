@@ -26,18 +26,48 @@ Pm06-autonomos
 Pm50-saude
 Pm52-saae
 
+-- UG
+Select
+    coalesce((Select first 1 a.ug from ECONTAS_010 a where a.codtcm = x.codtcm), x.codigo) as codigo
+  , x.codtcm
+  , x.descricao
+  , (Select first 1 a.tipo from ECONTAS_010 a where a.codtcm = x.codtcm) as tipo
+  , x.cgc as cnpj
+  , x.cgc as cnpj_principal
+from SFP003 x
+
+union
+
+Select distinct
+    y.ug as codigo
+  , y.codtcm
+  , y.descricao
+  , y.tipo
+  , y.cnpj
+  , (Select first 1 b.cgc from SFP003 b) as cnpj_principal
+from ECONTAS_010 y
+where y.codtcm not in (
+    Select
+        x.codtcm
+    from SFP003 x
+)
 
 -- Servidores
 Select
     s.*
-  , f1.cargo
-  , f2.cargo2
+  , coalesce(nullif(trim(s.codnacion), ''), '10') as nacionalidade_codigo
+  , coalesce(s.estcivil, '9') as estadocivil_codigo
+  , s.funcao  as cargo_funcao_inicial
+  , coalesce(nullif(trim(s.funcao2), ''), s.funcao) as cargo_funcao_atual
+  , f1.cbo as cbo_inicial
+  , null   as cbo_atual
   , s.cdsecreta || s.cdsetor as departamento
   , dp.descricao             as departamento_nome
 from SFP001ABR s
   left join SFP005ABR f1 on (f1.codigo = s.funcao)
   left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2)
   left join SFP006ABR dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)
+
 
 
 

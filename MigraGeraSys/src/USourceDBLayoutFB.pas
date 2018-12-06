@@ -1449,6 +1449,13 @@ begin
       if (aUnidadeGest.ID = 0) then
         dmConexaoTargetDB.GetID('UNID_GESTORA', 'min(ID)', ID_SYS_ANTER + ' is not null', TGenerico(aUnidadeGest));
 
+//      // Gravar Unidade Gestora com Unidade Orçamentária
+//      if (not aPadraoGravado) then
+//      begin
+//        GerarUnidadeOrcamentariaPadrao(aUnidadeGest);
+//        aPadraoGravado := True;
+//      end;
+//
       aUnidadeOrca := TUnidadeOrcamentaria.Create;
 
       aUnidadeOrca.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
@@ -1460,8 +1467,6 @@ begin
         gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
           QuotedStr(aUnidadeGest.Codigo + ' - ' + aUnidadeGest.Descricao) + ' não importado');
 
-
-      GerarUnidadeOrcamentariaPadrao(aUnidadeGest);
 
       lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
       prbAndamento.Position := prbAndamento.Position + 1;

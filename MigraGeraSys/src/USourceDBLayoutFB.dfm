@@ -188,7 +188,6 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 169
       Height = 17
       Caption = 'Tabela Unidade Or'#231'ament'#225'ria'
-      Enabled = False
       TabOrder = 11
     end
     object chkTabelaUnidadeLotacao: TCheckBox

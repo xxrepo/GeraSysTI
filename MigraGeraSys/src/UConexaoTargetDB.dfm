@@ -297,15 +297,25 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , u.id_servid_gestor'
       '  , u.dados_no_ccheque'
       '  , u.cnpj_da_gps'
+      '  , u.id_sys_anter'
       'from UNID_GESTORA u'
-      'where u.cod_orgao_tcm = :codigo')
+      
+        'where (u.cod_orgao_tcm = :codigo_tcm) or (u.id_sys_anter = :codi' +
+        'go)')
     Left = 200
     Top = 304
     ParamData = <
       item
-        Name = 'CODIGO'
+        Name = 'CODIGO_TCM'
         DataType = ftInteger
         ParamType = ptInput
+        Value = Null
+      end
+      item
+        Name = 'CODIGO'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 20
         Value = Null
       end>
   end
@@ -317,7 +327,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  CNPJ, ID_TIPO_UNID_GESTORA, COD_ORGAO_TCM, '
       '  FORMA_CALC_RESCISAO, TETO_VENCTO_BASE, CNPJ_PRINCIPAL, '
       '  NOME_GESTOR, DESCR_CARGO_GESTOR, ID_SERVID_GESTOR, '
-      '  DADOS_NO_CCHEQUE, CNPJ_DA_GPS)'
+      '  DADOS_NO_CCHEQUE, CNPJ_DA_GPS, ID_SYS_ANTER)'
       
         'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_RAZAO_SOCIAL, :NEW_COD_CON' +
         'TABIL, '
@@ -328,7 +338,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  :NEW_NOME_GESTOR, :NEW_DESCR_CARGO_GESTOR, :NEW_ID_SERVID_GEST' +
         'OR, '
-      '  :NEW_DADOS_NO_CCHEQUE, :NEW_CNPJ_DA_GPS)')
+      '  :NEW_DADOS_NO_CCHEQUE, :NEW_CNPJ_DA_GPS, :NEW_ID_SYS_ANTER)')
     ModifySQL.Strings = (
       'UPDATE UNID_GESTORA'
       
@@ -349,7 +359,9 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  ID_SERVID_GESTOR = :NEW_ID_SERVID_GESTOR, DADOS_NO_CCHEQUE = :' +
         'NEW_DADOS_NO_CCHEQUE, '
-      '  CNPJ_DA_GPS = :NEW_CNPJ_DA_GPS'
+      
+        '  CNPJ_DA_GPS = :NEW_CNPJ_DA_GPS, ID_SYS_ANTER = :NEW_ID_SYS_ANT' +
+        'ER'
       'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM UNID_GESTORA'
@@ -372,7 +384,9 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  GESTOR_ENDER_CIDADE, GESTOR_ENDER_UF, GESTOR_SEXO, DADOS_NO_CC' +
         'HEQUE, '
-      '  CNPJ_DA_GPS'
+      
+        '  CNPJ_DA_GPS, CTRO_TEMP_LEI_DATA, CALC_FERIAS_MEDIA, ID_SYS_ANT' +
+        'ER'
       'FROM UNID_GESTORA'
       'WHERE ID = :ID')
     Left = 200
@@ -462,15 +476,25 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , o.texto_dotacao_ctro'
       '  , o.cont_proj_ativ'
       '  , o.em_uso'
+      '  , o.id_sys_anter'
       'from UNID_ORCAMENT o'
-      'where o.cod_orgao_tcm = :codigo')
+      
+        'where (o.cod_orgao_tcm = :codigo_tcm) or (o.id_sys_anter = :codi' +
+        'go)')
     Left = 200
     Top = 400
     ParamData = <
       item
-        Name = 'CODIGO'
+        Name = 'CODIGO_TCM'
         DataType = ftInteger
         ParamType = ptInput
+        Value = Null
+      end
+      item
+        Name = 'CODIGO'
+        DataType = ftString
+        ParamType = ptInput
+        Size = 20
         Value = Null
       end>
   end
@@ -480,12 +504,12 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       'INSERT INTO UNID_ORCAMENT'
       '(ID, DESCRICAO, COD_CONTABIL, ID_UNID_GESTORA, '
       '  COD_ORGAO_TCM, FUNDEB, TEXTO_DOTACAO_CTRO, '
-      '  CONT_PROJ_ATIV, EM_USO)'
+      '  CONT_PROJ_ATIV, EM_USO, ID_SYS_ANTER)'
       
         'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_COD_CONTABIL, :NEW_ID_UNID' +
         '_GESTORA, '
       '  :NEW_COD_ORGAO_TCM, :NEW_FUNDEB, :NEW_TEXTO_DOTACAO_CTRO, '
-      '  :NEW_CONT_PROJ_ATIV, :NEW_EM_USO)')
+      '  :NEW_CONT_PROJ_ATIV, :NEW_EM_USO, :NEW_ID_SYS_ANTER)')
     ModifySQL.Strings = (
       'UPDATE UNID_ORCAMENT'
       
@@ -497,7 +521,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  FUNDEB = :NEW_FUNDEB, TEXTO_DOTACAO_CTRO = :NEW_TEXTO_DOTACAO_' +
         'CTRO, '
-      '  CONT_PROJ_ATIV = :NEW_CONT_PROJ_ATIV, EM_USO = :NEW_EM_USO'
+      '  CONT_PROJ_ATIV = :NEW_CONT_PROJ_ATIV, EM_USO = :NEW_EM_USO, '
+      '  ID_SYS_ANTER = :NEW_ID_SYS_ANTER'
       'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM UNID_ORCAMENT'
@@ -507,7 +532,10 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         'SELECT ID, DESCRICAO, COD_CONTABIL, ID_UNID_GESTORA, DESCR_UNID_' +
         'GESTORA, '
       '  COD_ORGAO_TCM, COD_CONTAB_UNID_GESTORA, COD_ORGAO_TCM_UG, '
-      '  FUNDEB, TEXTO_DOTACAO_CTRO, CONT_PROJ_ATIV, EM_USO'
+      
+        '  FUNDEB, TEXTO_DOTACAO_CTRO, CONT_PROJ_ATIV, EM_USO, NOME_ARQ_F' +
+        'R3_CTRO_TEMP, '
+      '  ID_SYS_ANTER'
       'FROM UNID_ORCAMENT'
       'WHERE ID = :ID')
     Left = 200
@@ -1807,7 +1835,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , so.gera_gfip              '
       '  , so.num_ficha_contab       '
       '  , so.descricao_vinculo      '
-      '  , so.cod_proj_ativ          '
+      '  --, so.cod_proj_ativ          '
       'from SUB_UNID_ORCAMENT so'
       'where (so.id = :id) or (so.id_sys_anter = :codigo)')
     Left = 328
@@ -1838,7 +1866,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  EM_USO, PAGTO_FUNDEB, GERA_DIRF, ID_SYS_ANTER, '
       '  ID_SUO_DEMIT, CONT_CREDOR, CONT_CREDOR2, '
       '  CONT_ELEMEN_DESP1, CONT_ELEMEN_DESP2, CONT_CONTA_CORRENTE, '
-      '  GERA_GFIP, NUM_FICHA_CONTAB, COD_PROJ_ATIV)'
+      '  GERA_GFIP, NUM_FICHA_CONTAB)'
       
         'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_ABREVIACAO, :NEW_TIPO_VINC' +
         'ULO, '
@@ -1859,10 +1887,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  :NEW_CONT_ELEMEN_DESP1, :NEW_CONT_ELEMEN_DESP2, :NEW_CONT_CONT' +
         'A_CORRENTE, '
-      '  :NEW_GERA_GFIP, :NEW_NUM_FICHA_CONTAB, :NEW_COD_PROJ_ATIV)'
-      
-        'RETURNING TIPO_VINCULO, DESCR_UNID_ORCAMENT, DESCR_SETOR, TETO_V' +
-        'ENCTO_BASE, TETO_SALARIO, DESCRICAO_VINCULO')
+      '  :NEW_GERA_GFIP, :NEW_NUM_FICHA_CONTAB)')
     ModifySQL.Strings = (
       'UPDATE SUB_UNID_ORCAMENT'
       
@@ -1899,13 +1924,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  CONT_CONTA_CORRENTE = :NEW_CONT_CONTA_CORRENTE, GERA_GFIP = :N' +
         'EW_GERA_GFIP, '
-      
-        '  NUM_FICHA_CONTAB = :NEW_NUM_FICHA_CONTAB, COD_PROJ_ATIV = :NEW' +
-        '_COD_PROJ_ATIV'
-      'WHERE ID = :OLD_ID'
-      
-        'RETURNING TIPO_VINCULO, DESCR_UNID_ORCAMENT, DESCR_SETOR, TETO_V' +
-        'ENCTO_BASE, TETO_SALARIO, DESCRICAO_VINCULO')
+      '  NUM_FICHA_CONTAB = :NEW_NUM_FICHA_CONTAB'
+      'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM SUB_UNID_ORCAMENT'
       'WHERE ID = :OLD_ID')
@@ -1929,7 +1949,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  CONT_ELEMEN_DESP2, CONT_CONTA_CORRENTE, GERA_GFIP, NUM_FICHA_C' +
         'ONTAB, '
-      '  DESCRICAO_VINCULO, COD_PROJ_ATIV'
+      '  DESCRICAO_VINCULO, FONTE_FUNDEB, NOME_ARQ_FR3_CTRO_TEMP'
       'FROM SUB_UNID_ORCAMENT'
       'WHERE ID = :ID')
     Left = 328

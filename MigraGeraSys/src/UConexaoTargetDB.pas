@@ -269,12 +269,14 @@ Type
   TUnidadeOrcamentaria = class(TGenerico)
     private
       FCodigoContabil   : String;
+      FCodigoTCM        : Integer;
       FUnidadeGestora   : TUnidadeGestora;
       FFUNDEB           : Boolean;
       FTextoDotacao     : TStringList;
       FProjetoAtividade : String;
     public
       property CodigoContabil : String read FCodigoContabil write FCodigoContabil;
+      property CodigoTCM      : Integer read FCodigoTCM write FCodigoTCM;
       property UnidadeGestora : TUnidadeGestora read FUnidadeGestora write FUnidadeGestora;
       property FUNDEB           : Boolean read FFUNDEB write FFUNDEB;
       property TextoDotacao     : TStringList read FTextoDotacao write FTextoDotacao;
@@ -2940,8 +2942,17 @@ begin
           FieldByName('descricao').AsString  := Trim(pSubUnidadeOrcament.Descricao);
           FieldByName('abreviacao').AsString := Trim(pSubUnidadeOrcament.Abreviacao);
           FieldByName('tipo_vinculo').AsString := IntToStr(Ord(pSubUnidadeOrcament.Vinculo));
-          FieldByName('id_unid_orcament').AsInteger  := pSubUnidadeOrcament.UnidadeOrcamentaria.ID;
-          FieldByName('id_setor').AsInteger          := pSubUnidadeOrcament.Setor.ID;
+
+          if (pSubUnidadeOrcament.UnidadeOrcamentaria.ID = 0) then
+            FieldByName('id_unid_orcament').Clear
+          else
+            FieldByName('id_unid_orcament').AsInteger := pSubUnidadeOrcament.UnidadeOrcamentaria.ID;
+
+          if (pSubUnidadeOrcament.Setor.ID = 0) then
+            FieldByName('id_setor').Clear
+          else
+            FieldByName('id_setor').AsInteger := pSubUnidadeOrcament.Setor.ID;
+
           FieldByName('tipo_previd').AsString        := Ifthen(pSubUnidadeOrcament.TipoPrevidencia, 'S', 'N');
           FieldByName('contrib_individual').AsString := Ifthen(pSubUnidadeOrcament.ContribIndividual, 'S', 'N');
 
@@ -2974,7 +2985,10 @@ begin
           FieldByName('cont_conta_corrente').Clear;
           FieldByName('gera_gfip').AsString := Ifthen(pSubUnidadeOrcament.GeraGFIP, 'S', 'N');
           FieldByName('num_ficha_contab').Clear;
-          FieldByName('cod_proj_ativ').Clear;
+
+          if Assigned(Fields.FindField('cod_proj_ativ')) then
+            FieldByName('cod_proj_ativ').Clear;
+
           FieldByName(ID_SYS_ANTER).AsString := pSubUnidadeOrcament.Codigo;
           Post;
 
@@ -3003,8 +3017,11 @@ begin
     try
       with qryUnidadeGestora do
       begin
+        CriarCampoTabela('UNID_GESTORA', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
         Close;
-        ParamByName('codigo').AsInteger := StrToInt(pUnidadeGestora.Codigo);
+        ParamByName('codigo_tcm').AsInteger := IfThen(pUnidadeGestora.CodigoTCM = 0, StrToInt(pUnidadeGestora.Codigo), pUnidadeGestora.CodigoTCM);
+        ParamByName('codigo').AsString      := pUnidadeGestora.Codigo;
         Open;
         if IsEmpty then
         begin
@@ -3014,7 +3031,7 @@ begin
           FieldByName('id').AsInteger            := pUnidadeGestora.ID;
           FieldByName('descricao').AsString      := pUnidadeGestora.Descricao;
           FieldByName('razao_social').AsString   := pUnidadeGestora.RazaoSocial;
-          FieldByName('cod_orgao_tcm').AsInteger := StrToInt(pUnidadeGestora.Codigo);
+          FieldByName('cod_orgao_tcm').AsInteger := IfThen(pUnidadeGestora.CodigoTCM = 0, StrToInt(pUnidadeGestora.Codigo), pUnidadeGestora.CodigoTCM);
           FieldByName('cnpj').AsString           := pUnidadeGestora.CNPJ;
           FieldByName('id_tipo_unid_gestora').AsInteger := pUnidadeGestora.TipoUnidade.ID;
           FieldByName('cod_contabil').AsString          := pUnidadeGestora.CodigoContabil;
@@ -3029,6 +3046,7 @@ begin
             FieldByName('id_servid_gestor').AsInteger := pUnidadeGestora.GestorServidorID;
           FieldByName('dados_no_ccheque').AsString    := IfThen(pUnidadeGestora.DadosNoContraCheque, 'S', 'N');
           FieldByName('cnpj_da_gps').AsString         := IfThen(pUnidadeGestora.CNPJ_naGPS, 'S', 'N');
+          FieldByName(ID_SYS_ANTER).AsString          := pUnidadeGestora.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -3101,8 +3119,11 @@ begin
     try
       with qryUnidadeOrcamentaria do
       begin
+        CriarCampoTabela('UNID_ORCAMENT', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
         Close;
-        ParamByName('codigo').AsInteger := StrToInt(pUnidadeOrcament.Codigo);
+        ParamByName('codigo_tcm').AsInteger := IfThen(pUnidadeOrcament.CodigoTCM = 0, StrToInt(pUnidadeOrcament.Codigo), pUnidadeOrcament.CodigoTCM);
+        ParamByName('codigo').AsString      := pUnidadeOrcament.Codigo;
         Open;
         if IsEmpty then
         begin
@@ -3111,13 +3132,14 @@ begin
           Append;
           FieldByName('id').AsInteger              := pUnidadeOrcament.ID;
           FieldByName('descricao').AsString        := pUnidadeOrcament.Descricao;
-          FieldByName('cod_orgao_tcm').AsInteger   := StrToInt(pUnidadeOrcament.Codigo);
+          FieldByName('cod_orgao_tcm').AsInteger   := IfThen(pUnidadeOrcament.CodigoTCM = 0, StrToInt(pUnidadeOrcament.Codigo), pUnidadeOrcament.CodigoTCM);
           FieldByName('cod_contabil').AsString     := pUnidadeOrcament.CodigoContabil;
           FieldByName('id_unid_gestora').AsInteger := pUnidadeOrcament.UnidadeGestora.ID;
           FieldByName('fundeb').AsString           := IfThen(pUnidadeOrcament.FUNDEB, 'S', 'N');
           FieldByName('texto_dotacao_ctro').AsString := pUnidadeOrcament.TextoDotacao.Text;
           FieldByName('cont_proj_ativ').AsString     := pUnidadeOrcament.ProjetoAtividade;
           FieldByName('em_uso').AsString             := IfThen(pUnidadeOrcament.Ativo, 'S', 'N');
+          FieldByName(ID_SYS_ANTER).AsString         := pUnidadeOrcament.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -3697,6 +3719,7 @@ constructor TUnidadeOrcamentaria.Create;
 begin
   inherited Create;
   FCodigoContabil   := '00001';
+  FCodigoTCM        := 0;
   FUnidadeGestora   := TUnidadeGestora.Create;
   FFUNDEB           := False;
   FTextoDotacao     := TStringList.Create;

@@ -71,6 +71,7 @@ type
     procedure ListarCompetenciasLayoutFB;
     procedure CriarCampoEvento_Layout;
     procedure CriarCampoEstadoFuncional_Layout;
+    procedure GerarUnidadeOrcamentariaPadrao(aUnidadeGestora : TUnidadeGestora);
 
     function ConectarSourceDB : Boolean;
     function RegistrarTabelaDB(aFileNameDB : String) : String;
@@ -79,7 +80,7 @@ type
     procedure ImportarEscolaridade(Sender: TObject); virtual; abstract;
     procedure ImportarCargoFuncao(Sender: TObject);
     procedure ImportarUnidadeGestora(Sender: TObject);
-    procedure ImportarUnidadeOrcamentaria(Sender: TObject); virtual; abstract;
+    procedure ImportarUnidadeOrcamentaria(Sender: TObject);
     procedure ImportarUnidadeLotacao(Sender: TObject);
     procedure ImportarEstadoFuncional(Sender: TObject);
     procedure ImportarSituacao(Sender: TObject);
@@ -309,6 +310,25 @@ procedure TfrmSourceDBLayoutFB.FormShow(Sender: TObject);
 begin
   inherited;
   ConectarSourceDB;
+end;
+
+procedure TfrmSourceDBLayoutFB.GerarUnidadeOrcamentariaPadrao(aUnidadeGestora: TUnidadeGestora);
+var
+  aUnidadeOrca : TUnidadeOrcamentaria;
+begin
+  try
+    aUnidadeOrca := TUnidadeOrcamentaria.Create;
+
+    aUnidadeOrca.Descricao := 'MIGRAÇÃO';
+    aUnidadeOrca.Codigo    := Trim(aUnidadeGestora.Codigo);
+    aUnidadeOrca.UnidadeGestora.ID := aUnidadeGestora.ID;
+
+    if not dmConexaoTargetDB.InserirUnidadeOrcament(aUnidadeOrca) then
+      gLogImportacao.Add('Unidade Orçamentária - ' +
+        QuotedStr(aUnidadeOrca.Codigo + ' - ' + aUnidadeOrca.Descricao) + ' não importado');
+  finally
+    aUnidadeOrca.Destroy;
+  end;
 end;
 
 procedure TfrmSourceDBLayoutFB.GravarIni;
@@ -1152,6 +1172,7 @@ procedure TfrmSourceDBLayoutFB.ImportarUnidadeGestora(Sender: TObject);
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT', 'UNID_ORCAMENT', 'ID');
   end;
 var
+  aTipoUnd : TGenerico;
   aUnidade : TUnidadeGestora;
   sCnpj          ,
   sCnpjPrincipal : String;
@@ -1162,7 +1183,36 @@ begin
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
-    qrySourceDB.SQL.Text := 'Select * from SFP003';
+//    qrySourceDB.SQL.Text := 'Select * from SFP003';
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    coalesce((Select first 1 a.ug from ECONTAS_010 a where a.codtcm = x.codtcm), x.codigo) as codigo');
+    qrySourceDB.SQL.Add('  , x.codtcm');
+    qrySourceDB.SQL.Add('  , x.descricao');
+    qrySourceDB.SQL.Add('  , (Select first 1 a.tipo from ECONTAS_010 a where a.codtcm = x.codtcm) as tipo');
+    qrySourceDB.SQL.Add('  , x.cgc ');
+    qrySourceDB.SQL.Add('  , x.cgc as cgc_principal');
+    qrySourceDB.SQL.Add('from SFP003 x');
+    qrySourceDB.SQL.Add(' ');
+    qrySourceDB.SQL.Add('union');
+    qrySourceDB.SQL.Add(' ');
+    qrySourceDB.SQL.Add('Select distinct   ');
+    qrySourceDB.SQL.Add('    y.ug as codigo');
+    qrySourceDB.SQL.Add('  , y.codtcm      ');
+    qrySourceDB.SQL.Add('  , y.descricao   ');
+    qrySourceDB.SQL.Add('  , y.tipo        ');
+    qrySourceDB.SQL.Add('  , y.cnpj as cgc ');
+    qrySourceDB.SQL.Add('  , (Select first 1 b.cgc from SFP003 b) as cgc_principal');
+    qrySourceDB.SQL.Add('from ECONTAS_010 y');
+    qrySourceDB.SQL.Add('where y.codtcm not in (');
+    qrySourceDB.SQL.Add('    Select');
+    qrySourceDB.SQL.Add('        x.codtcm');
+    qrySourceDB.SQL.Add('    from SFP003 x');
+    qrySourceDB.SQL.Add(')');
+    qrySourceDB.SQL.EndUpdate;
+
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -1176,16 +1226,29 @@ begin
       sCnpj := Trim(qrySourceDB.FieldByName('cgc').AsString);
       sCnpj := StringReplace(StringReplace(StringReplace(sCnpj, '.', '', [rfReplaceAll]), '/', '', [rfReplaceAll]), '-', '', [rfReplaceAll]);
 
+      sCnpjPrincipal := Trim(qrySourceDB.FieldByName('cgc_principal').AsString);
+      sCnpjPrincipal := StringReplace(StringReplace(StringReplace(sCnpjPrincipal, '.', '', [rfReplaceAll]), '/', '', [rfReplaceAll]), '-', '', [rfReplaceAll]);
+
+      if not Assigned(aTipoUnd) then
+        aTipoUnd := TGenerico.Create;
+
       aUnidade := TUnidadeGestora.Create;
-      aUnidade.ID          := StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString));
-      aUnidade.Descricao   := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
-      aUnidade.RazaoSocial := aUnidade.Descricao;
-      aUnidade.Codigo      := Trim(qrySourceDB.FieldByName('codigo').AsString);
-      aUnidade.CodigoTCM   := qrySourceDB.FieldByName('codtcm').AsInteger;
+      aUnidade.ID             := StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString));
+      aUnidade.Descricao      := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aUnidade.RazaoSocial    := aUnidade.Descricao;
+      aUnidade.Codigo         := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aUnidade.CodigoTCM      := qrySourceDB.FieldByName('codtcm').AsInteger;
       aUnidade.CNPJ           := sCnpj;
-      aUnidade.CNPJPrincipal  := aUnidade.CNPJ;
-      aUnidade.TipoUnidade.ID := 1; // Prefeitura
-      sCnpjPrincipal          := aUnidade.CNPJ;
+      aUnidade.CNPJPrincipal  := sCnpjPrincipal; // aUnidade.CNPJ;
+
+      aTipoUnd.ID     := 0;
+      aTipoUnd.Codigo := Trim(qrySourceDB.FieldByName('tipo').AsString);
+      dmConexaoTargetDB.GetID('TIPO_UNID_GESTORA', 'ID', 'ID = ' + aTipoUnd.Codigo, TGenerico(aTipoUnd));
+
+      if (aTipoUnd.ID = 0) then
+        aTipoUnd.ID := 1; // Prefeitura
+
+      aUnidade.TipoUnidade := aTipoUnd;
 
       if not dmConexaoTargetDB.InserirUnidadeGestora(aUnidade) then
           gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
@@ -1275,6 +1338,8 @@ begin
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    d.cdsecreta || d.cdsetor as codigo ');
     qrySourceDB.SQL.Add('  , d.*');
+    qrySourceDB.SQL.Add('  , d.codundgestor as ug_tcm');
+    qrySourceDB.SQL.Add('  , d.codundorca   as uo_tcm');
     qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Sufixo + ' d');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    d.descricao');
@@ -1313,6 +1378,197 @@ begin
     dmRecursos.ExibriLog;
     aLotacao.Free;
     aDepartamento.Free;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarUnidadeOrcamentaria(Sender: TObject);
+  procedure UpdateGenerators;
+  begin
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT',     'UNID_ORCAMENT',     'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_SUB_UNID_ORCAMENT', 'SUB_UNID_ORCAMENT', 'ID');
+  end;
+var
+  aCompetencia : TGenerico;
+  aUnidadeGest : TUnidadeGestora;
+  aUnidadeOrca : TUnidadeOrcamentaria;
+  aSubUnidadeOrca : TSubUnidadeOrcamentaria;
+  aPadraoGravado  : Boolean;
+begin
+  try
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
+    UpdateGenerators;
+    aPadraoGravado := False;
+
+    // Unidade Orçamentária
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select distinct');
+    qrySourceDB.SQL.Add('    uo.uo as codigo');
+    qrySourceDB.SQL.Add('  , uo.codtcm   ');
+    qrySourceDB.SQL.Add('  , uo.descricao');
+    qrySourceDB.SQL.Add('  , uo.cnpj     ');
+    qrySourceDB.SQL.Add('  , uo.tipo     ');
+    qrySourceDB.SQL.Add('  , uo.ug       ');
+    qrySourceDB.SQL.Add('  , ug.codtcm as ug_tcm');
+    qrySourceDB.SQL.Add('from ECONTAS_020 uo');
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        x.ug');
+    qrySourceDB.SQL.Add('      , x.descricao');
+    qrySourceDB.SQL.Add('      , x.codtcm');
+    qrySourceDB.SQL.Add('    from ECONTAS_010 x');
+    qrySourceDB.SQL.Add('  ) ug on (ug.ug = uo.ug)');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if not Assigned(aUnidadeGest) then
+        aUnidadeGest := TUnidadeGestora.Create;
+
+      aUnidadeGest.ID        := 0;
+      aUnidadeGest.Codigo    := Trim(qrySourceDB.FieldByName('ug').AsString);
+      aUnidadeGest.CodigoTCM := StrToIntDef(Trim(qrySourceDB.FieldByName('ug_tcm').AsString), 0);
+      dmConexaoTargetDB.GetID('UNID_GESTORA', 'ID', 'COD_ORGAO_TCM = ' + IntToStr(aUnidadeGest.CodigoTCM), TGenerico(aUnidadeGest));
+
+      if (aUnidadeGest.ID = 0) then
+        dmConexaoTargetDB.GetID('UNID_GESTORA', 'min(ID)', ID_SYS_ANTER + ' is not null', TGenerico(aUnidadeGest));
+
+      aUnidadeOrca := TUnidadeOrcamentaria.Create;
+
+      aUnidadeOrca.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aUnidadeOrca.CodigoTCM := qrySourceDB.FieldByName('codtcm').AsInteger;
+      aUnidadeOrca.UnidadeGestora.ID := aUnidadeGest.ID;
+
+      if not dmConexaoTargetDB.InserirUnidadeOrcament(aUnidadeOrca) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+          QuotedStr(aUnidadeGest.Codigo + ' - ' + aUnidadeGest.Descricao) + ' não importado');
+
+
+      GerarUnidadeOrcamentariaPadrao(aUnidadeGest);
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    // Unidade Sub Orçamentária
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select distinct');
+    qrySourceDB.SQL.Add('    dp.cdsecreta as codigo');
+    qrySourceDB.SQL.Add('  , ' + QuotedStr('MIGRAÇÃO - SUBUNIDADE ') +' || dp.cdsecreta as descricao');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(dp.codundgestor), ''''), ug.codtcm) as ug_tcm');
+    qrySourceDB.SQL.Add('  , nullif(trim(dp.codundorca), ' + QuotedStr('0000000') + ') as uo_tcm');
+    qrySourceDB.SQL.Add('  , uo.ug');
+    qrySourceDB.SQL.Add('  , uo.uo');
+    qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
+    qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
+    qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Sufixo + ' dp');
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        x.ug');
+    qrySourceDB.SQL.Add('      , x.uo');
+    qrySourceDB.SQL.Add('      , x.codtcm');
+    qrySourceDB.SQL.Add('      , x.descricao');
+    qrySourceDB.SQL.Add('    from ECONTAS_020 x');
+    qrySourceDB.SQL.Add('  ) uo on (uo.codtcm = dp.codundorca)');
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        y.ug');
+    qrySourceDB.SQL.Add('      , y.codtcm');
+    qrySourceDB.SQL.Add('      , y.descricao');
+    qrySourceDB.SQL.Add('    from ECONTAS_010 y');
+    qrySourceDB.SQL.Add('  ) ug on (ug.ug = uo.ug)');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+//      if not Assigned(aUnidadeGest) then
+//        aUnidadeGest := TUnidadeGestora.Create;
+//
+//      aUnidadeGest.ID        := 0;
+//      aUnidadeGest.Codigo    := Trim(qrySourceDB.FieldByName('ug').AsString);
+//      aUnidadeGest.CodigoTCM := StrToIntDef(Trim(qrySourceDB.FieldByName('ug_tcm').AsString), 0);
+//      dmConexaoTargetDB.GetID('UNID_GESTORA', 'ID', 'COD_ORGAO_TCM = ' + IntToStr(aUnidadeGest.CodigoTCM), TGenerico(aUnidadeGest));
+//
+//      if (aUnidadeGest.ID = 0) then
+//        dmConexaoTargetDB.GetID('UNID_GESTORA', 'min(ID)', ID_SYS_ANTER + ' is not null', TGenerico(aUnidadeGest));
+//
+      if not Assigned(aUnidadeOrca) then
+        aUnidadeOrca := TUnidadeOrcamentaria.Create;
+
+      aUnidadeOrca.ID        := 0;
+      aUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('uo').AsString);
+      aUnidadeOrca.CodigoTCM := StrToIntDef(Trim(qrySourceDB.FieldByName('uo_tcm').AsString), 0);
+      dmConexaoTargetDB.GetID('UNID_ORCAMENT', 'ID', 'COD_ORGAO_TCM = ' + IntToStr(aUnidadeOrca.CodigoTCM), TGenerico(aUnidadeOrca));
+
+      if (aUnidadeOrca.ID = 0) then
+        dmConexaoTargetDB.GetID('UNID_ORCAMENT', 'min(ID)', ID_SYS_ANTER + ' is not null', TGenerico(aUnidadeOrca));
+
+      // Gravar sub-unidade padrão para migração.
+      if not aPadraoGravado then
+      begin
+        aSubUnidadeOrca.ID        := 0;
+        aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
+        aSubUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('ug').AsString);
+        aSubUnidadeOrca.Setor.ID  := 1;
+        aSubUnidadeOrca.UnidadeOrcamentaria.ID := aUnidadeOrca.ID;
+
+        dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
+        aPadraoGravado := True;
+      end;
+
+      aSubUnidadeOrca.ID        := 0;
+      aSubUnidadeOrca.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
+      aSubUnidadeOrca.Codigo    := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aSubUnidadeOrca.Setor.ID  := 1;
+      aSubUnidadeOrca.UnidadeOrcamentaria.ID := aUnidadeOrca.ID;
+
+      if not dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca) then
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' - (SUB) ' +
+          QuotedStr(aSubUnidadeOrca.Codigo + ' - ' + aSubUnidadeOrca.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    UpdateGenerators;
+  finally
+    dmRecursos.ExibriLog;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

@@ -36,13 +36,15 @@ type
     procedure chkTabelaEventoClick(Sender: TObject);
     procedure chkTabelaSituacaoClick(Sender: TObject);
     procedure chkTabelaUnidadeLotacaoClick(Sender: TObject);
+    procedure chkTabelaUnidadeOrcamentClick(Sender: TObject);
+    procedure chkTabelaUnidadeGestoraClick(Sender: TObject);
   private
     { Private declarations }
     procedure ExcluirCBO(Sender: TObject);
     procedure ExcluirEscolaridade(Sender: TObject);
     procedure ExcluirCargoFuncao(Sender: TObject);
-//    procedure ImportarUnidadeGestora(Sender: TObject);
-//    procedure ImportarUnidadeOrcamentaria(Sender: TObject);
+    procedure ExcluirUnidadeGestora(Sender: TObject);
+    procedure ExcluirUnidadeOrcamentaria(Sender: TObject);
     procedure ExcluirUnidadeLotacao(Sender: TObject);
     procedure ExcluirEstadoFuncional(Sender: TObject);
     procedure ExcluirSituacao(Sender: TObject);
@@ -127,9 +129,21 @@ begin
     chkTabelaPFServidor.Checked := True;
 end;
 
+procedure TfrmLimparDadosTargetDB.chkTabelaUnidadeGestoraClick(Sender: TObject);
+begin
+  if chkTabelaUnidadeGestora.Checked then
+    chkTabelaUnidadeOrcament.Checked := True;
+end;
+
 procedure TfrmLimparDadosTargetDB.chkTabelaUnidadeLotacaoClick(Sender: TObject);
 begin
   if chkTabelaUnidadeLotacao.Checked then
+    chkTabelaPFServidor.Checked := True;
+end;
+
+procedure TfrmLimparDadosTargetDB.chkTabelaUnidadeOrcamentClick(Sender: TObject);
+begin
+  if chkTabelaUnidadeOrcament.Checked then
     chkTabelaPFServidor.Checked := True;
 end;
 
@@ -148,8 +162,6 @@ begin
 
       if dmConexaoTargetDB.ConectarTargetDB then
       begin
-//        if chkTabelaUnidadeGestora.Checked  then ImportarUnidadeGestora(chkTabelaUnidadeGestora);
-//        if chkTabelaUnidadeOrcament.Checked then ImportarUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
 //        if chkTabelaSetor.Checked           then ImportarSetor(chkTabelaSetor);
         if chkLancamentoMesServidor.Checked then ExcluirFolhaMensalServidor(chkLancamentoMesServidor);
         if chkTabelaEventoFixo.Checked      then ExcluirEventoFixoServidor(chkTabelaDependente);
@@ -163,6 +175,8 @@ begin
         if chkTabelaEscolaridade.Checked    then ExcluirEscolaridade(chkTabelaEscolaridade);
         if chkTabelaUnidadeLotacao.Checked  then ExcluirUnidadeLotacao(chkTabelaUnidadeLotacao);
         if chkTabelaSituacao.Checked        then ExcluirSituacao(chkTabelaSituacao);
+        if chkTabelaUnidadeOrcament.Checked then ExcluirUnidadeOrcamentaria(chkTabelaUnidadeOrcament);
+        if chkTabelaUnidadeGestora.Checked  then ExcluirUnidadeGestora(chkTabelaUnidadeGestora);
 
         aRetorno := True;
       end;
@@ -648,6 +662,46 @@ begin
   end;
 end;
 
+procedure TfrmLimparDadosTargetDB.ExcluirUnidadeGestora(Sender: TObject);
+var
+  vWhere : String;
+begin
+  if chkApenasImportados.Checked then
+    vWhere := ' and (' + ID_SYS_ANTER + ' is not null)'
+  else
+    vWhere := EmptyStr;
+
+  Screen.Cursor := crSQLWait;
+  try
+    try
+      with dmConexaoTargetDB, fdTargetDB do
+      begin
+        if dmConexaoTargetDB.ExisteCampoTabela('UNID_GESTORA', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL(
+            'Delete from UNID_GESTORA '+
+            'where (ID not in (' +
+            '    Select distinct ID_UNID_GESTORA from UNID_ORCAMENT' +
+            '  )) ' + vWhere, True);
+
+        CommitRetaining;
+
+        ExcluirCampoTabela('UNID_GESTORA', ID_SYS_ANTER);
+      end;
+
+      dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_GESTORA', 'UNID_GESTORA', 'ID');
+    except
+      On E : Exception do
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' (UNID_GESTORA) não esvaziada - ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    dmRecursos.ExibriLog;
+
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
 procedure TfrmLimparDadosTargetDB.ExcluirUnidadeLotacao(Sender: TObject);
 var
   vWhere : String;
@@ -686,6 +740,55 @@ begin
     except
       On E : Exception do
         gLogImportacao.Add(TCheckBox(Sender).Caption + ' (EVENTO) não esvaziada - ' + E.Message);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    dmRecursos.ExibriLog;
+
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmLimparDadosTargetDB.ExcluirUnidadeOrcamentaria(Sender: TObject);
+var
+  vWhere : String;
+begin
+  if chkApenasImportados.Checked then
+    vWhere := ' and (' + ID_SYS_ANTER + ' is not null)'
+  else
+    vWhere := EmptyStr;
+
+  Screen.Cursor := crSQLWait;
+  try
+    try
+      with dmConexaoTargetDB, fdTargetDB do
+      begin
+        if dmConexaoTargetDB.ExisteCampoTabela('SUB_UNID_ORCAMENT', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL(
+            'Delete from SUB_UNID_ORCAMENT '+
+            'where (ID not in (' +
+            '    Select distinct ID_SUB_UNID_ORCAMENT from SERVIDOR' +
+            '  )) ' + vWhere, True);
+
+        if dmConexaoTargetDB.ExisteCampoTabela('UNID_ORCAMENT', ID_SYS_ANTER) or (not chkApenasImportados.Checked) then
+          ExecSQL(
+            'Delete from UNID_ORCAMENT '+
+            'where (ID not in (' +
+            '    Select distinct ID_UNID_ORCAMENT from SUB_UNID_ORCAMENT' +
+            '  )) ' + vWhere, True);
+
+        CommitRetaining;
+
+        ExcluirCampoTabela('UNID_ORCAMENT', ID_SYS_ANTER);
+        ExcluirCampoTabela('SUB_UNID_ORCAMENT', ID_SYS_ANTER);
+      end;
+
+      dmConexaoTargetDB.UpdateGenerator('GEN_ID_UNID_ORCAMENT',     'UNID_ORCAMENT', 'ID');
+      dmConexaoTargetDB.UpdateGenerator('GEN_ID_SUB_UNID_ORCAMENT', 'UNID_ORCAMENT', 'ID');
+    except
+      On E : Exception do
+        gLogImportacao.Add(TCheckBox(Sender).Caption + ' (SUB_UNID_ORCAMENT, UNID_ORCAMENT) não esvaziada - ' + E.Message);
     end;
   finally
     Screen.Cursor := crDefault;

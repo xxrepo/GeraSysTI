@@ -2136,7 +2136,9 @@ begin
     qrySourceDB.First;
     while not qrySourceDB.Eof do
     begin
-      aUnidadeGest := TUnidadeGestora.Create;
+      if not Assigned(aUnidadeGest) then
+        aUnidadeGest := TUnidadeGestora.Create;
+
       aUnidadeGest.Codigo := Trim(qrySourceDB.FieldByName('empresa').AsString);
       dmConexaoTargetDB.GetID('UNID_GESTORA', 'ID', 'COD_ORGAO_TCM = ' + aUnidadeGest.Codigo, TGenerico(aUnidadeGest));
 

@@ -62,8 +62,8 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Width = 141
       Height = 17
       Caption = 'Tabela Unidade Gestora'
-      Enabled = False
       TabOrder = 3
+      OnClick = chkTabelaUnidadeGestoraClick
     end
     object chkTabelaUnidadeOrcament: TCheckBox
       Left = 16
@@ -71,8 +71,8 @@ inherited frmLimparDadosTargetDB: TfrmLimparDadosTargetDB
       Width = 169
       Height = 17
       Caption = 'Tabela Unidade Or'#231'ament'#225'ria'
-      Enabled = False
       TabOrder = 4
+      OnClick = chkTabelaUnidadeOrcamentClick
     end
     object chkTabelaUnidadeLotacao: TCheckBox
       Left = 16

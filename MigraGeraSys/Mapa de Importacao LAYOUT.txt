@@ -52,6 +52,51 @@ where y.codtcm not in (
     from SFP003 x
 )
 
+-- UO
+Select distinct
+    uo.uo as codigo
+  , uo.codtcm
+  , uo.descricao
+  , uo.cnpj
+  , uo.tipo
+  , uo.ug
+  , ug.codtcm as ug_tcm
+from ECONTAS_020 uo
+  left join (
+    Select distinct
+        x.ug
+      , x.descricao
+      , x.codtcm
+    from ECONTAS_010 x
+  ) ug on (ug.ug = uo.ug)
+
+-- Subunidade (Secretarias)
+Select distinct
+    dp.cdsecreta as codigo
+  , 'MIGRACAO - SUBUNIDADE ' || dp.cdsecreta as descricao
+  , coalesce(nullif(trim(dp.codundgestor), ''), ug.codtcm) as ug_tcm
+  , nullif(trim(dp.codundorca), '0000000') as uo_tcm
+  , uo.ug
+  , uo.uo
+  , ug.descricao as unidade_gestora
+  , uo.descricao as unidade_orcamentaria
+from SFP006ABR dp
+  left join (
+    Select distinct
+        x.ug
+      , x.uo
+      , x.codtcm
+      , x.descricao
+    from ECONTAS_020 x
+  ) uo on (uo.codtcm = dp.codundorca)  -- UNIDADE ORCAMENTARIA
+  left join (
+    Select distinct
+        y.ug
+      , y.codtcm
+      , y.descricao
+    from ECONTAS_010 y
+  ) ug on (ug.ug = uo.ug) -- UNIDADE GESTORA
+  
 -- Servidores
 Select
     s.*
@@ -63,13 +108,32 @@ Select
   , null   as cbo_atual
   , s.cdsecreta || s.cdsetor as departamento
   , dp.descricao             as departamento_nome
+  , coalesce(nullif(trim(dp.codundgestor), ''), ug.codtcm) as ug_tcm
+  , nullif(trim(dp.codundorca), '0000000') as uo_tcm
+  , uo.ug
+  , uo.uo
+  , ug.descricao as unidade_gestora
+  , uo.descricao as unidade_orcamentaria
+  , s.cdsecreta  as subunidade
 from SFP001ABR s
-  left join SFP005ABR f1 on (f1.codigo = s.funcao)
-  left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2)
-  left join SFP006ABR dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)
-
-
-
+  left join SFP005ABR f1 on (f1.codigo = s.funcao) -- CARGO_FUCNCAO
+  left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2) -- CARGO_FUCNCAO
+  left join SFP006ABR dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor) -- DEPTO
+  left join (
+    Select distinct
+        x.ug
+      , x.uo
+      , x.codtcm
+      , x.descricao
+    from ECONTAS_020 x
+  ) uo on (uo.codtcm = dp.codundorca)  -- UNIDADE ORCAMENTARIA
+  left join (
+    Select distinct
+        y.ug
+      , y.codtcm
+      , y.descricao
+    from ECONTAS_010 y
+  ) ug on (ug.ug = uo.ug) -- UNIDADE GESTORA
 
 
 

@@ -77,7 +77,7 @@ type
     function RegistrarTabelaDB(aFileNameDB : String) : String;
 
     procedure ImportarCBO(Sender: TObject); virtual; abstract;
-    procedure ImportarEscolaridade(Sender: TObject); virtual; abstract;
+    procedure ImportarEscolaridade(Sender: TObject);
     procedure ImportarCargoFuncao(Sender: TObject);
     procedure ImportarUnidadeGestora(Sender: TObject);
     procedure ImportarUnidadeOrcamentaria(Sender: TObject);
@@ -583,6 +583,115 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.ImportarEscolaridade(Sender: TObject);
+var
+  aScript : TStringList;
+  aEscolaridade : TGenerico;
+begin
+  try
+    aScript := TStringList.Create;
+    aScript.BeginUpdate;
+    aScript.Clear;
+    aScript.Add('create view vw_instrucao (codigo, descricao)');
+    aScript.Add('as');
+    aScript.Add('Select ''0'' as codigo, ''Não especificado'' as descricao from rdb$database union');
+    aScript.Add('Select ''1'', ''Analfabeto''                   from rdb$database union');
+    aScript.Add('Select ''2'', ''Até 5o. ano incompleto''       from rdb$database union');
+    aScript.Add('Select ''3'', ''5o. ano completo''             from rdb$database union');
+    aScript.Add('Select ''4'', ''Do 6o. ao 9o. incompleto''     from rdb$database union');
+    aScript.Add('Select ''5'', ''Ensino fundamental completo''  from rdb$database union');
+    aScript.Add('Select ''6'', ''Ensino médio incompleto''      from rdb$database union');
+    aScript.Add('Select ''7'', ''Ensino médio completo''        from rdb$database union');
+    aScript.Add('Select ''8'', ''Educação superior incompleta'' from rdb$database union');
+    aScript.Add('Select ''9'', ''Educação superior completa''   from rdb$database union');
+    aScript.Add('Select ''A'', ''Mestrado''                     from rdb$database union');
+    aScript.Add('Select ''B'', ''Doutorado''                    from rdb$database union');
+    aScript.Add('Select ''C'', ''Pós-graduação''                from rdb$database;');
+    aScript.EndUpdate;
+
+    try
+      fdSourceDB.ExecSQL(aScript.Text, True);
+    except
+    end;
+
+    dmConexaoTargetDB.CriarCampoTabela('ESCOLARIDADE',  ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
+  (*
+    GRINSTR - Grau de Instrução:
+    "0","1","2","3","4","5","6","7","8","9","A","B","C"
+    0 - Não especificado
+    1 - Analfabeto
+    2 - Até 5o. ano incompleto
+    3 - 5o. ano completo
+    4 - Do 6o. ao 9o. incompleto
+    5 - Ensino fundamental completo
+    6 - Ensino médio incompleto
+    7 - Ensino médio completo
+    8 - Educação superior incompleta
+    9 - Educação superior completa
+    A - Mestrado
+    B - Doutorado
+    C - Pós-graduação
+  *)
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''0'' where id =  0');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''1'' where id =  1');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''3'' where id =  2');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''4'' where id =  3');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''5'' where id =  4');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''6'' where id =  5');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''7'' where id =  6');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''8'' where id =  7');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''9'' where id =  8');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''A'' where id =  9');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''B'' where id = 10');
+
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.Text := 'Select * from vw_instrucao';
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    aEscolaridade := TGenerico.Create;
+
+    aEscolaridade.ID        := 0;
+    aEscolaridade.Codigo    := '00';
+    aEscolaridade.Descricao := 'NÃO INFORMADO';
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      aEscolaridade := TGenerico.Create;
+
+      aEscolaridade.ID        := 0;
+      aEscolaridade.Codigo    := qrySourceDB.FieldByName('codigo').AsString;
+      aEscolaridade.Descricao := AnsiUpperCase(Copy(Trim(qrySourceDB.FieldByName('descricao').AsString), 1, 40));
+
+      if not dmConexaoTargetDB.InserirEscolaridade(aEscolaridade) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+            QuotedStr(aEscolaridade.Codigo + ' - ' + aEscolaridade.Descricao) + ' não importado');
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('descricao').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+  finally
+    aScript.Free;
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
 procedure TfrmSourceDBLayoutFB.ImportarEstadoFuncional(Sender: TObject);
 var
   aEstadoFunc : TEstadoFuncional;
@@ -761,6 +870,7 @@ procedure TfrmSourceDBLayoutFB.ImportarPessoaFisica(Sender: TObject);
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR_CONTA_BANC', 'SERVIDOR_CONTA_BANC', 'ID');
   end;
 var
+  aCompetencia    ,
   aPessoa         ,
   aNacionalidade  ,
   aEstadoCivil    ,
@@ -779,14 +889,60 @@ begin
   try
     UpdateGenerators;
 
-//    dmConexaoTargetDB.CriarCampoTabela('NACIONALIDADE', 'ID_SYS_ANTER', 'VARCHAR(11)');
-//    dmConexaoTargetDB.CriarCampoTabela('ESTADO_CIVIL',  'ID_SYS_ANTER', 'VARCHAR(11)');
-//    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''1'' where id = 1');
-//    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''2'' where id = 2');
-//    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''3'' where id = 3');
-//    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''4'' where id = 4');
-//    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter =  ''5'' where id = 5');
-//
+    dmConexaoTargetDB.CriarCampoTabela('NACIONALIDADE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+    dmConexaoTargetDB.CriarCampoTabela('ESTADO_CIVIL',  ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+    dmConexaoTargetDB.CriarCampoTabela('ESCOLARIDADE',  ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
+  (*
+    ESTCIVIL - Estado Civil:
+    "0","1","2","3","4","5","6","7"
+    0 - Não Especificado
+    1 - Solteiro
+    2 - Casado
+    3 - Divorciado
+    4 - Estável
+    5 - Viúvo
+    6 - Desquitado e Outros
+    7 - ?
+  *)
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''0'' where id = 0');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''1'' where id = 1');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''2'' where id = 2');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''5'' where id = 3');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''6'' where id = 4');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''3'' where id = 5');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESTADO_CIVIL Set id_sys_anter = ''4'' where id = 6');
+
+
+  (*
+    GRINSTR - Grau de Instrução:
+    "0","1","2","3","4","5","6","7","8","9","A","B","C"
+    0 - Não especificado
+    1 - Analfabeto
+    2 - Até 5o. ano incompleto
+    3 - 5o. ano completo
+    4 - Do 6o. ao 9o. incompleto
+    5 - Ensino fundamental completo
+    6 - Ensino médio incompleto
+    7 - Ensino médio completo
+    8 - Educação superior incompleta
+    9 - Educação superior completa
+    A - Mestrado
+    B - Doutorado
+    C - Pós-graduação
+  *)
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''0'' where id =  0');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''1'' where id =  1');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''3'' where id =  2');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''4'' where id =  3');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''5'' where id =  4');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''6'' where id =  5');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''7'' where id =  6');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''8'' where id =  7');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''9'' where id =  8');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''A'' where id =  9');
+    dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''B'' where id = 10');
+
     aDepartamento := TGenerico.Create;
     aDepartamento.ID        := 1;
     aDepartamento.Descricao := 'GERAL';
@@ -805,39 +961,54 @@ begin
 //    // Inserir SUBUNIDADE GESTORA DEFAULT
 //    dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
 //
+
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
     qrySourceDB.SQL.BeginUpdate;
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select');
-    qrySourceDB.SQL.Add('    t.*');
-    qrySourceDB.SQL.Add('  , coalesce(nullif(t.nacionalidade, ''0''), ''10'') as nacionalidade_codigo');
-    qrySourceDB.SQL.Add('  , n.nome as nacionalidade_nome');
-    qrySourceDB.SQL.Add('  , coalesce(t.estadocivil, ''9'') as estadocivil_codigo');
-    qrySourceDB.SQL.Add('  , e.nome as estadocivil_nome');
-    qrySourceDB.SQL.Add('  , c1.cbo as cbo_inicial');
-    qrySourceDB.SQL.Add('  , c2.cbo as cbo_atual');
-    qrySourceDB.SQL.Add('  , t.depdespesa  as depto');
-    qrySourceDB.SQL.Add('  , u.nomeunidade as depto_nome');
-//    qrySourceDB.SQL.Add('  , ss.nome as situacao_nome');
-//    qrySourceDB.SQL.Add('  , sf.nome as situacao_nome_nome');
-    qrySourceDB.SQL.Add('  , sl.valor as vencimento_base');
-    qrySourceDB.SQL.Add('  , coalesce(''000000'', nullif(trim(t.divisao), '''')) as divisao_tmp');
-    qrySourceDB.SQL.Add('from TRABALHADOR t');
-    qrySourceDB.SQL.Add('  left join NACIONALIDADE n on (n.codigo = t.nacionalidade)');
-    qrySourceDB.SQL.Add('  left join ESTADOCIVIL e on (e.codigo = t.estadocivil)');
-    qrySourceDB.SQL.Add('  left join CARGOS c1 on (c1.empresa = t.empresa and c1.codigo = t.cargoinicial)');
-    qrySourceDB.SQL.Add('  left join CARGOS c2 on (c2.empresa = t.empresa and c2.codigo = t.cargoatual)');
-    qrySourceDB.SQL.Add('  left join UNIDADE u on (u.codigo = t.depdespesa)');
-//    qrySourceDB.SQL.Add('  left join SITUACOES ss on (ss.codigo = t.situacao)');
-    qrySourceDB.SQL.Add('  left join SITUACAO_FUNCIONAL sf on (sf.codigo = t.situacao_funcional)');
-    qrySourceDB.SQL.Add('  left join SALARIOS sl on (sl.empresa = t.empresa and sl.codigo = t.refsalatual)');
+    qrySourceDB.SQL.Add('    s.*');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.codnacion), ''''), ''10'') as nacionalidade_codigo');
+    qrySourceDB.SQL.Add('  , coalesce(s.estcivil, ''0'') as estadocivil_codigo');
+    qrySourceDB.SQL.Add('  , s.funcao  as cargo_funcao_inicial');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.funcao2), ''''), s.funcao) as cargo_funcao_atual');
+    qrySourceDB.SQL.Add('  , f1.cbo as cbo_inicial');
+    qrySourceDB.SQL.Add('  , null   as cbo_atual');
+    qrySourceDB.SQL.Add('  , s.cdsecreta || s.cdsetor as departamento');
+    qrySourceDB.SQL.Add('  , dp.descricao             as departamento_nome');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(dp.codundgestor), ''''), ug.codtcm) as ug_tcm');
+    qrySourceDB.SQL.Add('  , nullif(trim(dp.codundorca), ''0000000'') as uo_tcm');
+    qrySourceDB.SQL.Add('  , uo.ug');
+    qrySourceDB.SQL.Add('  , uo.uo');
+    qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
+    qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
+    qrySourceDB.SQL.Add('  , s.cdsecreta  as subunidade');
+    qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
+    qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
+    qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
+    qrySourceDB.SQL.Add('  left join SFP006' + aCompetencia.Sufixo + ' dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)'); // -- DEPTO
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        x.ug');
+    qrySourceDB.SQL.Add('      , x.uo');
+    qrySourceDB.SQL.Add('      , x.codtcm');
+    qrySourceDB.SQL.Add('      , x.descricao');
+    qrySourceDB.SQL.Add('    from ECONTAS_020 x');
+    qrySourceDB.SQL.Add('  ) uo on (uo.codtcm = dp.codundorca)'); //  -- UNIDADE ORCAMENTARIA
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        y.ug');
+    qrySourceDB.SQL.Add('      , y.codtcm');
+    qrySourceDB.SQL.Add('      , y.descricao');
+    qrySourceDB.SQL.Add('    from ECONTAS_010 y');
+    qrySourceDB.SQL.Add('  ) ug on (ug.ug = uo.ug)'); // -- UNIDADE GESTORA
     qrySourceDB.SQL.Add('order by');
-    qrySourceDB.SQL.Add('    t.empresa');
-    qrySourceDB.SQL.Add('  , t.nome');
-    qrySourceDB.SQL.Add('  , t.matricula');
-    qrySourceDB.SQL.Add('  , t.contrato');
+    qrySourceDB.SQL.Add('    s.cdsecreta');
+    qrySourceDB.SQL.Add('  , s.cdsetor');
+    qrySourceDB.SQL.Add('  , s.nome');
     qrySourceDB.SQL.EndUpdate;
 
     qrySourceDB.Open;
@@ -857,35 +1028,37 @@ begin
         if not Assigned(aEntidadeFinanc) then
           aEntidadeFinanc := TContaBancoServidor.Create;
 
-//        aServidor.ID              := 0;
-//        aServidor.Codigo          := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('registro').AsString);
-//        aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula').AsString);
-//        aServidor.Nome            := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
-//        aServidor.SexoSigla       := AnsiUpperCase(Trim(qrySourceDB.FieldByName('sexo').AsString));
-//        aServidor.DataNascimento  := qrySourceDB.FieldByName('dtnascimento').AsDateTime;
-//        aServidor.Naturalidade.Cidade := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cidade').AsString));
-//        aServidor.Naturalidade.UF     := AnsiUpperCase(Trim(qrySourceDB.FieldByName('uf').AsString));
-//        aServidor.RG.Numero           := Trim(qrySourceDB.FieldByName('rg').AsString);
-//        aServidor.RG.OrgaoEmissor     := Trim(qrySourceDB.FieldByName('rgorgaoemissor').AsString);
-//        aServidor.RG.UF               := Trim(qrySourceDB.FieldByName('ufrg').AsString);
-//        aServidor.RG.DataEmissao      := qrySourceDB.FieldByName('dtrg').AsDateTime;
-//        aServidor.CPF_CNPJ.Numero     := Trim(qrySourceDB.FieldByName('cpf').AsString);
-//        aServidor.PisPasep.Numero     := Trim(qrySourceDB.FieldByName('pis').AsString);
-//        aServidor.CNH.Categoria       := Trim(qrySourceDB.FieldByName('cnh_categoria').AsString);
-//        aServidor.CNH.Numero          := Trim(qrySourceDB.FieldByName('cnh_numero').AsString);
-//        aServidor.CNH.DataEmissao     := qrySourceDB.FieldByName('cnh_dtexpedida').AsDateTime;
-//        aServidor.CNH.DataVencimento  := qrySourceDB.FieldByName('cnh_dtvalidade').AsDateTime;
-//
-//        aServidor.Titulo.Numero := Trim(qrySourceDB.FieldByName('eleitor').AsString);
-//        aServidor.Titulo.Zona   := Trim(qrySourceDB.FieldByName('zonaeleitoral').AsString);
-//        aServidor.Titulo.Secao  := Trim(qrySourceDB.FieldByName('secaoeleitoral').AsString);
-//
-//        aServidor.Reservista.Numero := Trim(qrySourceDB.FieldByName('reservista').AsString);
-//        aServidor.Conjuge.Nome            := EmptyStr;
-//        aServidor.Conjuge.CPF_CNPJ.Numero := EmptyStr;
-//        aServidor.NomePai := Trim(qrySourceDB.FieldByName('nomepai').AsString);
-//        aServidor.NomeMae := Trim(qrySourceDB.FieldByName('nomemae').AsString);
-//
+        aServidor.ID              := 0;
+        aServidor.Codigo          := Trim(qrySourceDB.FieldByName('matricula').AsString).Replace('-', '', [rfReplaceAll]);
+        aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula').AsString);
+        aServidor.Nome            := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
+        aServidor.SexoSigla       := IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '1', 'M', IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '2', 'F', ''));
+        aServidor.DataNascimento  := qrySourceDB.FieldByName('dtnasc').AsDateTime;
+        aServidor.Naturalidade.Cidade  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cidnasc').AsString));
+        aServidor.Naturalidade.UF      := AnsiUpperCase(Trim(qrySourceDB.FieldByName('ufnasc').AsString));
+        aServidor.RG.Numero            := Trim(qrySourceDB.FieldByName('identidade').AsString);
+        aServidor.RG.OrgaoEmissor      := Trim(qrySourceDB.FieldByName('orgaoident').AsString);
+        aServidor.RG.UF                := Trim(qrySourceDB.FieldByName('ufident').AsString);
+        aServidor.RG.DataEmissao       := qrySourceDB.FieldByName('dtident').AsDateTime;
+        aServidor.CPF_CNPJ.Numero      := Trim(qrySourceDB.FieldByName('cpf').AsString);
+        aServidor.PisPasep.Numero      := Trim(qrySourceDB.FieldByName('pispasep').AsString);
+        aServidor.PisPasep.DataEmissao := qrySourceDB.FieldByName('dtpispasep').AsDateTime;
+        aServidor.CNH.Categoria        := Trim(qrySourceDB.FieldByName('cnhcat').AsString);
+        aServidor.CNH.Numero           := Trim(qrySourceDB.FieldByName('cnh').AsString);
+        aServidor.CNH.Orgao            := Trim(qrySourceDB.FieldByName('cnhorgao').AsString);
+        aServidor.CNH.DataEmissao      := qrySourceDB.FieldByName('cnhdtexp').AsDateTime;
+        aServidor.CNH.DataVencimento   := qrySourceDB.FieldByName('dtcnh').AsDateTime;
+
+        aServidor.Titulo.Numero := Trim(qrySourceDB.FieldByName('titeleitor').AsString);
+        aServidor.Titulo.Zona   := Trim(qrySourceDB.FieldByName('zona').AsString);
+        aServidor.Titulo.Secao  := Trim(qrySourceDB.FieldByName('secao').AsString);
+
+        aServidor.Reservista.Numero       := EmptyStr; // Trim(qrySourceDB.FieldByName('reservista').AsString);
+        aServidor.Conjuge.Nome            := EmptyStr;
+        aServidor.Conjuge.CPF_CNPJ.Numero := EmptyStr;
+        aServidor.NomePai := Trim(qrySourceDB.FieldByName('nomepai').AsString);
+        aServidor.NomeMae := Trim(qrySourceDB.FieldByName('nomemae').AsString);
+
 //        aServidor.Endereco.Logradouro  := Trim(qrySourceDB.FieldByName('endereco').AsString);
 //        aServidor.Endereco.Numero      := StringReplace(Trim(qrySourceDB.FieldByName('numero').AsString), '''', '', [rfReplaceAll]);
 //        aServidor.Endereco.Bairro      := Trim(qrySourceDB.FieldByName('bairro').AsString);
@@ -899,19 +1072,18 @@ begin
 //        aServidor.Nacionalidade.Descricao := Trim(qrySourceDB.FieldByName('nacionalidade_nome').AsString);
 //        aServidor.Nacionalidade.Codigo    := Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString);
 //
-//        aServidor.EstadoCivil.ID        := StrToIntDef(Trim(qrySourceDB.FieldByName('estadocivil_codigo').AsString), 9);
-//        aServidor.EstadoCivil.Descricao := Trim(qrySourceDB.FieldByName('estadocivil_nome').AsString);
-//        aServidor.EstadoCivil.Codigo    := Trim(qrySourceDB.FieldByName('estadocivil_codigo').AsString);
+        aServidor.EstadoCivil.ID     := 0;
+        aServidor.EstadoCivil.Codigo := Trim(qrySourceDB.FieldByName('estadocivil_codigo').AsString);
 //
 //        dmConexaoTargetDB.InserirNacionalidade(aServidor.Nacionalidade);
 //        dmConexaoTargetDB.InserirEstadoCivil(aServidor.EstadoCivil);
 //
 //        dmConexaoTargetDB.GetID('NACIONALIDADE', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.Nacionalidade.Codigo), aNacionalidade);
-//        dmConexaoTargetDB.GetID('ESTADO_CIVIL',  'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoCivil.Codigo),   aEstadoCivil);
+        dmConexaoTargetDB.GetID('ESTADO_CIVIL',  'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoCivil.Codigo),   aEstadoCivil);
 //
 //        aServidor.Nacionalidade.ID := aNacionalidade.ID;
-//        aServidor.EstadoCivil.ID   := aEstadoCivil.ID;
-//
+        aServidor.EstadoCivil.ID   := aEstadoCivil.ID;
+
 //        // Inserir PESSOA FISICA
 //        if not dmConexaoTargetDB.InserirPessoaFisica(TPessoaFisica(aServidor)) then
 //          gLogImportacao.Add('Tabela Pessoa Física - ' +
@@ -1341,6 +1513,7 @@ begin
     qrySourceDB.SQL.Add('  , d.codundgestor as ug_tcm');
     qrySourceDB.SQL.Add('  , d.codundorca   as uo_tcm');
     qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Sufixo + ' d');
+    qrySourceDB.SQL.Add('where d.cdsetor <> ' + QuotedStr('000'));
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    d.descricao');
     qrySourceDB.SQL.EndUpdate;
@@ -1483,14 +1656,23 @@ begin
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select distinct');
     qrySourceDB.SQL.Add('    dp.cdsecreta as codigo');
-    qrySourceDB.SQL.Add('  , ' + QuotedStr('MIGRAÇÃO - SUBUNIDADE ') +' || dp.cdsecreta as descricao');
-    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(dp.codundgestor), ''''), ug.codtcm) as ug_tcm');
+    qrySourceDB.SQL.Add('  , coalesce(sc.descricao, ' + QuotedStr('MIGRAÇÃO - SUBUNIDADE ') +' || dp.cdsecreta) as descricao');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(dp.codundgestor), ''''), ug.codtcm)  as ug_tcm');
     qrySourceDB.SQL.Add('  , nullif(trim(dp.codundorca), ' + QuotedStr('0000000') + ') as uo_tcm');
     qrySourceDB.SQL.Add('  , uo.ug');
     qrySourceDB.SQL.Add('  , uo.uo');
     qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
     qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
     qrySourceDB.SQL.Add('from SFP006' + aCompetencia.Sufixo + ' dp');
+
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select');
+    qrySourceDB.SQL.Add('        z.cdsecreta');
+    qrySourceDB.SQL.Add('      , z.descricao');
+    qrySourceDB.SQL.Add('    from SFP006' + aCompetencia.Sufixo + ' z');
+    qrySourceDB.SQL.Add('    where z.cdsetor = ' + QuotedStr('000'));
+    qrySourceDB.SQL.Add('  ) sc on (sc.cdsecreta = dp.cdsecreta)');
+
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select distinct');
     qrySourceDB.SQL.Add('        x.ug');
@@ -1499,6 +1681,7 @@ begin
     qrySourceDB.SQL.Add('      , x.descricao');
     qrySourceDB.SQL.Add('    from ECONTAS_020 x');
     qrySourceDB.SQL.Add('  ) uo on (uo.codtcm = dp.codundorca)');
+
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select distinct');
     qrySourceDB.SQL.Add('        y.ug');

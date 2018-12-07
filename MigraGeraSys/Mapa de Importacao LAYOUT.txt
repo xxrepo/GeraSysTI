@@ -1,22 +1,22 @@
-SFP001     - Servidor
-SFP018	   - PIS/PASEP de algumas pessoas
-SFPD9912   - Dependentes
-SFP017     - Afastamentos
-AFASTFOLHA - Motivos de Afastamentos (Folha)
-AFASTRAIS  - Motivos de Afastamentos (Código RAIS)
-AFASTGFIP  - Motivos de Afastamentos (Código GFIP)
-SFP003     - Dados UG
-SFP005     - Cargos e CBO
-SFPDXX25   - Cargo 2
-SFP006     - Departamentos
-SFP010     - Eventos
-SFP019     - Totais da Folha
-SFPD9911   - Entidades Financeiras
-SFPW9940   - Convênios
-SFPD9924   - Unidade de Lotação
-SFPDXX02   - Calculo Mensal
-SFPDXX16   - Férias
-SFPW9927   - Diárias
+SFP001      - Servidor
+SFP018	    - PIS/PASEP de algumas pessoas
+SFPD9912    - Dependentes
+SFP017      - Afastamentos
+AFASTFOLHA  - Motivos de Afastamentos (Folha)
+AFASTRAIS   - Motivos de Afastamentos (Código RAIS)
+AFASTGFIP   - Motivos de Afastamentos (Código GFIP)
+SFP003      - Dados UG
+SFP005      - Cargos e CBO
+SFPDXX25    - Cargo 2
+SFP006      - Departamentos
+SFP010      - Eventos
+SFP019      - Totais da Folha
+SFPD9911    - Entidades Financeiras
+SFPW9940    - Convênios
+SFPD9924    - Unidade de Lotação
+SFPDXX02    - Calculo Mensal
+SFPDXX16    - Férias
+SFPW9927    - Diárias
 CFG_VINCSET - Vinculos para Subunidades
 
 
@@ -73,7 +73,7 @@ from ECONTAS_020 uo
 -- Subunidade (Secretarias)
 Select distinct
     dp.cdsecreta as codigo
-  , 'MIGRACAO - SUBUNIDADE ' || dp.cdsecreta as descricao
+  , coalesce(sc.descricao, 'MIGRACAO - SUBUNIDADE ' || dp.cdsecreta) as descricao
   , coalesce(nullif(trim(dp.codundgestor), ''), ug.codtcm) as ug_tcm
   , nullif(trim(dp.codundorca), '0000000') as uo_tcm
   , uo.ug
@@ -81,6 +81,13 @@ Select distinct
   , ug.descricao as unidade_gestora
   , uo.descricao as unidade_orcamentaria
 from SFP006ABR dp
+  left join (
+    Select
+        z.cdsecreta
+      , z.descricao
+    from SFP006ABR z
+    where z.cdsetor = '000'
+  ) sc on (sc.cdsecreta = dp.cdsecreta)
   left join (
     Select distinct
         x.ug
@@ -134,6 +141,40 @@ from SFP001ABR s
       , y.descricao
     from ECONTAS_010 y
   ) ug on (ug.ug = uo.ug) -- UNIDADE GESTORA
+order by
+    s.cdsecreta
+  , s.cdsetor
+  , s.nome
+
+
+
+
+ESTCIVIL - Estado Civil:
+"0","1","2","3","4","5","6","7"
+0 - Não Especificado
+1 - Solteiro
+2 - Casado
+3 - Divorciado
+4 - Estável
+5 - Viúvo
+6 - Desquitado e Outros
+7 - ?
+
+GRINSTR - Grau de Instrução:
+"0","1","2","3","4","5","6","7","8","9","A","B","C"
+0 - Não especificado
+1 - Analfabeto
+2 - Até 5o. ano incompleto
+3 - 5o. ano completo
+4 - Do 6o. ao 9o. incompleto
+5 - Ensino fundamental completo
+6 - Ensino médio incompleto
+7 - Ensino médio completo
+8 - Educação superior incompleta
+9 - Educação superior completa
+A - Mestrado
+B - Doutorado
+C - Pós-graduação
 
 
 

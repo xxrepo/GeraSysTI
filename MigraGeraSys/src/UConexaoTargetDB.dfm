@@ -93,7 +93,9 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     SQL.Strings = (
       'Select *'
       'from ESCOLARIDADE e'
-      'where (e.id = :id) or (e.cod_rais = :codigo)')
+      
+        'where (e.id = :id) or (e.cod_rais = :codigo) or (e.id_sys_anter ' +
+        '= :codigo)')
     Left = 200
     Top = 112
     ParamData = <
@@ -114,19 +116,22 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
     Connection = fdTargetDB
     InsertSQL.Strings = (
       'INSERT INTO ESCOLARIDADE'
-      '(ID, DESCRICAO, COD_RAIS)'
-      'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_COD_RAIS)')
+      '(ID, DESCRICAO, COD_RAIS, ID_SYS_ANTER)'
+      
+        'VALUES (:NEW_ID, :NEW_DESCRICAO, :NEW_COD_RAIS, :NEW_ID_SYS_ANTE' +
+        'R)')
     ModifySQL.Strings = (
       'UPDATE ESCOLARIDADE'
       
         'SET ID = :NEW_ID, DESCRICAO = :NEW_DESCRICAO, COD_RAIS = :NEW_CO' +
-        'D_RAIS'
+        'D_RAIS, '
+      '  ID_SYS_ANTER = :NEW_ID_SYS_ANTER'
       'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM ESCOLARIDADE'
       'WHERE ID = :OLD_ID')
     FetchRowSQL.Strings = (
-      'SELECT ID, DESCRICAO, COD_RAIS'
+      'SELECT ID, DESCRICAO, COD_RAIS, ID_SYS_ANTER'
       'FROM ESCOLARIDADE'
       'WHERE ID = :ID')
     Left = 200

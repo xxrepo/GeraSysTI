@@ -162,7 +162,6 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 121
       Height = 17
       Caption = 'Tabela Escolaridade'
-      Enabled = False
       TabOrder = 8
     end
     object chkTabelaCargoFuncao: TCheckBox

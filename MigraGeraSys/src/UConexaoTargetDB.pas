@@ -113,10 +113,12 @@ Type
 Type
   TDocumentoCNH = class(TDocumentoGenerico)
     private
-      FCategoria : String;
+      FCategoria,
+      FOrgao    : String;
       FDataVencimento : TDateTime;
     public
       property Categoria : String read FCategoria write FCategoria;
+      property Orgao     : String read FOrgao write FOrgao;
       property DataVencimento : TDateTime read FDataVencimento write FDataVencimento;
 
       constructor Create;
@@ -2138,12 +2140,17 @@ begin
     try
       with qryEscolaridade do
       begin
+        CriarCampoTabela('ESCOLARIDADE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
+
         Close;
+
         if (pEscolaridade.ID = 0) then
           ParamByName('id').Clear
         else
           ParamByName('id').AsInteger  := pEscolaridade.ID;
+
         ParamByName('codigo').AsString := pEscolaridade.Codigo;
+
         Open;
         if IsEmpty then
         begin
@@ -2151,9 +2158,10 @@ begin
             pEscolaridade.ID := NewID('ESCOLARIDADE', 'ID');
 
           Append;
-          FieldByName('id').AsInteger       := pEscolaridade.ID;
-          FieldByName('descricao').AsString := pEscolaridade.Descricao;
-          FieldByName('cod_rais').AsString  := pEscolaridade.Codigo;
+          FieldByName('id').AsInteger        := pEscolaridade.ID;
+          FieldByName('descricao').AsString  := pEscolaridade.Descricao;
+          FieldByName('cod_rais').AsString   := pEscolaridade.Codigo;
+          FieldByName(ID_SYS_ANTER).AsString := pEscolaridade.Codigo;
           Post;
 
           ApplyUpdates(0);
@@ -4180,6 +4188,7 @@ constructor TDocumentoCNH.Create;
 begin
   inherited Create;
   FCategoria      := EmptyStr;
+  FOrgao          := EmptyStr;
   FDataVencimento := Now;
 end;
 

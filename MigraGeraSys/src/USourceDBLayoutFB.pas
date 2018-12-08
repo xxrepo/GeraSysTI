@@ -952,15 +952,14 @@ begin
     // Inserir DEPARTAMENTO DEFAULT
     dmConexaoTargetDB.InserirDepartamento(aDepartamento);
 
-//    aSubUnidadeOrca.ID        := 1;
-//    aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
-//    aSubUnidadeOrca.Codigo    := '0000';
-//    aSubUnidadeOrca.UnidadeOrcamentaria.ID := 1;
-//    aSubUnidadeOrca.Setor.ID  := 1;
-//
-//    // Inserir SUBUNIDADE GESTORA DEFAULT
-//    dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
-//
+    // Unidade Sub Orçamentária Padrão (DEFAULT)
+    aSubUnidadeOrca.ID        := 1;
+    aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
+    aSubUnidadeOrca.Codigo    := '000';
+    aSubUnidadeOrca.UnidadeOrcamentaria.ID := dmConexaoTargetDB.GetValue('UNID_ORCAMENT', 'min(ID)', ID_SYS_ANTER + ' is not null');
+    aSubUnidadeOrca.Setor.ID               := dmConexaoTargetDB.GetValue('SETOR', 'min(ID)', 'ID > 0');
+
+    dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
 
     aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
 
@@ -991,10 +990,13 @@ begin
     qrySourceDB.SQL.Add('  , bc.nomebanco');
     qrySourceDB.SQL.Add('  , trim(s.agencia) || coalesce(''-'' || nullif(s.dvagencia, ''''), '''') as bco_agencia');
     qrySourceDB.SQL.Add('  , trim(s.conta) || coalesce(''-'' || nullif(s.dvconta, ''''), '''')     as bco_conta');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.codesc2), ''''), nullif(trim(s.codesc2), ''''), ''000'') as lotacao');
+    qrySourceDB.SQL.Add('  , es.escola as lotacao_nome');
     qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
     qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFP006' + aCompetencia.Sufixo + ' dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)'); // -- DEPTO
+    qrySourceDB.SQL.Add('  left join SFPD9924 es on (es.codigo = coalesce(nullif(trim(s.codesc2), ''''), s.codesc))');
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select distinct');
     qrySourceDB.SQL.Add('        x.ug');
@@ -1043,6 +1045,7 @@ begin
         aServidor.Codigo          := Trim(qrySourceDB.FieldByName('matricula').AsString).Replace('-', '', [rfReplaceAll]);
         aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula').AsString);
         aServidor.Nome            := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
+        aServidor.Apelido         := AnsiUpperCase(Trim(qrySourceDB.FieldByName('apelido').AsString));
         aServidor.SexoSigla       := IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '1', 'M', IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '2', 'F', ''));
         aServidor.DataNascimento  := qrySourceDB.FieldByName('dtnasc').AsDateTime;
         aServidor.Naturalidade.Cidade  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cidnasc').AsString));
@@ -1107,21 +1110,31 @@ begin
         aServidor.DataAdmissao := qrySourceDB.FieldByName('dtadmissao').AsDateTime;
         aServidor.SubUnidadeOrcamentaria := aSubUnidadeOrca;
 
-        aServidor.SubUnidadeOrcamentaria.Codigo  := Trim(qrySourceDB.FieldByName('subunidade').AsString);
-        aServidor.SubUnidadeOrcamentaria.ID      := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
+        aServidor.SubUnidadeOrcamentaria.Codigo := Trim(qrySourceDB.FieldByName('subunidade').AsString);
+        aServidor.SubUnidadeOrcamentaria.ID     := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
         if (aServidor.SubUnidadeOrcamentaria.ID = 0) then
         begin
-          MensagemErro('Erro', 'Sub-Unidade Orçamentária ' + aServidor.SubUnidadeOrcamentaria.Codigo + ' não cadastrada/localizada!');
-          Abort;
+          aServidor.SubUnidadeOrcamentaria.Codigo := '000';
+          aServidor.SubUnidadeOrcamentaria.ID     := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
+          if (aServidor.SubUnidadeOrcamentaria.ID = 0) then
+          begin
+            MensagemErro('Erro', 'Sub-Unidade Orçamentária ' + aServidor.SubUnidadeOrcamentaria.Codigo + ' não cadastrada/localizada!');
+            Abort;
+          end;
         end;
 
-//        aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('subdivisao').AsString);
-//        aServidor.UnidadeLotacao.ID      := dmConexaoTargetDB.GetValue('UNID_LOTACAO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.UnidadeLotacao.Codigo));
-//        if (aServidor.UnidadeLotacao.ID = 0) then
-//        begin
-//          MensagemErro('Erro', 'Unidade Lotação ' + aServidor.UnidadeLotacao.Codigo + ' não cadastrada/localizada!');
-//          Abort;
-//        end;
+        aServidor.UnidadeLotacao.Codigo := FBaseID + Trim(qrySourceDB.FieldByName('lotacao').AsString);
+        aServidor.UnidadeLotacao.ID     := dmConexaoTargetDB.GetValue('UNID_LOTACAO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.UnidadeLotacao.Codigo));
+        if (aServidor.UnidadeLotacao.ID = 0) then
+        begin
+          aServidor.UnidadeLotacao.Codigo := Trim(qrySourceDB.FieldByName('lotacao').AsString);
+          aServidor.UnidadeLotacao.ID     := dmConexaoTargetDB.GetValue('UNID_LOTACAO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.UnidadeLotacao.Codigo));
+          if (aServidor.UnidadeLotacao.ID = 0) then
+          begin
+            MensagemErro('Erro', 'Unidade Lotação ' + aServidor.UnidadeLotacao.Codigo + ' não cadastrada/localizada!');
+            Abort;
+          end;
+        end;
 
         aDepartamento.ID        := 0;
         aDepartamento.Codigo    := Trim(qrySourceDB.FieldByName('depto').AsString);
@@ -1473,6 +1486,16 @@ begin
   try
     UpdateGenerators;
 
+    aLotacao := TUnidadeLotacao.Create;
+
+    aLotacao.ID         := 1;
+    aLotacao.Codigo     := '000';
+    aLotacao.Descricao  := 'MIGRAÇÃO';
+    aLotacao.CodigoINEP := EmptyStr;
+    aLotacao.Tipo.ID    := 99;  // OUTROS
+
+    dmConexaoTargetDB.InserirUnidadeLotacao(aLotacao);
+
     // Importar UNIDADES DE LOTAÇÃO
     if qrySourceDB.Active then
       qrySourceDB.Close;
@@ -1491,7 +1514,7 @@ begin
         aLotacao := TUnidadeLotacao.Create;
 
       aLotacao.ID         := 0;
-      aLotacao.Codigo     := Trim(qrySourceDB.FieldByName('codigo').AsString);
+      aLotacao.Codigo     := FBaseID + Trim(qrySourceDB.FieldByName('codigo').AsString);
       aLotacao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('escola').AsString));
       aLotacao.CodigoINEP := IfThen(Trim(qrySourceDB.FieldByName('codinep').AsString) = '99999999', EmptyStr, Trim(qrySourceDB.FieldByName('codinep').AsString));
 
@@ -1662,6 +1685,15 @@ begin
       Application.ProcessMessages;
       qrySourceDB.Next;
     end;
+
+    // Unidade Sub Orçamentária Padrão (Default)
+    aSubUnidadeOrca.ID        := 1;
+    aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
+    aSubUnidadeOrca.Codigo    := '000';
+    aSubUnidadeOrca.UnidadeOrcamentaria.ID := dmConexaoTargetDB.GetValue('UNID_ORCAMENT', 'min(ID)', ID_SYS_ANTER + ' is not null');
+    aSubUnidadeOrca.Setor.ID               := dmConexaoTargetDB.GetValue('SETOR', 'min(ID)', 'ID > 0');
+
+    dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
 
     // Unidade Sub Orçamentária
     if qrySourceDB.Active then

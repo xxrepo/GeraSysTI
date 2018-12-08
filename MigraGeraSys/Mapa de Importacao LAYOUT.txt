@@ -113,8 +113,8 @@ Select
   , coalesce(nullif(trim(s.funcao2), ''), s.funcao) as cargo_funcao_atual
   , f1.cbo as cbo_inicial
   , null   as cbo_atual
-  , s.cdsecreta || s.cdsetor as departamento
-  , dp.descricao             as departamento_nome
+  , s.cdsecreta || s.cdsetor as depto
+  , dp.descricao             as depto_nome
   , coalesce(nullif(trim(dp.codundgestor), ''), ug.codtcm) as ug_tcm
   , nullif(trim(dp.codundorca), '0000000') as uo_tcm
   , uo.ug
@@ -122,6 +122,11 @@ Select
   , ug.descricao as unidade_gestora
   , uo.descricao as unidade_orcamentaria
   , s.cdsecreta  as subunidade
+  , coalesce(f2.salario, f1.salario) as vencimnento_base
+  , bc.numbanco
+  , bc.nomebanco
+  , trim(s.agencia) || coalesce('-' || nullif(s.dvagencia, ''), '') as bco_agencia
+  , trim(s.conta) || coalesce('-' || nullif(s.dvconta, ''), '')     as bco_conta
 from SFP001ABR s
   left join SFP005ABR f1 on (f1.codigo = s.funcao) -- CARGO_FUCNCAO
   left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2) -- CARGO_FUCNCAO
@@ -141,6 +146,12 @@ from SFP001ABR s
       , y.descricao
     from ECONTAS_010 y
   ) ug on (ug.ug = uo.ug) -- UNIDADE GESTORA
+  left join (
+    Select distinct
+        z.numbanco
+      , z.nomebanco
+    from SFPD9911 z
+  ) bc on (bc.numbanco = s.banco)
 order by
     s.cdsecreta
   , s.cdsetor

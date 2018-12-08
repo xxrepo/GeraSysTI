@@ -51,6 +51,7 @@ type
     mniEstadoFuncional: TMenuItem;
     chkTabelaBanco: TCheckBox;
     chkTabelaPFServidor: TCheckBox;
+    chkTabelaDependente: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -449,9 +450,7 @@ begin
       aEscola  := TGenerico.Create;
 
       aCargoFuncao.ID         := 0;
-//      // Codigo = Código + CBO
-//      aCargoFuncao.Codigo     := FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
-      aCargoFuncao.Codigo     := FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999));
+      aCargoFuncao.Codigo     := FBaseID + FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999));
       aCargoFuncao.Descricao  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cargo').AsString));
       aCargoFuncao.CBO.Codigo := FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo').AsString), 0));
       aCargoFuncao.NumeroAtoCriacao    := Trim(qrySourceDB.FieldByName('leicria').AsString);
@@ -880,6 +879,7 @@ var
   aSubUnidadeOrca : TSubUnidadeOrcamentaria;
   aEnderecoNumero ,
   aTituloEleitor  : String;
+  aPossuiConta    : Boolean;
 begin
   aPessoa         := TGenerico.Create;
   aNacionalidade  := TGenerico.Create;
@@ -977,8 +977,8 @@ begin
     qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.funcao2), ''''), s.funcao) as cargo_funcao_atual');
     qrySourceDB.SQL.Add('  , f1.cbo as cbo_inicial');
     qrySourceDB.SQL.Add('  , null   as cbo_atual');
-    qrySourceDB.SQL.Add('  , s.cdsecreta || s.cdsetor as departamento');
-    qrySourceDB.SQL.Add('  , dp.descricao             as departamento_nome');
+    qrySourceDB.SQL.Add('  , s.cdsecreta || s.cdsetor as depto');
+    qrySourceDB.SQL.Add('  , dp.descricao             as depto_nome');
     qrySourceDB.SQL.Add('  , coalesce(nullif(trim(dp.codundgestor), ''''), ug.codtcm) as ug_tcm');
     qrySourceDB.SQL.Add('  , nullif(trim(dp.codundorca), ''0000000'') as uo_tcm');
     qrySourceDB.SQL.Add('  , uo.ug');
@@ -986,6 +986,11 @@ begin
     qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
     qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
     qrySourceDB.SQL.Add('  , s.cdsecreta  as subunidade');
+    qrySourceDB.SQL.Add('  , coalesce(f2.salario, f1.salario) as vencimnento_base');
+    qrySourceDB.SQL.Add('  , bc.numbanco');
+    qrySourceDB.SQL.Add('  , bc.nomebanco');
+    qrySourceDB.SQL.Add('  , trim(s.agencia) || coalesce(''-'' || nullif(s.dvagencia, ''''), '''') as bco_agencia');
+    qrySourceDB.SQL.Add('  , trim(s.conta) || coalesce(''-'' || nullif(s.dvconta, ''''), '''')     as bco_conta');
     qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
     qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
@@ -1005,6 +1010,12 @@ begin
     qrySourceDB.SQL.Add('      , y.descricao');
     qrySourceDB.SQL.Add('    from ECONTAS_010 y');
     qrySourceDB.SQL.Add('  ) ug on (ug.ug = uo.ug)'); // -- UNIDADE GESTORA
+    qrySourceDB.SQL.Add('  left join (');
+    qrySourceDB.SQL.Add('    Select distinct');
+    qrySourceDB.SQL.Add('        z.numbanco');
+    qrySourceDB.SQL.Add('      , z.nomebanco');
+    qrySourceDB.SQL.Add('    from SFPD9911 z');
+    qrySourceDB.SQL.Add('  ) bc on (bc.numbanco = s.banco)');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    s.cdsecreta');
     qrySourceDB.SQL.Add('  , s.cdsetor');
@@ -1053,100 +1064,99 @@ begin
         aServidor.Titulo.Zona   := Trim(qrySourceDB.FieldByName('zona').AsString);
         aServidor.Titulo.Secao  := Trim(qrySourceDB.FieldByName('secao').AsString);
 
-        aServidor.Reservista.Numero       := EmptyStr; // Trim(qrySourceDB.FieldByName('reservista').AsString);
+        aServidor.Reservista.Numero       := Trim(qrySourceDB.FieldByName('certmilit').AsString);
         aServidor.Conjuge.Nome            := EmptyStr;
         aServidor.Conjuge.CPF_CNPJ.Numero := EmptyStr;
         aServidor.NomePai := Trim(qrySourceDB.FieldByName('nomepai').AsString);
         aServidor.NomeMae := Trim(qrySourceDB.FieldByName('nomemae').AsString);
 
-//        aServidor.Endereco.Logradouro  := Trim(qrySourceDB.FieldByName('endereco').AsString);
-//        aServidor.Endereco.Numero      := StringReplace(Trim(qrySourceDB.FieldByName('numero').AsString), '''', '', [rfReplaceAll]);
-//        aServidor.Endereco.Bairro      := Trim(qrySourceDB.FieldByName('bairro').AsString);
-//        aServidor.Endereco.Cidade      := Trim(qrySourceDB.FieldByName('cidade').AsString);
-//        aServidor.Endereco.Cep         := Trim(qrySourceDB.FieldByName('cep').AsString);
-//        aServidor.Endereco.UF          := Trim(qrySourceDB.FieldByName('uf').AsString);
-//        aServidor.Endereco.Complemento := Trim(qrySourceDB.FieldByName('compl').AsString);
-//        aServidor.Email                := Trim(qrySourceDB.FieldByName('email').AsString);
-//
-//        aServidor.Nacionalidade.ID        := StrToIntDef(Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString), 10);
+        aServidor.Endereco.Logradouro  := AnsiUpperCase(Trim(qrySourceDB.FieldByName('endereco').AsString));
+        aServidor.Endereco.Numero      := StringReplace(Trim(qrySourceDB.FieldByName('endnum').AsString), '''', '', [rfReplaceAll]);
+        aServidor.Endereco.Bairro      := AnsiUpperCase(Trim(qrySourceDB.FieldByName('bairro').AsString));
+        aServidor.Endereco.Cidade      := AnsiUpperCase(Trim(qrySourceDB.FieldByName('cidade').AsString));
+        aServidor.Endereco.Cep         := Trim(qrySourceDB.FieldByName('cep').AsString);
+        aServidor.Endereco.UF          := Trim(qrySourceDB.FieldByName('uf').AsString);
+        aServidor.Endereco.Complemento := Trim(qrySourceDB.FieldByName('complemento').AsString);
+        aServidor.Email                := AnsiLowerCase(Trim(qrySourceDB.FieldByName('email').AsString));
+
+        aServidor.Nacionalidade.ID        := StrToIntDef(Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString), 10);
 //        aServidor.Nacionalidade.Descricao := Trim(qrySourceDB.FieldByName('nacionalidade_nome').AsString);
 //        aServidor.Nacionalidade.Codigo    := Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString);
-//
+
         aServidor.EstadoCivil.ID     := 0;
         aServidor.EstadoCivil.Codigo := Trim(qrySourceDB.FieldByName('estadocivil_codigo').AsString);
-//
+
 //        dmConexaoTargetDB.InserirNacionalidade(aServidor.Nacionalidade);
 //        dmConexaoTargetDB.InserirEstadoCivil(aServidor.EstadoCivil);
-//
-//        dmConexaoTargetDB.GetID('NACIONALIDADE', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.Nacionalidade.Codigo), aNacionalidade);
+
+        dmConexaoTargetDB.GetID('NACIONALIDADE', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.Nacionalidade.Codigo), aNacionalidade);
         dmConexaoTargetDB.GetID('ESTADO_CIVIL',  'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoCivil.Codigo),   aEstadoCivil);
-//
-//        aServidor.Nacionalidade.ID := aNacionalidade.ID;
+
+        aServidor.Nacionalidade.ID := aNacionalidade.ID;
         aServidor.EstadoCivil.ID   := aEstadoCivil.ID;
 
-//        // Inserir PESSOA FISICA
-//        if not dmConexaoTargetDB.InserirPessoaFisica(TPessoaFisica(aServidor)) then
-//          gLogImportacao.Add('Tabela Pessoa Física - ' +
-//            QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado');
-//
-//        dmConexaoTargetDB.GetID('PESSOA_FISICA', 'ID', 'CPF = ' + QuotedStr(aServidor.CPF_CNPJ.Numero), aPessoa);
-//        aServidor.ID           := aPessoa.ID;
-//        aServidor.IDServidor   := 0;
-//        aServidor.Departamento := aDepartamento;
-//        aServidor.DataAdmissao := qrySourceDB.FieldByName('dtadmissao').AsDateTime;
-//        aServidor.SubUnidadeOrcamentaria := aSubUnidadeOrca;
-//
-//        aServidor.SubUnidadeOrcamentaria.Codigo  := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('divisao_tmp').AsString);
-//        aServidor.SubUnidadeOrcamentaria.ID      := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
-//        if (aServidor.SubUnidadeOrcamentaria.ID = 0) then
-//        begin
-//          MensagemErro('Erro', 'Sub-Unidade Orçamentária ' + aServidor.SubUnidadeOrcamentaria.Codigo + ' não cadastrada/localizada!');
-//          Abort;
-//        end;
-//
-//        //aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('depdespesa').AsString);
-//        aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('empresa').AsString) + Trim(qrySourceDB.FieldByName('subdivisao').AsString);
+        // Inserir PESSOA FISICA
+        if not dmConexaoTargetDB.InserirPessoaFisica(TPessoaFisica(aServidor)) then
+          gLogImportacao.Add('Tabela Pessoa Física - ' +
+            QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado');
+
+        dmConexaoTargetDB.GetID('PESSOA_FISICA', 'ID', 'CPF = ' + QuotedStr(aServidor.CPF_CNPJ.Numero), aPessoa);
+        aServidor.ID           := aPessoa.ID;
+        aServidor.IDServidor   := 0;
+        aServidor.Departamento := aDepartamento;
+        aServidor.DataAdmissao := qrySourceDB.FieldByName('dtadmissao').AsDateTime;
+        aServidor.SubUnidadeOrcamentaria := aSubUnidadeOrca;
+
+        aServidor.SubUnidadeOrcamentaria.Codigo  := Trim(qrySourceDB.FieldByName('subunidade').AsString);
+        aServidor.SubUnidadeOrcamentaria.ID      := dmConexaoTargetDB.GetValue('SUB_UNID_ORCAMENT', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SubUnidadeOrcamentaria.Codigo));
+        if (aServidor.SubUnidadeOrcamentaria.ID = 0) then
+        begin
+          MensagemErro('Erro', 'Sub-Unidade Orçamentária ' + aServidor.SubUnidadeOrcamentaria.Codigo + ' não cadastrada/localizada!');
+          Abort;
+        end;
+
+//        aServidor.UnidadeLotacao.Codigo  := Trim(qrySourceDB.FieldByName('subdivisao').AsString);
 //        aServidor.UnidadeLotacao.ID      := dmConexaoTargetDB.GetValue('UNID_LOTACAO', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.UnidadeLotacao.Codigo));
 //        if (aServidor.UnidadeLotacao.ID = 0) then
 //        begin
 //          MensagemErro('Erro', 'Unidade Lotação ' + aServidor.UnidadeLotacao.Codigo + ' não cadastrada/localizada!');
 //          Abort;
 //        end;
-//
-//        aDepartamento.ID        := 0;
-//        aDepartamento.Codigo    := Trim(qrySourceDB.FieldByName('depto').AsString);
-//        aDepartamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('depto_nome').AsString));
-//        aDepartamento.CarregarDados;
-//
-//        if (aDepartamento.ID = 0) then
-//        begin
-//          aDepartamento.ID        := 1;
-//          aDepartamento.Descricao := 'GERAL';
-//          aDepartamento.Codigo    := '0000';
-//          aDepartamento.Ativo     := True;
-//        end;
-//
-//        aServidor.Departamento           := aDepartamento;
-//        aServidor.CargoOrigem.Codigo     := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargoinicial').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo_inicial').AsString), 0));
-//        aServidor.CargoOrigem            := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
-//        aServidor.CargoAtual.Codigo      := FormatFloat('0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargoatual').AsString), 9999)) + FormatFloat('000000', StrToIntDef(Trim(qrySourceDB.FieldByName('cbo_atual').AsString), 0));
-//        aServidor.CargoAtual             := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
-//        aServidor.ReferenciaSalario      := 0;
-//        aServidor.VencimentoBase         := qrySourceDB.FieldByName('vencimento_base').AsCurrency;
-//        aServidor.Escolaridade.Codigo    := FormatFloat('00', StrToIntDef(Trim(qrySourceDB.FieldByName('instrucao').AsString), 0));
-//        aServidor.Escolaridade           := TCargoFuncao(dmConexaoTargetDB.ObjectID('ESCOLARIDADE', 'ID', 'COD_RAIS', 'DESCRICAO', EmptyStr, 'COD_RAIS = ' + QuotedStr(aServidor.Escolaridade.Codigo)));
-//        aServidor.Formacao               := EmptyStr;
-//        aServidor.ConselhoRegistro       := EmptyStr;
-//        aServidor.CargaHorariaMensal     := 180;
-//        aServidor.QuantidadeDependenteIRRF  := 0;
-//        aServidor.CalculaVencimentoBase     := True;
-//        aServidor.BloqueaLanctoEventoAuto   := False;
-//        aServidor.CalculaPrevidencia        := True;
-//        aServidor.CalculaIRRF               := True;
-//        aServidor.NaoCalculaATS             := False;
+
+        aDepartamento.ID        := 0;
+        aDepartamento.Codigo    := Trim(qrySourceDB.FieldByName('depto').AsString);
+        aDepartamento.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('depto_nome').AsString));
+        aDepartamento.CarregarDados;
+
+        if (aDepartamento.ID = 0) then
+        begin
+          aDepartamento.ID        := 1;
+          aDepartamento.Descricao := 'GERAL';
+          aDepartamento.Codigo    := '0000';
+          aDepartamento.Ativo     := True;
+        end;
+
+        aServidor.Departamento           := aDepartamento;
+        aServidor.CargoOrigem.Codigo     := FBaseID + FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargo_funcao_inicial').AsString), 9999));
+        aServidor.CargoOrigem            := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
+        aServidor.CargoAtual.Codigo      := FBaseID + FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargo_funcao_atual').AsString), 9999));
+        aServidor.CargoAtual             := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
+        aServidor.ReferenciaSalario      := 0;
+        aServidor.VencimentoBase         := qrySourceDB.FieldByName('vencimento_base').AsCurrency;
+        aServidor.Escolaridade.Codigo    := Trim(qrySourceDB.FieldByName('grinstr').AsString);
+        aServidor.Escolaridade           := TCargoFuncao(dmConexaoTargetDB.ObjectID('ESCOLARIDADE', 'ID', 'COD_RAIS', 'DESCRICAO', EmptyStr, 'COD_RAIS = ' + QuotedStr(aServidor.Escolaridade.Codigo)));
+        aServidor.Formacao               := Trim(qrySourceDB.FieldByName('formacao').AsString);
+        aServidor.ConselhoRegistro       := Trim(qrySourceDB.FieldByName('regcons').AsString + ' ' + qrySourceDB.FieldByName('numcons').AsString);
+        aServidor.CargaHorariaMensal     := StrToIntDef(Trim(qrySourceDB.FieldByName('horbase').AsString), 180);
+        aServidor.QuantidadeDependenteIRRF  := qrySourceDB.FieldByName('numdepir').AsInteger;
+        aServidor.CalculaVencimentoBase     := True;
+        aServidor.BloqueaLanctoEventoAuto   := False;
+        aServidor.CalculaPrevidencia        := True;
+        aServidor.CalculaIRRF               := True;
+        aServidor.NaoCalculaATS             := False;
 ////        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
 ////        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
-//        aServidor.Status := statusServidorUm;
+        aServidor.Status := statusServidorUm;
 //
 //        aServidor.EstadoFuncional.Codigo := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
 //        Case StrToIntDef(aServidor.EstadoFuncional.Codigo, 0) of
@@ -1166,13 +1176,15 @@ begin
 //        end;
 //
 //        aServidor.Efetivo := (aServidor.SituacaoTCM.ID in [20, 21]); // EFETIVO/CONCURSADO e EFETIVO ART. 19 (ADCT) ESTÁVEIS
-//
-//        // Inserir SERVIDOR
-//        if not dmConexaoTargetDB.InserirServidor(aServidor) then
-//          gLogImportacao.Add('Tabela Servidor - ' +
-//            QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado')
-//        else
-//        begin
+
+        // Inserir SERVIDOR
+        if not dmConexaoTargetDB.InserirServidor(aServidor) then
+          gLogImportacao.Add('Tabela Servidor - ' +
+            QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado')
+        else
+        begin
+          aPossuiConta := (StrToIntDef(Trim(qrySourceDB.FieldByName('banco').AsString), 0) > 0);
+
 //          if qrySourceDBDetails.Active then
 //            qrySourceDBDetails.Close;
 //
@@ -1199,60 +1211,63 @@ begin
 //
 //          qrySourceDBDetails.First;
 //          while not qrySourceDBDetails.Eof do
-//          begin
-//            aEntidadeFinanc.ID              := 0;
-//            aEntidadeFinanc.IDConta         := 0;
-//            aEntidadeFinanc.Servidor.Codigo := aServidor.Codigo;
-//            aEntidadeFinanc.Servidor        := TServidor(dmConexaoTargetDB.ObjectID('SERVIDOR', 'ID', 'ID_SYS_ANTER', 'MATRICULA', EmptyStr, 'ID_SYS_ANTER = ' + QuotedStr(aEntidadeFinanc.Servidor.Codigo)));
-//            aEntidadeFinanc.Banco.Codigo := Trim(qrySourceDBDetails.FieldByName('banco').AsString);
-//            aEntidadeFinanc.Codigo       := aEntidadeFinanc.Banco.Codigo;
-//            aEntidadeFinanc.Agencia      := Trim(qrySourceDBDetails.FieldByName('agencia').AsString);
-//            aEntidadeFinanc.NumeroConta  := Trim(qrySourceDBDetails.FieldByName('conta').AsString);
-//            aEntidadeFinanc.NumeroConta  := Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta) - 10, 11);
-//            aEntidadeFinanc.EBanco       := False;
-//            aEntidadeFinanc.TipoConta    := tipoContaCorrente;
-//
-//            // Banco Caixa Econômica
-//            if (aEntidadeFinanc.Banco.Codigo = '104') then
-//              if StrToIntDef(Trim(qrySourceDBDetails.FieldByName('tipo').AsString), 0) = 37 then
-//                aEntidadeFinanc.TipoConta := tipoContaSalario
-//              else
-//              if StrToIntDef(Trim(qrySourceDBDetails.FieldByName('tipo').AsString), 0) = 13 then
-//                aEntidadeFinanc.TipoConta := tipoContaPoupanca;
-//
-//            aEntidadeFinanc.Descricao       := Trim(qrySourceDBDetails.FieldByName('nome').AsString);
-//            aEntidadeFinanc.Banco.ID        := StrToIntDef(aEntidadeFinanc.Banco.Codigo, 0);
-//            aEntidadeFinanc.Banco.Descricao := aEntidadeFinanc.Descricao;
-//            aEntidadeFinanc.EBanco          := True;
-//            aEntidadeFinanc.TipoConta       := tipoContaCorrente;
-//
-//            // Inserir ENTIDADE FINANCEIRA
-//            if not dmConexaoTargetDB.InserirEntidadeFinanceira(aEntidadeFinanc) then
-//              gLogImportacao.Add('Tabela Entidade Financeira - ' +
-//                QuotedStr(aEntidadeFinanc.Codigo + ' - ' + aEntidadeFinanc.Descricao) + ' não importado');
-//
-//            if (aEntidadeFinanc.Agencia <> EmptyStr) and (aEntidadeFinanc.NumeroConta <> EmptyStr) then
-//            begin
-//              aEntidadeFinanc.ID := dmConexaoTargetDB.GetValue('ENTID_FINANC', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aEntidadeFinanc.Codigo));
-//              if (aEntidadeFinanc.ID > 0) then
-//              begin
-//                if (Pos('-', aEntidadeFinanc.NumeroConta) = 0) then
-//                  aEntidadeFinanc.NumeroConta :=
-//                    Copy(aEntidadeFinanc.NumeroConta, 1, Length(aEntidadeFinanc.NumeroConta) - 1) + '-' +
-//                    Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta), 1);
-//
-//                aEntidadeFinanc.Ativo := (Trim(qrySourceDBDetails.FieldByName('padrao').AsString) = 'S');
-//
-//                // Inserir CONTA BANCO SERVIDOR
-//                if not dmConexaoTargetDB.InserirContaBancoServidor(aEntidadeFinanc) then
-//                  gLogImportacao.Add('Tabela Conta Corrente Servidor - ' +
-//                    QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado');
-//              end;
-//            end;
+          if aPossuiConta then
+          begin
+            aEntidadeFinanc.ID              := 0;
+            aEntidadeFinanc.IDConta         := 0;
+            aEntidadeFinanc.Servidor.Codigo := aServidor.Codigo;
+            aEntidadeFinanc.Servidor        := TServidor(dmConexaoTargetDB.ObjectID('SERVIDOR', 'ID', 'ID_SYS_ANTER', 'MATRICULA', EmptyStr, 'ID_SYS_ANTER = ' + QuotedStr(aEntidadeFinanc.Servidor.Codigo)));
+            aEntidadeFinanc.Banco.Codigo := Trim(qrySourceDB.FieldByName('banco').AsString);
+            aEntidadeFinanc.Codigo       := aEntidadeFinanc.Banco.Codigo;
+            aEntidadeFinanc.Agencia      := Trim(qrySourceDB.FieldByName('bco_agencia').AsString);
+            aEntidadeFinanc.NumeroConta  := Trim(qrySourceDB.FieldByName('bco_conta').AsString);
+            aEntidadeFinanc.NumeroConta  := Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta) - 10, 11);
+            aEntidadeFinanc.EBanco       := False;
+            aEntidadeFinanc.TipoConta    := tipoContaCorrente;
+
+            // Banco Caixa Econômica
+            if (aEntidadeFinanc.Banco.Codigo = '104') then
+              if StrToIntDef(Trim(qrySourceDB.FieldByName('tipoconta').AsString), 0) = 37 then
+                aEntidadeFinanc.TipoConta := tipoContaSalario
+              else
+              if StrToIntDef(Trim(qrySourceDB.FieldByName('tipoconta').AsString), 0) = 13 then
+                aEntidadeFinanc.TipoConta := tipoContaPoupanca
+              else
+                aEntidadeFinanc.TipoConta := tipoContaCorrente;
+
+            aEntidadeFinanc.Descricao       := Trim(qrySourceDB.FieldByName('nomebanco').AsString);
+            aEntidadeFinanc.Banco.ID        := StrToIntDef(aEntidadeFinanc.Banco.Codigo, 0);
+            aEntidadeFinanc.Banco.Descricao := aEntidadeFinanc.Descricao;
+            aEntidadeFinanc.EBanco          := True;
+            aEntidadeFinanc.TipoConta       := tipoContaCorrente;
+
+            // Inserir ENTIDADE FINANCEIRA
+            if not dmConexaoTargetDB.InserirEntidadeFinanceira(aEntidadeFinanc) then
+              gLogImportacao.Add('Tabela Entidade Financeira - ' +
+                QuotedStr(aEntidadeFinanc.Codigo + ' - ' + aEntidadeFinanc.Descricao) + ' não importado');
+
+            if (aEntidadeFinanc.Agencia <> EmptyStr) and (aEntidadeFinanc.NumeroConta <> EmptyStr) then
+            begin
+              aEntidadeFinanc.ID := dmConexaoTargetDB.GetValue('ENTID_FINANC', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aEntidadeFinanc.Codigo));
+              if (aEntidadeFinanc.ID > 0) then
+              begin
+                if (Pos('-', aEntidadeFinanc.NumeroConta) = 0) then
+                  aEntidadeFinanc.NumeroConta :=
+                    Copy(aEntidadeFinanc.NumeroConta, 1, Length(aEntidadeFinanc.NumeroConta) - 1) + '-' +
+                    Copy(aEntidadeFinanc.NumeroConta, Length(aEntidadeFinanc.NumeroConta), 1);
+
+                aEntidadeFinanc.Ativo := True; //(Trim(qrySourceDBDetails.FieldByName('padrao').AsString) = 'S');
+
+                // Inserir CONTA BANCO SERVIDOR
+                if not dmConexaoTargetDB.InserirContaBancoServidor(aEntidadeFinanc) then
+                  gLogImportacao.Add('Tabela Conta Corrente Servidor - ' +
+                    QuotedStr(aServidor.Codigo + ' - ' + aServidor.Nome) + ' não importado');
+              end;
+            end;
 //
 //            qrySourceDBDetails.Next;
-//          end;
-//        end;
+          end;
+        end;
       end;
 
       lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nome').AsString);

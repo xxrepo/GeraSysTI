@@ -247,6 +247,15 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Enabled = False
       TabOrder = 18
     end
+    object chkTabelaDependente: TCheckBox
+      Left = 321
+      Top = 110
+      Width = 141
+      Height = 17
+      Caption = 'Tabela Dependentes'
+      Enabled = False
+      TabOrder = 19
+    end
   end
   inherited chkRotina: TCheckBox
     Left = 376

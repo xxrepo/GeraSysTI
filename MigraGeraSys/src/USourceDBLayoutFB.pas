@@ -984,7 +984,7 @@ begin
     qrySourceDB.SQL.Add('  , uo.uo');
     qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
     qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
-    qrySourceDB.SQL.Add('  , s.cdsecreta  as subunidade');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.cdsecreta), ''), ''000'')  as subunidade');
     qrySourceDB.SQL.Add('  , coalesce(f2.salario, f1.salario) as vencimnento_base');
     qrySourceDB.SQL.Add('  , bc.numbanco');
     qrySourceDB.SQL.Add('  , bc.nomebanco');

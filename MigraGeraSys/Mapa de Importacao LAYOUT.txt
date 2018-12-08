@@ -121,16 +121,19 @@ Select
   , uo.uo
   , ug.descricao as unidade_gestora
   , uo.descricao as unidade_orcamentaria
-  , s.cdsecreta  as subunidade
+  , coalesce(nullif(trim(s.cdsecreta), ''), '000')  as subunidade
   , coalesce(f2.salario, f1.salario) as vencimnento_base
   , bc.numbanco
   , bc.nomebanco
   , trim(s.agencia) || coalesce('-' || nullif(s.dvagencia, ''), '') as bco_agencia
   , trim(s.conta) || coalesce('-' || nullif(s.dvconta, ''), '')     as bco_conta
+  , coalesce(nullif(trim(s.codesc2), ''), nullif(trim(s.codesc2), ''), '000') as lotacao
+  , es.escola as lotacao_nome
 from SFP001ABR s
   left join SFP005ABR f1 on (f1.codigo = s.funcao) -- CARGO_FUCNCAO
   left join SFPDXX25ABR f2 on (f2.codigo = s.funcao2) -- CARGO_FUCNCAO
   left join SFP006ABR dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor) -- DEPTO
+  left join SFPD9924 es on (es.codigo = coalesce(nullif(trim(s.codesc2), ''), s.codesc))
   left join (
     Select distinct
         x.ug

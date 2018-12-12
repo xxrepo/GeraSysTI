@@ -20,7 +20,8 @@ uses
   USourceDBLayoutFB in 'src\USourceDBLayoutFB.pas' {frmSourceDBLayoutFB},
   USourceDBLayoutFBTabelas in 'src\USourceDBLayoutFBTabelas.pas' {frmSourceDBLayoutFBTabelas},
   USourceDBLayoutFBEvento in 'src\USourceDBLayoutFBEvento.pas' {frmSourceDBLayoutFBEvento},
-  USourceDBLayoutFBEstadoFuncional in 'src\USourceDBLayoutFBEstadoFuncional.pas' {frmSourceDBLayoutFBEstadoFuncional};
+  USourceDBLayoutFBEstadoFuncional in 'src\USourceDBLayoutFBEstadoFuncional.pas' {frmSourceDBLayoutFBEstadoFuncional},
+  USourceDBLayoutFBSituacaoTCM in 'src\USourceDBLayoutFBSituacaoTCM.pas' {frmSourceDBLayoutFBSituacaoTCM};
 
 {$R *.res}
 

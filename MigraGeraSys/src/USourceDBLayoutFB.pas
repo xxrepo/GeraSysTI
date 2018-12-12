@@ -52,6 +52,7 @@ type
     chkTabelaBanco: TCheckBox;
     chkTabelaPFServidor: TCheckBox;
     chkTabelaDependente: TCheckBox;
+    mniSituacaoTCM: TMenuItem;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -61,17 +62,20 @@ type
     procedure chkTabelaCargoFuncaoClick(Sender: TObject);
     procedure mniEventoClick(Sender: TObject);
     procedure mniEstadoFuncionalClick(Sender: TObject);
+    procedure mniSituacaoTCMClick(Sender: TObject);
   private
     { Private declarations }
     FBaseID : String;
-    FCampoEventoRemunID ,
-    FCampoEstadoFuncionalRemunID : String;
+    FCampoEventoRemunID         ,
+    FCampoEstadoFuncionalRemunID,
+    FCampoSituacaoTCMRemunID    : String;
 
     procedure CriarTabelaDB;
     procedure GravarIni;
     procedure ListarCompetenciasLayoutFB;
     procedure CriarCampoEvento_Layout;
     procedure CriarCampoEstadoFuncional_Layout;
+    procedure CriarCampoSituacaoTCM_Layout;
     procedure GerarUnidadeOrcamentariaPadrao(aUnidadeGestora : TUnidadeGestora);
 
     function ConectarSourceDB : Boolean;
@@ -105,7 +109,8 @@ uses
   URecursos,
   USourceDBLayoutFBTabelas,
   USourceDBLayoutFBEvento,
-  USourceDBLayoutFBEstadoFuncional;
+  USourceDBLayoutFBEstadoFuncional,
+  USourceDBLayoutFBSituacaoTCM;
 
 { TfrmSourceDBLayoutFB }
 
@@ -249,6 +254,20 @@ begin
     end;
 end;
 
+procedure TfrmSourceDBLayoutFB.CriarCampoSituacaoTCM_Layout;
+var
+  I : Integer;
+const
+  MESES : Array[0..11] of String = ('JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ');
+begin
+  for I := Low(MESES) to High(MESES) do
+    try
+      fdSourceDB.ExecSQL('ALTER TABLE CFG_VINC' + MESES[I] + ' ADD ' + FCampoSituacaoTCMRemunID + ' INTEGER', True);
+      fdSourceDB.CommitRetaining;
+    except
+    end;
+end;
+
 procedure TfrmSourceDBLayoutFB.CriarTabelaDB;
 var
   aSQL : TStringList;
@@ -287,6 +306,7 @@ begin
   FBaseID := EmptyStr;
   FCampoEventoRemunID          := 'evento_remun_id';
   FCampoEstadoFuncionalRemunID := 'estado_funcional_remun_id';
+  FCampoSituacaoTCMRemunID     := 'situacao_tcm_remun_id';
 
   if not Assigned(gLogImportacao) then
     gLogImportacao := TStringList.Create;
@@ -953,6 +973,9 @@ begin
     dmConexaoTargetDB.InserirDepartamento(aDepartamento);
 
     // Unidade Sub Orçamentária Padrão (DEFAULT)
+    if not Assigned(aSubUnidadeOrca) then
+      aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+
     aSubUnidadeOrca.ID        := 1;
     aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
     aSubUnidadeOrca.Codigo    := '000';
@@ -961,6 +984,7 @@ begin
 
     dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
 
+    CriarCampoSituacaoTCM_Layout;
     aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
 
     if qrySourceDB.Active then
@@ -970,6 +994,7 @@ begin
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    s.*');
+    qrySourceDB.SQL.Add('  , substring(s.matricula from 1 for char_length(s.matricula) - 2) as matricula_sem_digito');
     qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.codnacion), ''''), ''10'') as nacionalidade_codigo');
     qrySourceDB.SQL.Add('  , coalesce(s.estcivil, ''0'') as estadocivil_codigo');
     qrySourceDB.SQL.Add('  , s.funcao  as cargo_funcao_inicial');
@@ -984,19 +1009,22 @@ begin
     qrySourceDB.SQL.Add('  , uo.uo');
     qrySourceDB.SQL.Add('  , ug.descricao as unidade_gestora');
     qrySourceDB.SQL.Add('  , uo.descricao as unidade_orcamentaria');
-    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.cdsecreta), ''), ''000'')  as subunidade');
-    qrySourceDB.SQL.Add('  , coalesce(f2.salario, f1.salario) as vencimnento_base');
+    qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.cdsecreta), ''''), ''000'')  as subunidade');
+    qrySourceDB.SQL.Add('  , coalesce(f2.salario, f1.salario) as vencimento_base');
     qrySourceDB.SQL.Add('  , bc.numbanco');
     qrySourceDB.SQL.Add('  , bc.nomebanco');
     qrySourceDB.SQL.Add('  , trim(s.agencia) || coalesce(''-'' || nullif(s.dvagencia, ''''), '''') as bco_agencia');
     qrySourceDB.SQL.Add('  , trim(s.conta) || coalesce(''-'' || nullif(s.dvconta, ''''), '''')     as bco_conta');
     qrySourceDB.SQL.Add('  , coalesce(nullif(trim(s.codesc2), ''''), nullif(trim(s.codesc2), ''''), ''000'') as lotacao');
     qrySourceDB.SQL.Add('  , es.escola as lotacao_nome');
+    qrySourceDB.SQL.Add('  , vn.id_vinculo as situacao_tcm');
+    qrySourceDB.SQL.Add('  , vn.' + FCampoSituacaoTCMRemunID);
     qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
     qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFP006' + aCompetencia.Sufixo + ' dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)'); // -- DEPTO
     qrySourceDB.SQL.Add('  left join SFPD9924 es on (es.codigo = coalesce(nullif(trim(s.codesc2), ''''), s.codesc))');
+    qrySourceDB.SQL.Add('  left join CFG_VINC' + aCompetencia.Sufixo + ' vn on (vn.id_vinculo = s.sistema)');
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select distinct');
     qrySourceDB.SQL.Add('        x.ug');
@@ -1024,6 +1052,8 @@ begin
     qrySourceDB.SQL.Add('  , s.nome');
     qrySourceDB.SQL.EndUpdate;
 
+    qrySourceDB.SQL.SaveToFile('.\servidores.sql');
+
     qrySourceDB.Open;
     qrySourceDB.Last;
 
@@ -1042,8 +1072,10 @@ begin
           aEntidadeFinanc := TContaBancoServidor.Create;
 
         aServidor.ID              := 0;
-        aServidor.Codigo          := Trim(qrySourceDB.FieldByName('matricula').AsString).Replace('-', '', [rfReplaceAll]);
-        aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula').AsString);
+//        aServidor.Codigo          := Trim(qrySourceDB.FieldByName('matricula').AsString).Replace('-', '', [rfReplaceAll]);
+//        aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula').AsString);
+        aServidor.Codigo          := Trim(qrySourceDB.FieldByName('matricula_sem_digito').AsString) + IntToStr(StrToIntDef(FBaseID, 0));
+        aServidor.Matricula       := Trim(qrySourceDB.FieldByName('matricula_sem_digito').AsString); // + '-' + IntToStr(StrToIntDef(FBaseID, 0));
         aServidor.Nome            := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nome').AsString));
         aServidor.Apelido         := AnsiUpperCase(Trim(qrySourceDB.FieldByName('apelido').AsString));
         aServidor.SexoSigla       := IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '1', 'M', IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '2', 'F', ''));
@@ -1082,9 +1114,8 @@ begin
         aServidor.Endereco.Complemento := Trim(qrySourceDB.FieldByName('complemento').AsString);
         aServidor.Email                := AnsiLowerCase(Trim(qrySourceDB.FieldByName('email').AsString));
 
-        aServidor.Nacionalidade.ID        := StrToIntDef(Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString), 10);
-//        aServidor.Nacionalidade.Descricao := Trim(qrySourceDB.FieldByName('nacionalidade_nome').AsString);
-//        aServidor.Nacionalidade.Codigo    := Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString);
+        aServidor.Nacionalidade.ID     := StrToIntDef(Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString), 10);
+        aServidor.Nacionalidade.Codigo := Trim(qrySourceDB.FieldByName('nacionalidade_codigo').AsString);
 
         aServidor.EstadoCivil.ID     := 0;
         aServidor.EstadoCivil.Codigo := Trim(qrySourceDB.FieldByName('estadocivil_codigo').AsString);
@@ -1105,8 +1136,8 @@ begin
 
         dmConexaoTargetDB.GetID('PESSOA_FISICA', 'ID', 'CPF = ' + QuotedStr(aServidor.CPF_CNPJ.Numero), aPessoa);
         aServidor.ID           := aPessoa.ID;
-        aServidor.IDServidor   := 0;
-        aServidor.Departamento := aDepartamento;
+//        aServidor.IDServidor   := 0;
+        aServidor.IDServidor   := StrToInt( aServidor.Codigo );
         aServidor.DataAdmissao := qrySourceDB.FieldByName('dtadmissao').AsDateTime;
         aServidor.SubUnidadeOrcamentaria := aSubUnidadeOrca;
 
@@ -1177,18 +1208,14 @@ begin
 //          else
 //            aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
 //        end;
-//
-//        aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_funcional').AsString);
-//        Case StrToIntDef(aServidor.SituacaoTCM.Codigo, 0) of
-//          0    : aServidor.SituacaoTCM.ID := 20; // EFETIVO/CONCURSADO
-//          1, 2 : aServidor.SituacaoTCM.ID := 10; // COMISSIONADO
-//          3    : aServidor.SituacaoTCM.ID := 61; // TEMP S/ VINC NO PLANO DE CARGOS E SALARI
-//          //6    : aSituacaoTCM.ID := 31; // PREFEITO
-//          else
-//            aServidor.SituacaoTCM.ID := 0;
-//        end;
-//
-//        aServidor.Efetivo := (aServidor.SituacaoTCM.ID in [20, 21]); // EFETIVO/CONCURSADO e EFETIVO ART. 19 (ADCT) ESTÁVEIS
+
+        aServidor.SituacaoTCM.ID     := qrySourceDB.FieldByName(FCampoSituacaoTCMRemunID).AsInteger;
+        aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_tcm').AsString);
+
+        if (aServidor.SituacaoTCM.ID = 0) then
+          aServidor.SituacaoTCM.ID := dmConexaoTargetDB.GetValue('SITUACAO_TCM', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SituacaoTCM.Codigo));
+
+        aServidor.Efetivo := (aServidor.SituacaoTCM.ID in [20, 21]); // EFETIVO/CONCURSADO e EFETIVO ART. 19 (ADCT) ESTÁVEIS
 
         // Inserir SERVIDOR
         if not dmConexaoTargetDB.InserirServidor(aServidor) then
@@ -1312,6 +1339,7 @@ var
   aCompetencia : TGenerico;
 begin
   try
+    CriarCampoSituacaoTCM_Layout;
     aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
 
     if qrySourceDB.Active then
@@ -1330,7 +1358,7 @@ begin
       aSituacaoTCM := TGenerico.Create;
 
       // Os vínculos possuem códigos diferentes em bases diferentes
-      aSituacaoTCM.ID        := 0;
+      aSituacaoTCM.ID        := qrySourceDB.FieldByName(FCampoSituacaoTCMRemunID).AsInteger;
       aSituacaoTCM.Codigo    := FBaseID + Trim(qrySourceDB.FieldByName('id_vinculo').AsString);
       aSituacaoTCM.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nm_vinculo').AsString));
 
@@ -1687,6 +1715,9 @@ begin
     end;
 
     // Unidade Sub Orçamentária Padrão (Default)
+    if not Assigned(aSubUnidadeOrca) then
+      aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
+
     aSubUnidadeOrca.ID        := 1;
     aSubUnidadeOrca.Descricao := 'MIGRAÇÃO';
     aSubUnidadeOrca.Codigo    := '000';
@@ -1737,6 +1768,8 @@ begin
     qrySourceDB.SQL.Add('    from ECONTAS_010 y');
     qrySourceDB.SQL.Add('  ) ug on (ug.ug = uo.ug)');
     qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.SQL.SaveToFile('.\sub_unidades.sql');
 
     qrySourceDB.Open;
     qrySourceDB.Last;
@@ -1948,6 +1981,21 @@ begin
     'SFP010',
     FCampoEventoRemunID,
     'Eventos');
+end;
+
+procedure TfrmSourceDBLayoutFB.mniSituacaoTCMClick(Sender: TObject);
+begin
+  GravarIni;
+
+  if not fdSourceDB.Connected then
+    ConectarSourceDB;
+
+  CriarCampoSituacaoTCM_Layout;
+  ShowParametrizarVinculos(Self,
+    TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]),
+    'CFG_VINC',
+    FCampoSituacaoTCMRemunID,
+    'Situações TCM');
 end;
 
 function TfrmSourceDBLayoutFB.RegistrarTabelaDB(aFileNameDB: String): String;

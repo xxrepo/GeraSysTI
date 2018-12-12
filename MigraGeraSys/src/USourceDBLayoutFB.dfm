@@ -244,7 +244,6 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 178
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
-      Enabled = False
       TabOrder = 18
     end
     object chkTabelaDependente: TCheckBox
@@ -342,6 +341,11 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Caption = 'Estado Funcional'
       ImageIndex = 346
       OnClick = mniEstadoFuncionalClick
+    end
+    object mniSituacaoTCM: TMenuItem
+      Caption = 'V'#237'nculo (Situa'#231#227'o TCM)'
+      ImageIndex = 352
+      OnClick = mniSituacaoTCMClick
     end
     object mniEvento: TMenuItem
       Caption = 'Tabela Eventos'

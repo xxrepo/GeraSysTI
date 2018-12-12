@@ -2661,9 +2661,18 @@ begin
         Open;
         if IsEmpty then
         begin
-          aID := IntToStr(NewID('SERVIDOR', 'CAST(substring(lpad(ID, 10, ''0'') from 1 for 9) as INTEGER)'));
-          aID := aID + CalcularDigitoVerificador(aID);
-          pServidor.IDServidor := StrToInt(aID);
+          if (pServidor.IDServidor = 0) then
+          begin
+            aID := IntToStr(NewID('SERVIDOR', 'CAST(substring(lpad(ID, 10, ''0'') from 1 for 9) as INTEGER)'));
+            aID := aID + CalcularDigitoVerificador(aID);
+            pServidor.IDServidor := StrToInt(aID);
+          end
+          else
+          begin
+            aID := FormatFloat('000000000', pServidor.IDServidor);
+            aID := aID + CalcularDigitoVerificador(aID);
+            pServidor.IDServidor := StrToInt(aID);
+          end;
 
           Append;
           FieldByName('id').AsInteger               := pServidor.IDServidor;

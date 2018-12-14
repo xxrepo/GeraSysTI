@@ -245,6 +245,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Height = 17
       Caption = 'Tabela Pessoa F'#237'sica / Servidor'
       TabOrder = 18
+      OnClick = chkTabelaPFServidorClick
     end
     object chkTabelaDependente: TCheckBox
       Left = 321
@@ -252,8 +253,28 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 141
       Height = 17
       Caption = 'Tabela Dependentes'
-      Enabled = False
       TabOrder = 19
+      OnClick = chkTabelaDependenteClick
+    end
+    object chkTabelaEventoFixo: TCheckBox
+      Left = 321
+      Top = 133
+      Width = 179
+      Height = 17
+      Caption = 'Tabela Eventos Fixos por Servidor'
+      Enabled = False
+      TabOrder = 20
+      OnClick = chkTabelaEventoFixoClick
+    end
+    object chkTabelaProgramacaoFerias: TCheckBox
+      Left = 321
+      Top = 156
+      Width = 179
+      Height = 17
+      Caption = 'Tabela Programa'#231#227'o de F'#233'rias'
+      Enabled = False
+      TabOrder = 21
+      OnClick = chkTabelaProgramacaoFeriasClick
     end
   end
   inherited chkRotina: TCheckBox
@@ -338,7 +359,7 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
     Left = 363
     Top = 247
     object mniEstadoFuncional: TMenuItem
-      Caption = 'Estado Funcional'
+      Caption = 'Afastamento Folha (Estado Funcional)'
       ImageIndex = 346
       OnClick = mniEstadoFuncionalClick
     end

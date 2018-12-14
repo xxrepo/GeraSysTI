@@ -219,19 +219,19 @@ where m.matricula in ('100060-8', '123922-8', '040396-2')
 -- Última Movimentação
 Select
     m.matricula
-  , m.tipo
   , m.anoref
   , m.mesref
   , m.dtinicio
   , m.dtfim
   , m.dtaviso
-  , m.codfol
+  , m.tipo       as afastamento_tipo
+  , m.codfol     as cod_folha
   , af.descricao as afastamento_folha
   , af.estado_funcional_remun_id
-  , m.codgfip
+  , m.codgfip    as cod_gfip
   , ag.descricao as afastamento_gfip
   , ag.cdretorno as retorno_gfip
-  , m.codrais
+  , m.codrais    as cod_rais
   , ar.descricao as afastamento_rais
 from SFP017 m
   inner join (
@@ -247,6 +247,3 @@ from SFP017 m
   left join AFASTGFIP ag on (ag.tipo = m.tipo and ag.codigo = m.codgfip)
   left join AFASTFOLHA af on (af.tipo = m.tipo and af.codigo = m.codfol)
   left join AFASTRAIS ar on (ar.tipo = m.tipo and ar.codigo = m.codrais)
-
-where m.matricula in ('100060-8', '123922-8', '040396-2')
-

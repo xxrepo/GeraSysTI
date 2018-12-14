@@ -53,6 +53,8 @@ type
     chkTabelaPFServidor: TCheckBox;
     chkTabelaDependente: TCheckBox;
     mniSituacaoTCM: TMenuItem;
+    chkTabelaEventoFixo: TCheckBox;
+    chkTabelaProgramacaoFerias: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -63,6 +65,10 @@ type
     procedure mniEventoClick(Sender: TObject);
     procedure mniEstadoFuncionalClick(Sender: TObject);
     procedure mniSituacaoTCMClick(Sender: TObject);
+    procedure chkTabelaPFServidorClick(Sender: TObject);
+    procedure chkTabelaDependenteClick(Sender: TObject);
+    procedure chkTabelaEventoFixoClick(Sender: TObject);
+    procedure chkTabelaProgramacaoFeriasClick(Sender: TObject);
   private
     { Private declarations }
     FBaseID : String;
@@ -93,6 +99,7 @@ type
     procedure ImportarEventos(Sender: TObject);
     procedure ImportarEntidadeFinanceira(Sender: TObject);
     procedure ImportarPessoaFisica(Sender: TObject);
+    procedure ImportarDependente(Sender : TObject);
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -133,11 +140,42 @@ end;
 
 procedure TfrmSourceDBLayoutFB.chkTabelaCargoFuncaoClick(Sender: TObject);
 begin
-//  if chkTabelaCargoFuncao.Checked then
-//  begin
-//    chkTabelaCBO.Checked          := True;
-//    chkTabelaEscolaridade.Checked := True;
-//  end;
+  if chkTabelaCargoFuncao.Checked then
+  begin
+    if chkTabelaCBO.Enabled then
+      chkTabelaCBO.Checked := True;
+    chkTabelaEscolaridade.Checked := True;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.chkTabelaDependenteClick(Sender: TObject);
+begin
+  if chkTabelaDependente.Checked then
+  begin
+    chkTabelaBanco.Checked      := True;
+    chkTabelaPFServidor.Checked := True;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.chkTabelaEventoFixoClick(Sender: TObject);
+begin
+  if chkTabelaEventoFixo.Checked then
+  begin
+    chkTabelaEvento.Checked     := True;
+    chkTabelaPFServidor.Checked := True;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.chkTabelaPFServidorClick(Sender: TObject);
+begin
+  if chkTabelaPFServidor.Checked then
+    chkTabelaBanco.Checked := True;
+end;
+
+procedure TfrmSourceDBLayoutFB.chkTabelaProgramacaoFeriasClick(Sender: TObject);
+begin
+  if chkTabelaProgramacaoFerias.Checked then
+    chkTabelaPFServidor.Checked := True;
 end;
 
 procedure TfrmSourceDBLayoutFB.chkTodosClick(Sender: TObject);
@@ -208,7 +246,7 @@ begin
         if chkTabelaEvento.Checked          then ImportarEventos(chkTabelaEvento);
         if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
         if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
-//        if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
+        if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
 //        if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
 //        if chkTabelaProgramacaoFerias.Checked then ImportarProgramacaoFeriais(chkTabelaProgramacaoFerias);
 //        if chkLancamentoMesServidor.Checked   then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
@@ -555,6 +593,105 @@ begin
   end;
 end;
 
+procedure TfrmSourceDBLayoutFB.ImportarDependente(Sender: TObject);
+var
+  aDependente : TDependente;
+begin
+// TParentesco  = (parentescoFilho = 1, parentescoConjuge = 2, parentescoFilhoAdotivo = 3, parentescoPais = 4, parentescoOutros = 5);
+(*
+PARENT  NOME
+  0	    -
+  C	    -
+  F	    - Filho(a)
+  I     -
+  M	    -
+*)
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    substring(d.matricula from 1 for char_length(d.matricula) - 2) as matricula_sem_digito');
+    qrySourceDB.SQL.Add('  , d.*');
+    qrySourceDB.SQL.Add('from SFPD9912 d');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    d.matricula');
+    qrySourceDB.SQL.Add('  , d.nomedep');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if (Trim(qrySourceDB.FieldByName('nomedep').AsString) <> EmptyStr) then
+      begin
+        if not Assigned(aDependente) then
+          aDependente := TDependente.Create;
+
+        aDependente.Servidor.Codigo     := Trim(qrySourceDB.FieldByName('matricula_sem_digito').AsString) + IntToStr(StrToIntDef(FBaseID, 0));
+        aDependente.Servidor.IDServidor := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
+        aDependente.Servidor.ID         := dmConexaoTargetDB.GetValue('SERVIDOR', 'ID_PESSOA_FISICA', 'ID_SYS_ANTER = ' + QuotedStr(aDependente.Servidor.Codigo));
+
+        aDependente.ID      := 0;
+        aDependente.Codigo  := aDependente.Servidor.Codigo + Trim(qrySourceDB.FieldByName('secdep').AsString);
+        aDependente.Nome    := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nomedep').AsString));
+        aDependente.CPF_CNPJ.Numero := Trim(qrySourceDB.FieldByName('cpf_dependente').AsString);
+        aDependente.DataNascimento  := qrySourceDB.FieldByName('nascdep').AsDateTime;
+        aDependente.Parentesco      := TParentesco.parentescoOutros;
+
+        if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'C') then
+          aDependente.Parentesco := TParentesco.parentescoConjuge
+        else
+        if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'F') then
+          aDependente.Parentesco := TParentesco.parentescoFilho;
+//        else
+//        if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'M') then
+//          aDependente.Parentesco := TParentesco.parentescoPais;
+
+        aDependente.SexoSigla               := IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '1', 'M', IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '2', 'F', ''));
+        aDependente.Naturalidade.Cidade     := EmptyStr;
+        aDependente.Naturalidade.UF         := EmptyStr;
+        aDependente.RegistroCartorio.Nome   := EmptyStr;
+        aDependente.RegistroCartorio.Cidade := EmptyStr;
+        aDependente.RegistroCartorio.Numero := EmptyStr;
+        aDependente.RegistroCartorio.Livro  := EmptyStr;
+        aDependente.RegistroCartorio.Folha  := EmptyStr;
+        aDependente.Estudante               := False;
+        aDependente.Deficiente              := False;
+        aDependente.AtivoIRRF               := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('depir').AsString)) = 'T');
+        aDependente.AtivoSalarioFamilia     := (AnsiUpperCase(Trim(qrySourceDB.FieldByName('depsf').AsString)) = 'T');
+
+        if not dmConexaoTargetDB.InserirDependente(aDependente) then
+          gLogImportacao.Add(TCheckBox(Sender).Caption + ' - ' +
+            QuotedStr(aDependente.Servidor.Codigo + ' - ' + aDependente.Nome) + ' não importado');
+      end;
+
+      lblAndamento.Caption  := Trim(qrySourceDB.FieldByName('nomedep').AsString);
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR_DEPENDENTE',  'SERVIDOR_DEPENDENTE',      'ID');
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PESSOA_FISICA_DEPEND', 'PESSOA_FISICA_DEPENDENTE', 'ID');
+  finally
+    dmRecursos.ExibriLog;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
 procedure TfrmSourceDBLayoutFB.ImportarEntidadeFinanceira(Sender: TObject);
 var
   aEntidadeFinanc : TEntidadeFinanceira;
@@ -740,7 +877,7 @@ begin
     begin
       // Os estados funcionais possuem os mesmos códigos em bases diferentes
       aEstadoFunc.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
-      aEstadoFunc.Codigo    := FormatFloat('000', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
+      aEstadoFunc.Codigo    := Trim(qrySourceDB.FieldByName('tipo').AsString) + FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
       aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
 
       if not dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc) then
@@ -1198,6 +1335,11 @@ begin
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
         aServidor.NaoCalculaATS             := False;
+        aServidor.EstadoFuncional.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
+
+
+
+
 ////        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
 ////        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;
@@ -1965,7 +2107,7 @@ begin
     TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]),
     'AFASTFOLHA',
     FCampoEstadoFuncionalRemunID,
-    'Estados Funcionais');
+    'Afastamento Folha (Estado Funcional)');
 end;
 
 procedure TfrmSourceDBLayoutFB.mniEventoClick(Sender: TObject);

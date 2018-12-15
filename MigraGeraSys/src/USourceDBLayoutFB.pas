@@ -55,6 +55,7 @@ type
     mniSituacaoTCM: TMenuItem;
     chkTabelaEventoFixo: TCheckBox;
     chkTabelaProgramacaoFerias: TCheckBox;
+    chkLancamentoMesServidor: TCheckBox;
     procedure chkTodosClick(Sender: TObject);
     procedure btnConectarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -100,6 +101,9 @@ type
     procedure ImportarEntidadeFinanceira(Sender: TObject);
     procedure ImportarPessoaFisica(Sender: TObject);
     procedure ImportarDependente(Sender : TObject);
+    procedure ImportarEventoFixoServidor(Sender: TObject); virtual; abstract;
+    procedure ImportarProgramacaoFeriais(Sender: TObject);
+    procedure ImportarFolhaMensalServidor(Sender: TObject); virtual; abstract;
   public
     { Public declarations }
     function ConfirmarProcesso : Boolean; override;
@@ -247,9 +251,9 @@ begin
         if chkTabelaBanco.Checked           then ImportarEntidadeFinanceira(chkTabelaBanco);
         if chkTabelaPFServidor.Checked      then ImportarPessoaFisica(chkTabelaPFServidor);
         if chkTabelaDependente.Checked      then ImportarDependente(chkTabelaDependente);
-//        if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
-//        if chkTabelaProgramacaoFerias.Checked then ImportarProgramacaoFeriais(chkTabelaProgramacaoFerias);
-//        if chkLancamentoMesServidor.Checked   then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
+        if chkTabelaEventoFixo.Checked      then ImportarEventoFixoServidor(chkTabelaDependente);
+        if chkTabelaProgramacaoFerias.Checked then ImportarProgramacaoFeriais(chkTabelaProgramacaoFerias);
+        if chkLancamentoMesServidor.Checked   then ImportarFolhaMensalServidor(chkLancamentoMesServidor);
 
         aRetorno := True;
       end;
@@ -600,11 +604,11 @@ begin
 // TParentesco  = (parentescoFilho = 1, parentescoConjuge = 2, parentescoFilhoAdotivo = 3, parentescoPais = 4, parentescoOutros = 5);
 (*
 PARENT  NOME
-  0	    -
-  C	    -
+  0	    - Não informado
+  C	    - Conjuge
   F	    - Filho(a)
-  I     -
-  M	    -
+  I     - Idoso
+  M	    - Menor
 *)
   try
     if qrySourceDB.Active then
@@ -644,16 +648,17 @@ PARENT  NOME
         aDependente.Nome    := AnsiUpperCase(Trim(qrySourceDB.FieldByName('nomedep').AsString));
         aDependente.CPF_CNPJ.Numero := Trim(qrySourceDB.FieldByName('cpf_dependente').AsString);
         aDependente.DataNascimento  := qrySourceDB.FieldByName('nascdep').AsDateTime;
-        aDependente.Parentesco      := TParentesco.parentescoOutros;
 
         if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'C') then
           aDependente.Parentesco := TParentesco.parentescoConjuge
         else
         if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'F') then
-          aDependente.Parentesco := TParentesco.parentescoFilho;
-//        else
-//        if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'M') then
-//          aDependente.Parentesco := TParentesco.parentescoPais;
+          aDependente.Parentesco := TParentesco.parentescoFilho
+        else
+        if (Trim(qrySourceDB.FieldByName('parent').AsString) = 'I') then
+          aDependente.Parentesco := TParentesco.parentescoPais
+        else
+          aDependente.Parentesco := TParentesco.parentescoOutros;
 
         aDependente.SexoSigla               := IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '1', 'M', IfThen(Trim(qrySourceDB.FieldByName('sexo').AsString) = '2', 'F', ''));
         aDependente.Naturalidade.Cidade     := EmptyStr;
@@ -877,7 +882,7 @@ begin
     begin
       // Os estados funcionais possuem os mesmos códigos em bases diferentes
       aEstadoFunc.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
-      aEstadoFunc.Codigo    := Trim(qrySourceDB.FieldByName('tipo').AsString) + FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('codigo').AsString)));
+      aEstadoFunc.Codigo    := Trim(qrySourceDB.FieldByName('tipo').AsString) + Trim(qrySourceDB.FieldByName('codigo').AsString);
       aEstadoFunc.Descricao := AnsiUpperCase(Trim(qrySourceDB.FieldByName('descricao').AsString));
 
       if not dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc) then
@@ -1031,6 +1036,7 @@ var
   aNacionalidade  ,
   aEstadoCivil    ,
   aDepartamento   : TGenerico;
+  aEstadoFunc     : TEstadoFuncional;
   aServidor       : TServidor;
   aEntidadeFinanc : TContaBancoServidor;
   aSubUnidadeOrca : TSubUnidadeOrcamentaria;
@@ -1100,13 +1106,21 @@ begin
     dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''A'' where id =  9');
     dmConexaoTargetDB.ExecutarStriptDB('Update ESCOLARIDADE Set id_sys_anter = ''B'' where id = 10');
 
+    aEstadoFunc := TEstadoFuncional.Create;
+    aEstadoFunc.ID        := 1;
+    aEstadoFunc.Codigo    := EmptyStr;
+    aEstadoFunc.Descricao := 'ATIVO';
+
+    // Inserir Estado Funcional Padrão (DEFAULT)
+    dmConexaoTargetDB.InserirEstadoFuncional(aEstadoFunc);
+
     aDepartamento := TGenerico.Create;
     aDepartamento.ID        := 1;
     aDepartamento.Descricao := 'GERAL';
     aDepartamento.Codigo    := '000000';
     aDepartamento.Ativo     := True;
 
-    // Inserir DEPARTAMENTO DEFAULT
+    // Inserir Departamento padrão (DEFAULT)
     dmConexaoTargetDB.InserirDepartamento(aDepartamento);
 
     // Unidade Sub Orçamentária Padrão (DEFAULT)
@@ -1122,6 +1136,7 @@ begin
     dmConexaoTargetDB.InserirSubUnidadeOrcament(aSubUnidadeOrca);
 
     CriarCampoSituacaoTCM_Layout;
+    CriarCampoEstadoFuncional_Layout;
     aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
 
     if qrySourceDB.Active then
@@ -1335,21 +1350,19 @@ begin
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
         aServidor.NaoCalculaATS             := False;
+
         aServidor.EstadoFuncional.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
+        aServidor.EstadoFuncional.Codigo    := Trim(qrySourceDB.FieldByName('afast_tipo').AsString) + FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('cod_folha').AsString)));
 
+        if (aServidor.EstadoFuncional.ID = 0) then
+        begin
+          aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
 
+          if (aServidor.EstadoFuncional.ID = 0) then
+            aServidor.EstadoFuncional.ID := 1;
+        end;
 
-
-////        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
-////        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;
-//
-//        aServidor.EstadoFuncional.Codigo := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
-//        Case StrToIntDef(aServidor.EstadoFuncional.Codigo, 0) of
-//          1 : aServidor.EstadoFuncional.ID := 1;
-//          else
-//            aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
-//        end;
 
         aServidor.SituacaoTCM.ID     := qrySourceDB.FieldByName(FCampoSituacaoTCMRemunID).AsInteger;
         aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_tcm').AsString);
@@ -1467,6 +1480,106 @@ begin
     aNacionalidade.Free;
     aEstadoCivil.Free;
     aSubUnidadeOrca.Free;
+
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+    if (Sender is TCheckBox) then
+      TCheckBox(Sender).Checked := False;
+  end;
+end;
+
+procedure TfrmSourceDBLayoutFB.ImportarProgramacaoFeriais(Sender: TObject);
+var
+  aProgramacaoFerias : TProgramacaoFerias;
+begin
+  try
+    if qrySourceDB.Active then
+      qrySourceDB.Close;
+
+    qrySourceDB.SQL.BeginUpdate;
+    qrySourceDB.SQL.Clear;
+    qrySourceDB.SQL.Add('Select');
+    qrySourceDB.SQL.Add('    substring(f.matricula from 1 for char_length(f.matricula) - 2) as matricula_sem_digito');
+    qrySourceDB.SQL.Add('  , substring(f.matricula from 1 for char_length(f.matricula) - 2) || f.anoferias || f.mesferias as codigo');
+    qrySourceDB.SQL.Add('  , f.anoferias as ano');
+    qrySourceDB.SQL.Add('  , f.mesferias as mes');
+    qrySourceDB.SQL.Add('  , f.anoferias || f.mesferias as ano_mes_ferias');
+    qrySourceDB.SQL.Add('  , f.aquis1  as dt_aquisicao_inicial');
+    qrySourceDB.SQL.Add('  , f.aquis2  as dt_aquisicao_final');
+    qrySourceDB.SQL.Add('  , f.gozo1   as dt_gozo_inicial');
+    qrySourceDB.SQL.Add('  , f.gozo2   as dt_gozo_final');
+    qrySourceDB.SQL.Add('  , extract(year from f.gozo1) || right(''00'' || extract(month from f.gozo1), 2) as ano_mes_pagto');
+    qrySourceDB.SQL.Add('  , f.ferias1 as ferias_gozadas');
+    qrySourceDB.SQL.Add('  , Case when (f.gozo1 is null) and (f.aquis2 < current_timestamp) then ''S'' else ''N'' end ferias_vencidas');
+    qrySourceDB.SQL.Add('  , f.*');
+    qrySourceDB.SQL.Add('from SFPDXX16 f');
+    qrySourceDB.SQL.Add('order by');
+    qrySourceDB.SQL.Add('    f.matricula');
+    qrySourceDB.SQL.Add('  , f.aquis1');
+    qrySourceDB.SQL.Add('  , f.aquis2');
+    qrySourceDB.SQL.Add('  , f.gozo1');
+    qrySourceDB.SQL.Add('  , f.gozo2');
+    qrySourceDB.SQL.EndUpdate;
+
+    qrySourceDB.SQL.SaveToFile('.\programacao_feriais.sql');
+
+    qrySourceDB.Open;
+    qrySourceDB.Last;
+
+    prbAndamento.Position := 0;
+    prbAndamento.Max      := qrySourceDB.RecordCount;
+
+    qrySourceDB.First;
+    while not qrySourceDB.Eof do
+    begin
+      if (Trim(qrySourceDB.FieldByName('nome').AsString) <> EmptyStr) and (StrToIntDef(Trim(qrySourceDB.FieldByName('ano').AsString), 0) >= 2000) then
+      begin
+        if not Assigned(aProgramacaoFerias) then
+          aProgramacaoFerias := TProgramacaoFerias.Create;
+
+        aProgramacaoFerias.ID     := 0;
+        aProgramacaoFerias.Ano    := Trim(qrySourceDB.FieldByName('ano').AsString);
+        aProgramacaoFerias.Codigo := Trim(qrySourceDB.FieldByName('codigo').AsString);
+        aProgramacaoFerias.Aquisicao.DataInicial := qrySourceDB.FieldByName('dt_aquisicao_inicial').AsDateTime;
+        aProgramacaoFerias.Aquisicao.DataFinal   := qrySourceDB.FieldByName('dt_aquisicao_final').AsDateTime;
+        aProgramacaoFerias.Gozo.DataInicial      := qrySourceDB.FieldByName('dt_gozo_inicial').AsDateTime;
+        aProgramacaoFerias.Gozo.DataFinal        := qrySourceDB.FieldByName('dt_gozo_final').AsDateTime;
+        aProgramacaoFerias.Observacao            := Trim(qrySourceDB.FieldByName('obs').AsString);
+        aProgramacaoFerias.AnoMesPagto           := Trim(qrySourceDB.FieldByName('ano_mes_pagto').AsString);
+
+        aProgramacaoFerias.Servidor.ID         := 0;
+        aProgramacaoFerias.Servidor.IDServidor := 0;
+        aProgramacaoFerias.Servidor.Codigo     := Trim(qrySourceDB.FieldByName('matricula_sem_digito').AsString) + IntToStr(StrToIntDef(FBaseID, 0));
+        aProgramacaoFerias.Servidor.CarregarDados;
+        if (aProgramacaoFerias.Servidor.IDServidor > 0) then
+        begin
+          if (Trim(qrySourceDB.FieldByName('ferias_gozadas').AsString) = 'T') then
+            aProgramacaoFerias.Situacao := situacaoFeriasGozada
+          else
+          if (Trim(qrySourceDB.FieldByName('ferias_vencidas').AsString) = 'S') then
+            aProgramacaoFerias.Situacao := situacaoFeriasVencida
+          else
+            aProgramacaoFerias.Situacao := situacaoFeriasAGozar;
+
+          if not dmConexaoTargetDB.InserirProgramacaoFerias(aProgramacaoFerias) then
+            gLogImportacao.Add(TCheckBox(Sender).Caption + ' - Servidor : ' +
+              QuotedStr(aProgramacaoFerias.Servidor.Codigo) + ' - Programação : ' + QuotedStr(aProgramacaoFerias.Codigo + '/' + aProgramacaoFerias.Ano) + ' não importado');
+        end;
+      end;
+
+      if (aProgramacaoFerias.Servidor.IDServidor > 0) then
+        lblAndamento.Caption  := 'Programação de férias ' + Trim(qrySourceDB.FieldByName('ano').AsString) + ' para ' + Trim(qrySourceDB.FieldByName('nome').AsString);
+
+      prbAndamento.Position := prbAndamento.Position + 1;
+
+      Application.ProcessMessages;
+      qrySourceDB.Next;
+    end;
+
+    dmConexaoTargetDB.UpdateGenerator('GEN_ID_PROGRAMACAO_FERIAS', 'PROGRAMACAO_FERIAS', 'ID');
+  finally
+    aProgramacaoFerias.Free;
+    dmRecursos.ExibriLog;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;

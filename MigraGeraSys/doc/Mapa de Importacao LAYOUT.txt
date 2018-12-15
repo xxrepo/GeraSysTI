@@ -247,3 +247,30 @@ from SFP017 m
   left join AFASTGFIP ag on (ag.tipo = m.tipo and ag.codigo = m.codgfip)
   left join AFASTFOLHA af on (af.tipo = m.tipo and af.codigo = m.codfol)
   left join AFASTRAIS ar on (ar.tipo = m.tipo and ar.codigo = m.codrais)
+
+-- Programação de Férias
+
+Select
+    substring(f.matricula from 1 for char_length(f.matricula) - 2) as matricula_sem_digito
+  , substring(f.matricula from 1 for char_length(f.matricula) - 2) || f.anoferias || f.mesferias as codigo
+  , f.anoferias as ano
+  , f.mesferias as mes
+  , f.anoferias || f.mesferias as ano_mes_ferias
+  , f.aquis1  as dt_aquisicao_inicial
+  , f.aquis2  as dt_aquisicao_final
+  , f.gozo1   as dt_gozo_inicial
+  , f.gozo2   as dt_gozo_final
+  , extract(year from f.gozo1) || right('00' || extract(month from f.gozo1), 2) as ano_mes_pagto
+  , f.ferias1 as ferias_gozadas
+  , Case when (f.gozo1 is null) and (f.aquis2 < current_timestamp) then 'S' else 'N' end ferias_vencidas
+  , f.*
+from SFPDXX16 f
+order by
+    f.matricula
+  , f.aquis1
+  , f.aquis2
+  , f.gozo1
+  , f.gozo2
+
+
+  

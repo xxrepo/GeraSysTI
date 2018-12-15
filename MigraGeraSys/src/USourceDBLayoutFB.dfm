@@ -272,9 +272,17 @@ inherited frmSourceDBLayoutFB: TfrmSourceDBLayoutFB
       Width = 179
       Height = 17
       Caption = 'Tabela Programa'#231#227'o de F'#233'rias'
-      Enabled = False
       TabOrder = 21
       OnClick = chkTabelaProgramacaoFeriasClick
+    end
+    object chkLancamentoMesServidor: TCheckBox
+      Left = 321
+      Top = 179
+      Width = 178
+      Height = 17
+      Caption = 'Folha Mensal do Servidor'
+      Enabled = False
+      TabOrder = 22
     end
   end
   inherited chkRotina: TCheckBox

@@ -1031,6 +1031,8 @@ procedure TfrmSourceDBLayoutFB.ImportarPessoaFisica(Sender: TObject);
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_SERVIDOR_CONTA_BANC', 'SERVIDOR_CONTA_BANC', 'ID');
   end;
 var
+  aScript : TStringList;
+
   aCompetencia    ,
   aPessoa         ,
   aNacionalidade  ,
@@ -1050,6 +1052,64 @@ begin
   aDepartamento   := TGenerico.Create;
   aSubUnidadeOrca := TSubUnidadeOrcamentaria.Create;
   try
+    aScript := TStringList.Create;
+    aScript.BeginUpdate;
+    aScript.Clear;
+    aScript.Add('create view vw_estado_funcional (');
+    aScript.Add('    matricula');
+    aScript.Add('  , anoref');
+    aScript.Add('  , mesref');
+    aScript.Add('  , dtinicio');
+    aScript.Add('  , dtfim');
+    aScript.Add('  , dtaviso');
+    aScript.Add('  , afast_tipo');
+    aScript.Add('  , cod_folha');
+    aScript.Add('  , afast_folha');
+    aScript.Add('  , ' + FCampoEstadoFuncionalRemunID);
+    aScript.Add('  , cod_gfip');
+    aScript.Add('  , afast_gfip');
+    aScript.Add('  , retorno_gfip');
+    aScript.Add('  , cod_rais');
+    aScript.Add('  , afast_rais');
+    aScript.Add(')');
+    aScript.Add('as');
+    aScript.Add('Select');
+    aScript.Add('    m.matricula');
+    aScript.Add('  , m.anoref');
+    aScript.Add('  , m.mesref');
+    aScript.Add('  , m.dtinicio');
+    aScript.Add('  , m.dtfim');
+    aScript.Add('  , m.dtaviso');
+    aScript.Add('  , m.tipo       as afast_tipo');
+    aScript.Add('  , m.codfol     as cod_folha');
+    aScript.Add('  , af.descricao as afast_folha');
+    aScript.Add('  , af.estado_funcional_remun_id as ' + FCampoEstadoFuncionalRemunID);
+    aScript.Add('  , m.codgfip    as cod_gfip');
+    aScript.Add('  , ag.descricao as afast_gfip');
+    aScript.Add('  , ag.cdretorno as retorno_gfip');
+    aScript.Add('  , m.codrais    as cod_rais');
+    aScript.Add('  , ar.descricao as afast_rais');
+    aScript.Add('from SFP017 m');
+    aScript.Add('  inner join (');
+    aScript.Add('    Select');
+    aScript.Add('        m.matricula');
+    aScript.Add('      , max(m.anoref)   as ano');
+    aScript.Add('      , max(m.mesref)   as mes');
+    aScript.Add('      , max(m.dtinicio) as dtinicio');
+    aScript.Add('    from SFP017 m');
+    aScript.Add('    group by');
+    aScript.Add('        m.matricula');
+    aScript.Add('  ) um on (um.matricula = m.matricula and um.ano = m.anoref and um.mes = m.mesref and um.dtinicio = m.dtinicio)');
+    aScript.Add('  left join AFASTGFIP ag on (ag.tipo = m.tipo and ag.codigo = m.codgfip)');
+    aScript.Add('  left join AFASTFOLHA af on (af.tipo = m.tipo and af.codigo = m.codfol)');
+    aScript.Add('  left join AFASTRAIS ar on (ar.tipo = m.tipo and ar.codigo = m.codrais)');
+    aScript.EndUpdate;
+
+    try
+      fdSourceDB.ExecSQL(aScript.Text, True);
+    except
+    end;
+
     UpdateGenerators;
 
     dmConexaoTargetDB.CriarCampoTabela('NACIONALIDADE', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
@@ -1171,12 +1231,16 @@ begin
     qrySourceDB.SQL.Add('  , es.escola as lotacao_nome');
     qrySourceDB.SQL.Add('  , vn.id_vinculo as situacao_tcm');
     qrySourceDB.SQL.Add('  , vn.' + FCampoSituacaoTCMRemunID);
+    qrySourceDB.SQL.Add('  , coalesce(sf.afast_tipo, ''0'') as afast_tipo ');
+    qrySourceDB.SQL.Add('  , coalesce(sf.cod_folha,  ''0'') as cod_folha  ');
+    qrySourceDB.SQL.Add('  , sf.' + FCampoEstadoFuncionalRemunID);
     qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
     qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFP006' + aCompetencia.Sufixo + ' dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)'); // -- DEPTO
     qrySourceDB.SQL.Add('  left join SFPD9924 es on (es.codigo = coalesce(nullif(trim(s.codesc2), ''''), s.codesc))');
     qrySourceDB.SQL.Add('  left join CFG_VINC' + aCompetencia.Sufixo + ' vn on (vn.id_vinculo = s.sistema)');
+    qrySourceDB.SQL.Add('  left join VW_ESTADO_FUNCIONAL sf on (sf.matricula = s.matricula)');
     qrySourceDB.SQL.Add('  left join (');
     qrySourceDB.SQL.Add('    Select distinct');
     qrySourceDB.SQL.Add('        x.ug');
@@ -1352,7 +1416,7 @@ begin
         aServidor.NaoCalculaATS             := False;
 
         aServidor.EstadoFuncional.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
-        aServidor.EstadoFuncional.Codigo    := Trim(qrySourceDB.FieldByName('afast_tipo').AsString) + FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('cod_folha').AsString)));
+        aServidor.EstadoFuncional.Codigo    := Trim(qrySourceDB.FieldByName('afast_tipo').AsString) + Trim(qrySourceDB.FieldByName('cod_folha').AsString);
 
         if (aServidor.EstadoFuncional.ID = 0) then
         begin
@@ -1490,9 +1554,12 @@ end;
 
 procedure TfrmSourceDBLayoutFB.ImportarProgramacaoFeriais(Sender: TObject);
 var
+  aCompetencia : TGenerico;
   aProgramacaoFerias : TProgramacaoFerias;
 begin
   try
+    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
@@ -1501,6 +1568,7 @@ begin
     qrySourceDB.SQL.Add('Select');
     qrySourceDB.SQL.Add('    substring(f.matricula from 1 for char_length(f.matricula) - 2) as matricula_sem_digito');
     qrySourceDB.SQL.Add('  , substring(f.matricula from 1 for char_length(f.matricula) - 2) || f.anoferias || f.mesferias as codigo');
+    qrySourceDB.SQL.Add('  , s.nome');
     qrySourceDB.SQL.Add('  , f.anoferias as ano');
     qrySourceDB.SQL.Add('  , f.mesferias as mes');
     qrySourceDB.SQL.Add('  , f.anoferias || f.mesferias as ano_mes_ferias');
@@ -1513,6 +1581,7 @@ begin
     qrySourceDB.SQL.Add('  , Case when (f.gozo1 is null) and (f.aquis2 < current_timestamp) then ''S'' else ''N'' end ferias_vencidas');
     qrySourceDB.SQL.Add('  , f.*');
     qrySourceDB.SQL.Add('from SFPDXX16 f');
+    qrySourceDB.SQL.Add('  inner join SFP001' + aCompetencia.Sufixo + ' s on (s.matricula = f.matricula)');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    f.matricula');
     qrySourceDB.SQL.Add('  , f.aquis1');

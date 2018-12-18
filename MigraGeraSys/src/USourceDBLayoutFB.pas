@@ -87,6 +87,7 @@ type
 
     function ConectarSourceDB : Boolean;
     function RegistrarTabelaDB(aFileNameDB : String) : String;
+    function ContarRegistros(aTabela, aFiltro : String): Integer;
 
     procedure ImportarCBO(Sender: TObject); virtual; abstract;
     procedure ImportarEscolaridade(Sender: TObject);
@@ -273,6 +274,37 @@ begin
   end;
 end;
 
+function TfrmSourceDBLayoutFB.ContarRegistros(aTabela, aFiltro: String): Integer;
+var
+  aQry : TFDQuery;
+  aRetorno : Integer;
+begin
+  aRetorno := 0;
+
+  aQry := TFDQuery.Create(Self);
+  try
+    aQry.Connection  := fdSourceDB;
+    aQry.Transaction := fdTransSourceDB;
+    with aQry do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COUNT(*) as QTDE');
+      SQL.Add('FROM ' + aTabela);
+
+      if Trim(aFiltro) <> EmptyStr then
+        SQL.Add(aFiltro);
+
+      OpenOrExecute;
+
+      Result := FieldByName('QTDE').AsInteger;
+    end;
+  finally
+    aQry.Free;
+    Result := aRetorno;
+  end;
+end;
+
 procedure TfrmSourceDBLayoutFB.CriarCampoEstadoFuncional_Layout;
 begin
   try
@@ -417,9 +449,11 @@ var
   aTipoTCM,
   aEscola ,
   aCompetencia : TGenerico;
+  aTabelaPrincipal : String;
 begin
   try
-    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aCompetencia     := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aTabelaPrincipal := 'SFP005' + aCompetencia.Sufixo;
 
     UpdateGenerators;
 
@@ -429,7 +463,7 @@ begin
     qrySourceDB.SQL.Clear;
     qrySourceDB.SQL.Add('Select ');
     qrySourceDB.SQL.Add('    c.*');
-    qrySourceDB.SQL.Add('from SFP005' + aCompetencia.Sufixo + ' c');
+    qrySourceDB.SQL.Add('from ' + aTabelaPrincipal + ' c');
     qrySourceDB.SQL.Add(' ');
     qrySourceDB.SQL.Add('union');
     qrySourceDB.SQL.Add(' ');
@@ -497,11 +531,11 @@ begin
     qrySourceDB.SQL.Add('from SFPDXX25' + aCompetencia.Sufixo + ' x');
     qrySourceDB.SQL.Add('order by');
     qrySourceDB.SQL.Add('    2 ');
+
     qrySourceDB.Open;
-    qrySourceDB.Last;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := qrySourceDB.RecordCount;
+    prbAndamento.Max      := ContarRegistros(aTabelaPrincipal, EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -626,10 +660,9 @@ PARENT  NOME
     qrySourceDB.SQL.EndUpdate;
 
     qrySourceDB.Open;
-    qrySourceDB.Last;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := qrySourceDB.RecordCount;
+    prbAndamento.Max      := ContarRegistros('SFPD9912', EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -911,20 +944,21 @@ procedure TfrmSourceDBLayoutFB.ImportarEventos(Sender: TObject);
 var
   aEvento : TEvento;
   aCompetencia : TGenerico;
+  aTabelaPrincipal : String;
 begin
   try
     CriarCampoEvento_Layout;
-    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aCompetencia     := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aTabelaPrincipal := 'SFP010' + aCompetencia.Sufixo;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;
 
-    qrySourceDB.SQL.Text := 'Select * from SFP010' + aCompetencia.Sufixo;
+    qrySourceDB.SQL.Text := 'Select * from ' + aTabelaPrincipal;
     qrySourceDB.Open;
-    qrySourceDB.Last;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := qrySourceDB.RecordCount;
+    prbAndamento.Max      := ContarRegistros(aTabelaPrincipal, EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -1042,6 +1076,7 @@ var
   aServidor       : TServidor;
   aEntidadeFinanc : TContaBancoServidor;
   aSubUnidadeOrca : TSubUnidadeOrcamentaria;
+  aTabelaPrincipal,
   aEnderecoNumero ,
   aTituloEleitor  : String;
   aPossuiConta    : Boolean;
@@ -1197,7 +1232,8 @@ begin
 
     CriarCampoSituacaoTCM_Layout;
     CriarCampoEstadoFuncional_Layout;
-    aCompetencia := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aCompetencia     := TGenerico(cmCompetencia.Items.Objects[cmCompetencia.ItemIndex]);
+    aTabelaPrincipal := 'SFP001' + aCompetencia.Sufixo;
 
     if qrySourceDB.Active then
       qrySourceDB.Close;
@@ -1234,7 +1270,7 @@ begin
     qrySourceDB.SQL.Add('  , coalesce(sf.afast_tipo, ''0'') as afast_tipo ');
     qrySourceDB.SQL.Add('  , coalesce(sf.cod_folha,  ''0'') as cod_folha  ');
     qrySourceDB.SQL.Add('  , sf.' + FCampoEstadoFuncionalRemunID);
-    qrySourceDB.SQL.Add('from SFP001' + aCompetencia.Sufixo + ' s');
+    qrySourceDB.SQL.Add('from ' + aTabelaPrincipal + ' s');
     qrySourceDB.SQL.Add('  left join SFP005' + aCompetencia.Sufixo + ' f1 on (f1.codigo = s.funcao)');    //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFPDXX25' + aCompetencia.Sufixo + ' f2 on (f2.codigo = s.funcao2)'); //  -- CARGO_FUCNCAO
     qrySourceDB.SQL.Add('  left join SFP006' + aCompetencia.Sufixo + ' dp on (dp.cdsecreta = s.cdsecreta and dp.cdsetor = s.cdsetor)'); // -- DEPTO
@@ -1271,10 +1307,9 @@ begin
     qrySourceDB.SQL.SaveToFile('.\servidores.sql');
 
     qrySourceDB.Open;
-    qrySourceDB.Last;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := qrySourceDB.RecordCount;
+    prbAndamento.Max      := ContarRegistros(aTabelaPrincipal, EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -1593,10 +1628,9 @@ begin
     qrySourceDB.SQL.SaveToFile('.\programacao_feriais.sql');
 
     qrySourceDB.Open;
-    qrySourceDB.Last;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := qrySourceDB.RecordCount;
+    prbAndamento.Max      := ContarRegistros('SFPDXX16', EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do

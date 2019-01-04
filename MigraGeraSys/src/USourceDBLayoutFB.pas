@@ -297,7 +297,7 @@ begin
 
       OpenOrExecute;
 
-      Result := FieldByName('QTDE').AsInteger;
+      aRetorno := FieldByName('QTDE').AsInteger;
     end;
   finally
     aQry.Free;
@@ -444,7 +444,7 @@ procedure TfrmSourceDBLayoutFB.ImportarCargoFuncao(Sender: TObject);
     dmConexaoTargetDB.UpdateGenerator('GEN_ID_CARGO_FUNCAO',    'CARGO_FUNCAO',    'ID');
   end;
 var
-  aCargoFuncao : TCargoFuncao;
+  aCargoFuncao  : TCargoFuncao;
   aCBO    ,
   aTipoTCM,
   aEscola ,
@@ -456,6 +456,15 @@ begin
     aTabelaPrincipal := 'SFP005' + aCompetencia.Sufixo;
 
     UpdateGenerators;
+
+    // Inserir Escolaridade padrão (DEFAULT)
+    aEscola := TGenerico.Create;
+    aEscola.ID        := 0;
+    aEscola.Codigo    := '0';
+    aEscola.Descricao := 'Não especificado';
+    aEscola.Ativo     := True;
+    dmConexaoTargetDB.InserirEscolaridade(aEscola);
+
 
     if qrySourceDB.Active then
       qrySourceDB.Close;
@@ -535,7 +544,7 @@ begin
     qrySourceDB.Open;
 
     prbAndamento.Position := 0;
-    prbAndamento.Max      := ContarRegistros(aTabelaPrincipal, EmptyStr);
+    prbAndamento.Max      := ContarRegistros(aTabelaPrincipal, EmptyStr) + ContarRegistros('SFPDXX25' + aCompetencia.Sufixo, EmptyStr);
 
     qrySourceDB.First;
     while not qrySourceDB.Eof do
@@ -543,7 +552,6 @@ begin
       aCargoFuncao := TCargoFuncao.Create;
       aCBO     := TGenerico.Create;
       aTipoTCM := TGenerico.Create;
-      aEscola  := TGenerico.Create;
 
       aCargoFuncao.ID         := 0;
       aCargoFuncao.Codigo     := FBaseID + FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('codigo').AsString), 9999));
@@ -555,8 +563,8 @@ begin
       aCargoFuncao.CargaHorariaMensal  := StrToIntDef(Trim(qrySourceDB.FieldByName('horabase').AsString), 0);
       aCargoFuncao.BaseCalculoHoraAula := aCargoFuncao.CargaHorariaMensal;
 
-      if (Trim(qrySourceDB.FieldByName('nivelesc').AsString) <> EmptyStr) then
-        aCargoFuncao.Escolaridade.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('nivelesc').AsString)));
+      aCargoFuncao.Escolaridade.ID     := aEscola.ID;
+      aCargoFuncao.Escolaridade.Codigo := aEscola.Codigo;
 
       if (Trim(qrySourceDB.FieldByName('codtcm').AsString) = EmptyStr) then
       begin
@@ -599,11 +607,26 @@ begin
 
       dmConexaoTargetDB.GetID('CBO',            'ID', 'CODIGO = '   + QuotedStr(aCargoFuncao.CBO.Codigo), aCBO);
       dmConexaoTargetDB.GetID('TIPO_CARGO_TCM', 'ID', 'ID = '       + IfThen(Trim(aCargoFuncao.TipoTCM.Codigo) = EmptyStr, '0', Trim(aCargoFuncao.TipoTCM.Codigo)), aTipoTCM);
-      dmConexaoTargetDB.GetID('ESCOLARIDADE',   'ID', 'COD_RAIS = ' + QuotedStr(aCargoFuncao.Escolaridade.Codigo), aEscola);
 
-      aCargoFuncao.CBO.ID          := aCBO.ID;
-      aCargoFuncao.TipoTCM.ID      := aTipoTCM.ID;
-      aCargoFuncao.Escolaridade.ID := aEscola.ID;
+      aCargoFuncao.CBO.ID     := aCBO.ID;
+      aCargoFuncao.TipoTCM.ID := aTipoTCM.ID;
+
+      // O nível de escolaridade aqui corresponde ao seu Código RAIS.
+      if (Trim(qrySourceDB.FieldByName('nivelesc').AsString) <> EmptyStr) then
+      begin
+        aEscola.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('nivelesc').AsString)));
+        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', 'COD_RAIS = ' + QuotedStr(aEscola.Codigo), aEscola);
+        aCargoFuncao.Escolaridade.ID := aEscola.ID;
+      end;
+
+      // Buscar a escolaridade padrão (DEFAULT)
+      if (aCargoFuncao.Escolaridade.ID = 0) then
+      begin
+        aEscola.ID     := 0;
+        aEscola.Codigo := '0';
+        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', ID_SYS_ANTER + ' = ' + QuotedStr(aEscola.Codigo), aEscola);
+        aCargoFuncao.Escolaridade.ID := aEscola.ID;
+      end;
 
       aCargoFuncao.VencimentoBase := qrySourceDB.FieldByName('salario').AsCurrency;
       aCargoFuncao.Observacao     := Trim(qrySourceDB.FieldByName('obs').AsString) + #13#13 + Trim(qrySourceDB.FieldByName('obsreserva').AsString);
@@ -1436,6 +1459,10 @@ begin
         aServidor.CargoOrigem            := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
         aServidor.CargoAtual.Codigo      := FBaseID + FormatFloat('##0000', StrToIntDef(Trim(qrySourceDB.FieldByName('cargo_funcao_atual').AsString), 9999));
         aServidor.CargoAtual             := TCargoFuncao(dmConexaoTargetDB.ObjectID('CARGO_FUNCAO', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'STATUS', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.CargoOrigem.Codigo)));
+
+        if (aServidor.CargoAtual.ID = 0) and (aServidor.CargoOrigem.ID > 0) then
+          aServidor.CargoAtual.ID := aServidor.CargoOrigem.ID;
+
         aServidor.ReferenciaSalario      := 0;
         aServidor.VencimentoBase         := qrySourceDB.FieldByName('vencimento_base').AsCurrency;
         aServidor.Escolaridade.Codigo    := Trim(qrySourceDB.FieldByName('grinstr').AsString);
@@ -1448,7 +1475,10 @@ begin
         aServidor.BloqueaLanctoEventoAuto   := False;
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
-        aServidor.NaoCalculaATS             := False;
+        aServidor.NaoCalculaATS             := not (AnsiUpperCase(Trim(qrySourceDB.FieldByName('calats').AsString)) = 'T');
+        aServidor.NaoCalculaSalarioFamilia  := False;
+
+        aServidor.CategoriaParentescoPencionista := TCategoriaParentescoPencionista.catParenteNaoDefinido;
 
         aServidor.EstadoFuncional.ID        := qrySourceDB.FieldByName(FCampoEstadoFuncionalRemunID).AsInteger;
         aServidor.EstadoFuncional.Codigo    := Trim(qrySourceDB.FieldByName('afast_tipo').AsString) + Trim(qrySourceDB.FieldByName('cod_folha').AsString);
@@ -1458,16 +1488,27 @@ begin
           aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
 
           if (aServidor.EstadoFuncional.ID = 0) then
-            aServidor.EstadoFuncional.ID := 1;
+            aServidor.EstadoFuncional.ID := 1; // Ativo
         end;
 
         aServidor.Status := statusServidorUm;
 
         aServidor.SituacaoTCM.ID     := qrySourceDB.FieldByName(FCampoSituacaoTCMRemunID).AsInteger;
-        aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_tcm').AsString);
+        aServidor.SituacaoTCM.Codigo := FBaseID + Trim(qrySourceDB.FieldByName('situacao_tcm').AsString);
 
         if (aServidor.SituacaoTCM.ID = 0) then
           aServidor.SituacaoTCM.ID := dmConexaoTargetDB.GetValue('SITUACAO_TCM', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SituacaoTCM.Codigo));
+
+        if (aServidor.SituacaoTCM.ID = 0) then
+        begin
+          aServidor.SituacaoTCM.Codigo := Trim(qrySourceDB.FieldByName('situacao_tcm').AsString);
+          aServidor.SituacaoTCM.ID     := dmConexaoTargetDB.GetValue('SITUACAO_TCM', 'ID', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.SituacaoTCM.Codigo));
+          if (aServidor.SituacaoTCM.ID = 0) then
+          begin
+            MensagemErro('Erro', 'Situação TCM ' + QuotedStr(aServidor.SituacaoTCM.Codigo) + ' não cadastrada/localizada!');
+            Abort;
+          end;
+        end;
 
         aServidor.Efetivo := (aServidor.SituacaoTCM.ID in [20, 21]); // EFETIVO/CONCURSADO e EFETIVO ART. 19 (ADCT) ESTÁVEIS
 

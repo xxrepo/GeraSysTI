@@ -27,6 +27,7 @@ Type
   TTipoVinculo = (tipoVinculoUm = 1);
   TTipoConta   = (tipoContaCorrente = 1, tipoContaSalario = 2, tipoContaPoupanca = 3);
   TParentesco  = (parentescoFilho = 1, parentescoConjuge = 2, parentescoFilhoAdotivo = 3, parentescoPais = 4, parentescoOutros = 5);
+  TCategoriaParentescoPencionista = (catParenteNaoDefinido = 0, catParenteViuvo = 1, catParenteConjuge = 2, catParenteExConjuge = 3, catParenteFilho = 4, catParenteEnteado = 5, catParenteMenor = 6, catParenteInstituto = 7, catParentePais = 8, catParenteDeficiente = 9, catParenteFilhaSolteira = 10, catParenteOutros = 11);
   TTipoMovimento = (tipoMovimentoNulo = 0, tipoMovimentoUm = 1, tipoMovimentoDois, tipoMovimentoTres);
   TSituacaoProgramacaoFerias = (situacaoFeriasAGozar = 1, situacaoFeriasGozada = 2, situacaoFeriasVencida = 3);
 
@@ -618,12 +619,14 @@ Type
       FEstadoFuncional : TEstadoFuncional;
       FStatus : TStatusServidor;
       FNaoCalculaATS             ,
+      FNaoCalculaSalarioFamilia  ,
       FCalculaSalarioCargoOrigem : Boolean;
       FReferenciaSalarioInicial  : Integer;
       FDataBaseCalculoATS : TDateTime;
       FDesvioFuncao : Boolean;
       FCategoriaSEFIP  ,
       FOcorrenciaSEFIP : String;
+      FCategoriaParentescoPencionista : TCategoriaParentescoPencionista;
     public
       procedure CarregarDados; override;
 
@@ -655,12 +658,14 @@ Type
       property EstadoFuncional : TEstadoFuncional read FEstadoFuncional write FEstadoFuncional;
       property Status : TStatusServidor read FStatus write FStatus;
       property NaoCalculaATS             : Boolean read FNaoCalculaATS write FNaoCalculaATS;
+      property NaoCalculaSalarioFamilia  : Boolean read FNaoCalculaSalarioFamilia write FNaoCalculaSalarioFamilia;
       property CalculaSalarioCargoOrigem : Boolean read FCalculaSalarioCargoOrigem write FCalculaSalarioCargoOrigem;
       property ReferenciaSalarioInicial  : Integer read FReferenciaSalarioInicial write FReferenciaSalarioInicial;
       property DataBaseCalculoATS : TDateTime read FDataBaseCalculoATS write FDataBaseCalculoATS;
       property DesvioFuncao    : Boolean read FDesvioFuncao write FDesvioFuncao;
       property CategoriaSEFIP  : String read FCategoriaSEFIP write FCategoriaSEFIP;
       property OcorrenciaSEFIP : String read FOcorrenciaSEFIP write FOcorrenciaSEFIP;
+      property CategoriaParentescoPencionista : TCategoriaParentescoPencionista read FCategoriaParentescoPencionista write FCategoriaParentescoPencionista;
 
       constructor Create;
       destructor Destroy;
@@ -1440,15 +1445,22 @@ begin
           FieldByName('carga_hor_mensal').AsInteger    := pCargoFuncao.CargaHorariaMensal;
           FieldByName('qtd_vaga').AsInteger            := pCargoFuncao.QuantidadeVaga;
           FieldByName('id_escolaridade').AsInteger     := pCargoFuncao.Escolaridade.ID;
+
           if pCargoFuncao.CBO.ID = 0 then
             FieldByName('id_cbo').Clear
           else
-            FieldByName('id_cbo').AsInteger            := pCargoFuncao.CBO.ID;
+            FieldByName('id_cbo').AsInteger := pCargoFuncao.CBO.ID;
+
           FieldByName('id_fat_prog_sal').AsInteger     := pCargoFuncao.FatorProgramaSalario.ID;
           FieldByName('num_ato_criacao').AsString      := pCargoFuncao.NumeroAtoCriacao;
           FieldByName('data_ato_criacao').AsDateTime   := pCargoFuncao.DataAtoCriacao;
-          FieldByName('id_evento_base').AsInteger      := pCargoFuncao.EventoBase.ID;
-          FieldByName('calc_ats').AsString             := IfThen(pCargoFuncao.CalculaATS, 'S', 'N');
+
+          if (pCargoFuncao.EventoBase.ID = 0) then
+            FieldByName('id_evento_base').Clear
+          else
+            FieldByName('id_evento_base').AsInteger := pCargoFuncao.EventoBase.ID;
+
+          FieldByName('calc_ats').AsString                   := IfThen(pCargoFuncao.CalculaATS, 'S', 'N');
           FieldByName('calc_ats_sobre_vencto_base').AsString := IfThen(pCargoFuncao.CalculaATSVencimentoBase, 'S', 'N');
           FieldByName('calc_dec_terc').AsString              := IfThen(pCargoFuncao.CalculaDecimoTerc, 'S', 'N');
           FieldByName('calc_contrib_sindical').AsString      := IfThen(pCargoFuncao.CalculaContribSind, 'S', 'N');
@@ -2749,6 +2761,7 @@ begin
           FieldByName('hora_saida2').Clear;
           FieldByName('observacao').Clear;
           FieldByName('nao_calcular_ats').AsString := IfThen(pServidor.NaoCalculaATS, 'S', 'N');
+          FieldByName('nao_calc_sal_fam').AsString := IfThen(pServidor.NaoCalculaSalarioFamilia, 'S', 'N');
           FieldByName('id_horario').Clear;
           FieldByName('calc_sal_cargo_origem').AsString := IfThen(pServidor.CalculaSalarioCargoOrigem, 'S', 'N');
 
@@ -2771,6 +2784,11 @@ begin
           else
             FieldByName('ocorrencia_sefip').AsString := Trim(pServidor.OcorrenciaSEFIP);
 
+          if (pServidor.CategoriaParentescoPencionista = TCategoriaParentescoPencionista.catParenteNaoDefinido) then
+            FieldByName('parent_inst_pensao').Clear;
+
+          if (pServidor.CategoriaParentescoPencionista <> TCategoriaParentescoPencionista.catParenteInstituto) then
+            FieldByName('id_inst_pensao').Clear;
         end
         else
           Edit;
@@ -4334,12 +4352,14 @@ begin
   FEstadoFuncional := TEstadoFuncional.Create;
   FStatus          := statusServidorUm;
   FNaoCalculaATS             := False;
+  FNaoCalculaSalarioFamilia  := False;
   FCalculaSalarioCargoOrigem := False;
   FReferenciaSalarioInicial  := 0;
   FDataBaseCalculoATS        := StrToDateTime(EMPTY_DATE);
   FDesvioFuncao    := False;
   FCategoriaSEFIP  := EmptyStr;
   FOcorrenciaSEFIP := EmptyStr;
+  FCategoriaParentescoPencionista := TCategoriaParentescoPencionista.catParenteNaoDefinido;
 end;
 
 destructor TServidor.Destroy;

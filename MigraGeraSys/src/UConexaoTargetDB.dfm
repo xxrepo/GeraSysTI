@@ -1557,6 +1557,7 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , s.observacao               '
       '  , s.status                   '
       '  , s.nao_calcular_ats         '
+      '  , s.nao_calc_sal_fam'
       '  , s.id_sys_anter             '
       '  , s.id_horario               '
       '  , s.calc_sal_cargo_origem    '
@@ -1566,6 +1567,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  , s.categ_sefip              '
       '  , s.ocorrencia_sefip         '
       '  , s.nome_servidor'
+      '  , s.parent_inst_pensao'
+      '  , s.id_inst_pensao'
       'from SERVIDOR s'
       'where (s.id = :id) or (s.id_sys_anter = :codigo)')
     Left = 576
@@ -1600,7 +1603,8 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       '  HORA_ENTRADA2, HORA_SAIDA2, OBSERVACAO, STATUS, '
       '  NAO_CALCULAR_ATS, ID_SYS_ANTER, ID_HORARIO, '
       '  CALC_SAL_CARGO_ORIGEM, REF_SAL_INICIAL, DT_BASE_CALC_ATS, '
-      '  DESVIO_DE_FUNCAO, CATEG_SEFIP, OCORRENCIA_SEFIP)'
+      '  DESVIO_DE_FUNCAO, CATEG_SEFIP, OCORRENCIA_SEFIP, '
+      '  NAO_CALC_SAL_FAM, PARENT_INST_PENSAO, ID_INST_PENSAO)'
       
         'VALUES (:NEW_ID, :NEW_ID_PESSOA_FISICA, :NEW_MATRICULA, :NEW_EFE' +
         'TIVO, '
@@ -1631,10 +1635,10 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         '_CALC_ATS, '
       
         '  :NEW_DESVIO_DE_FUNCAO, :NEW_CATEG_SEFIP, :NEW_OCORRENCIA_SEFIP' +
-        ')'
+        ', '
       
-        'RETURNING BLOQ_LANCTO_EVENTO_AUTO, REF_SAL_INICIAL, DESVIO_DE_FU' +
-        'NCAO')
+        '  :NEW_NAO_CALC_SAL_FAM, :NEW_PARENT_INST_PENSAO, :NEW_ID_INST_P' +
+        'ENSAO)')
     ModifySQL.Strings = (
       'UPDATE SERVIDOR'
       
@@ -1691,11 +1695,12 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
         'NEW_DESVIO_DE_FUNCAO, '
       
         '  CATEG_SEFIP = :NEW_CATEG_SEFIP, OCORRENCIA_SEFIP = :NEW_OCORRE' +
-        'NCIA_SEFIP'
-      'WHERE ID = :OLD_ID'
+        'NCIA_SEFIP, '
       
-        'RETURNING BLOQ_LANCTO_EVENTO_AUTO, REF_SAL_INICIAL, DESVIO_DE_FU' +
-        'NCAO')
+        '  NAO_CALC_SAL_FAM = :NEW_NAO_CALC_SAL_FAM, PARENT_INST_PENSAO =' +
+        ' :NEW_PARENT_INST_PENSAO, '
+      '  ID_INST_PENSAO = :NEW_ID_INST_PENSAO'
+      'WHERE ID = :OLD_ID')
     DeleteSQL.Strings = (
       'DELETE FROM SERVIDOR'
       'WHERE ID = :OLD_ID')
@@ -1718,19 +1723,32 @@ object dmConexaoTargetDB: TdmConexaoTargetDB
       
         '  HORA_ENTRADA2, HORA_SAIDA2, OBSERVACAO, STATUS, DESCR_SITUAC_T' +
         'CM, '
-      '  DESCR_SUB_UNID_ORCAM2, ID_UNID_GESTORA, DESCR_UNID_LOTACAO, '
       
-        '  DESCR_DEPTO, DESCR_CARGO_ORIGEM, DESCR_CARGO_ATUAL, DESCR_ESCO' +
-        'LARIDADE, '
-      '  DESCR_EST_FUNCIONAL, NOME_SERVIDOR, TIPO_SAL, FORMA_CALC_SAL, '
-      '  BASE_CALC_HORA_AULA, MOVIM_DEFINITIVA, CPF_PF, PIS_PASEP_PF, '
+        '  DESCR_SUB_UNID_ORCAMENT, DESCR_SUB_UNID_ORCAM2, ID_UNID_GESTOR' +
+        'A, '
       
-        '  DT_NASCIMENTO_PF, ID_RACA_COR_PF, DESCR_RACA_COR, DESCR_EFETIV' +
-        'O, '
-      '  NAO_CALCULAR_ATS, DT_ADMISSAO2, ID_SYS_ANTER, ID_HORARIO, '
-      '  CALC_SAL_CARGO_ORIGEM, REF_SAL_INICIAL, DT_BASE_CALC_ATS, '
-      '  DESVIO_DE_FUNCAO, CATEG_SEFIP, OCORRENCIA_SEFIP, CPF_FTDO, '
-      '  PIS_PASEP_FTDO, DESCR_HORARIO, DESCR_SUB_UNID_ORCAMENT'
+        '  DESCR_UNID_LOTACAO, DESCR_DEPTO, DESCR_CARGO_ORIGEM, DESCR_CAR' +
+        'GO_ATUAL, '
+      '  DESCR_ESCOLARIDADE, DESCR_EST_FUNCIONAL, NOME_SERVIDOR, '
+      
+        '  TIPO_SAL, FORMA_CALC_SAL, BASE_CALC_HORA_AULA, MOVIM_DEFINITIV' +
+        'A, '
+      '  CPF_PF, PIS_PASEP_PF, DT_NASCIMENTO_PF, ID_RACA_COR_PF, '
+      
+        '  DESCR_RACA_COR, DESCR_EFETIVO, NAO_CALCULAR_ATS, DT_ADMISSAO2,' +
+        ' '
+      
+        '  ID_SYS_ANTER, ID_HORARIO, CALC_SAL_CARGO_ORIGEM, DESCR_HORARIO' +
+        ', '
+      
+        '  REF_SAL_INICIAL, DT_BASE_CALC_ATS, DESVIO_DE_FUNCAO, CATEG_SEF' +
+        'IP, '
+      
+        '  OCORRENCIA_SEFIP, CPF_FTDO, PIS_PASEP_FTDO, CONTRA_CHEQUE_WEB,' +
+        ' '
+      
+        '  NAO_CALC_SAL_FAM, GRUPO_C_CHEQUE, PARENT_INST_PENSAO, ID_INST_' +
+        'PENSAO'
       'FROM SERVIDOR'
       'WHERE ID = :ID')
     Left = 576

@@ -1591,6 +1591,10 @@ begin
         aServidor.CalculaPrevidencia        := True;
         aServidor.CalculaIRRF               := True;
         aServidor.NaoCalculaATS             := False;
+        aServidor.NaoCalculaSalarioFamilia  := False;
+
+        aServidor.CategoriaParentescoPencionista := TCategoriaParentescoPencionista.catParenteNaoDefinido;
+
 //        aServidor.EstadoFuncional.Codigo    := FormatFloat('000', StrToIntDef(Trim(qrySourceDB.FieldByName('situacao').AsString), 0));
 //        aServidor.EstadoFuncional := TEstadoFuncional(dmConexaoTargetDB.ObjectID('ESTADO_FUNCIONAL', 'ID', 'ID_SYS_ANTER', 'DESCRICAO', 'EM_ATIVIDADE', 'ID_SYS_ANTER = ' + QuotedStr(aServidor.EstadoFuncional.Codigo)));
         aServidor.Status := statusServidorUm;

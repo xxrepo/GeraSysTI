@@ -483,6 +483,7 @@ begin
         CommitRetaining;
 
         ExcluirCampoTabela('EVENTO', ID_SYS_ANTER);
+        CriarCampoTabela('EVENTO', ID_SYS_ANTER, ID_SYS_ANTER_TYPE);
       end;
 
       dmConexaoTargetDB.UpdateGenerator('GEN_ID_EVENTO', 'EVENTO', 'ID');

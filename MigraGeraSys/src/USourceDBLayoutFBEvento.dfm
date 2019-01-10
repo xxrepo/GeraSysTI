@@ -103,8 +103,8 @@ inherited frmSourceDBLayoutFBEvento: TfrmSourceDBLayoutFBEvento
               FieldName = 'CODIGO'
             end
             item
-              Caption = 'Descri'#231#245'a'
-              FieldName = 'DESCRICAO'
+              Caption = 'ID + Descri'#231#227'o'
+              FieldName = 'ID_DESCRICAO'
             end>
           Properties.ListFieldIndex = 1
           Properties.ListSource = dtsReferencia
@@ -158,6 +158,9 @@ inherited frmSourceDBLayoutFBEvento: TfrmSourceDBLayoutFBEvento
       '    e.id'
       '  , e.descricao'
       '  , e.codigo'
+      
+        '  , right('#39'000'#39' || e.id, 3) || '#39' - '#39' || e.descricao as id_descri' +
+        'cao'
       'from EVENTO e'
       'order by'
       '    e.codigo'

@@ -447,7 +447,7 @@ var
   aCargoFuncao  : TCargoFuncao;
   aCBO    ,
   aTipoTCM,
-  aEscola ,
+  aEscolaridade,
   aCompetencia : TGenerico;
   aTabelaPrincipal : String;
 begin
@@ -458,12 +458,12 @@ begin
     UpdateGenerators;
 
     // Inserir Escolaridade padrão (DEFAULT)
-    aEscola := TGenerico.Create;
-    aEscola.ID        := 0;
-    aEscola.Codigo    := '0';
-    aEscola.Descricao := 'Não especificado';
-    aEscola.Ativo     := True;
-    dmConexaoTargetDB.InserirEscolaridade(aEscola);
+    aEscolaridade := TGenerico.Create;
+    aEscolaridade.ID        := 0;
+    aEscolaridade.Codigo    := '0';
+    aEscolaridade.Descricao := 'Não especificado';
+    aEscolaridade.Ativo     := True;
+    dmConexaoTargetDB.InserirEscolaridade(aEscolaridade);
 
 
     if qrySourceDB.Active then
@@ -563,8 +563,8 @@ begin
       aCargoFuncao.CargaHorariaMensal  := StrToIntDef(Trim(qrySourceDB.FieldByName('horabase').AsString), 0);
       aCargoFuncao.BaseCalculoHoraAula := aCargoFuncao.CargaHorariaMensal;
 
-      aCargoFuncao.Escolaridade.ID     := aEscola.ID;
-      aCargoFuncao.Escolaridade.Codigo := aEscola.Codigo;
+      aCargoFuncao.Escolaridade.ID     := aEscolaridade.ID;
+      aCargoFuncao.Escolaridade.Codigo := aEscolaridade.Codigo;
 
       if (Trim(qrySourceDB.FieldByName('codtcm').AsString) = EmptyStr) then
       begin
@@ -614,18 +614,29 @@ begin
       // O nível de escolaridade aqui corresponde ao seu Código RAIS.
       if (Trim(qrySourceDB.FieldByName('nivelesc').AsString) <> EmptyStr) then
       begin
-        aEscola.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('nivelesc').AsString)));
-        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', 'COD_RAIS = ' + QuotedStr(aEscola.Codigo), aEscola);
-        aCargoFuncao.Escolaridade.ID := aEscola.ID;
+        aEscolaridade.Codigo := FormatFloat('00', StrToInt(Trim(qrySourceDB.FieldByName('nivelesc').AsString)));
+        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', 'COD_RAIS = ' + QuotedStr(aEscolaridade.Codigo), aEscolaridade);
+        aCargoFuncao.Escolaridade.ID := aEscolaridade.ID;
       end;
 
       // Buscar a escolaridade padrão (DEFAULT)
       if (aCargoFuncao.Escolaridade.ID = 0) then
       begin
-        aEscola.ID     := 0;
-        aEscola.Codigo := '0';
-        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', ID_SYS_ANTER + ' = ' + QuotedStr(aEscola.Codigo), aEscola);
-        aCargoFuncao.Escolaridade.ID := aEscola.ID;
+        aEscolaridade.ID     := 0;
+        aEscolaridade.Codigo := '0';
+        dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', ID_SYS_ANTER + ' = ' + QuotedStr(aEscolaridade.Codigo), aEscolaridade);
+        aCargoFuncao.Escolaridade.ID := aEscolaridade.ID;
+
+        if (aCargoFuncao.Escolaridade.ID = 0) then
+        begin
+          aEscolaridade.ID     := 0;
+          aEscolaridade.Codigo := '0';
+          dmConexaoTargetDB.GetID('ESCOLARIDADE', 'ID', 'COD_RAIS = ' + QuotedStr(aEscolaridade.Codigo), aEscolaridade);
+          aCargoFuncao.Escolaridade.ID := aEscolaridade.ID;
+
+          if (aCargoFuncao.Escolaridade.ID = 0) then
+            aCargoFuncao.Escolaridade.ID := 1;
+        end;
       end;
 
       aCargoFuncao.VencimentoBase := qrySourceDB.FieldByName('salario').AsCurrency;
